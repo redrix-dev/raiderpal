@@ -12,6 +12,7 @@ export type ItemCardProps = {
     loot_area?: string | null;
     workbench?: string | null;
   };
+  onClick?: () => void;
 };
 
 function rarityClasses(rarity?: string | null) {
@@ -31,10 +32,24 @@ function rarityClasses(rarity?: string | null) {
   }
 }
 
-export function ItemCard({ item }: ItemCardProps) {
+/** Reusable rarity pill so cards + modals stay consistent */
+export function RarityBadge({ rarity }: { rarity?: string | null }) {
+  if (!rarity) return null;
+
   return (
-    <Link
-      href={`/items/${item.id}`}
+    <span
+      className={`text-[10px] uppercase tracking-wide text-gray-200 border rounded px-1.5 py-0.5 bg-slate-950/70 ${rarityClasses(
+        rarity
+      )}`}
+    >
+      {rarity}
+    </span>
+  );
+}
+
+export function ItemCard({ item, onClick }: ItemCardProps) {
+  const inner = (
+    <div
       className={`group flex items-center gap-3 rounded-lg border px-3 py-2.5 text-sm hover:border-sky-500/70 hover:bg-slate-900 transition-colors ${rarityClasses(
         item.rarity
       )}`}
@@ -54,11 +69,7 @@ export function ItemCard({ item }: ItemCardProps) {
           <span className="truncate font-medium text-gray-50">
             {item.name ?? "Unknown item"}
           </span>
-          {item.rarity && (
-            <span className="text-[10px] uppercase tracking-wide text-gray-400 border border-slate-600/70 rounded px-1.5 py-0.5 bg-slate-950/70">
-              {item.rarity}
-            </span>
-          )}
+          <RarityBadge rarity={item.rarity} />
         </div>
 
         <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-gray-400">
@@ -90,6 +101,24 @@ export function ItemCard({ item }: ItemCardProps) {
           <div className="text-[10px] text-gray-500">value</div>
         </div>
       )}
+    </div>
+  );
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className="text-left w-full focus:outline-none"
+      >
+        {inner}
+      </button>
+    );
+  }
+
+  return (
+    <Link href={`/items/${item.id}`} className="block">
+      {inner}
     </Link>
   );
 }

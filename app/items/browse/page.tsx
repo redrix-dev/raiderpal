@@ -1,9 +1,16 @@
 // app/items/browse/page.tsx
 import { getAllItems } from "@/data/items";
 import { ItemsBrowseClient } from "@/components/ItemsBrowseClient";
+import { getDataVersion } from "@/data/version";
 
 export default async function ItemsBrowsePage() {
-  const items = await getAllItems();
+  const [items, versionRow] = await Promise.all([
+    getAllItems(),
+    getDataVersion(),
+  ]);
+
+  const dataVersion =
+    versionRow?.version != null ? String(versionRow.version) : undefined;
 
   return (
     <div className="space-y-4">
@@ -15,7 +22,10 @@ export default async function ItemsBrowsePage() {
         </p>
       </div>
 
-      <ItemsBrowseClient initialItems={items ?? []} />
+      <ItemsBrowseClient
+        initialItems={items ?? []}
+        dataVersion={dataVersion}
+      />
     </div>
   );
 }

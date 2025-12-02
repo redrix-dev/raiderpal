@@ -15,7 +15,7 @@ export type ItemRow = {
 
 export type ItemListRow = Pick<
   ItemRow,
-  "id" | "name" | "rarity" | "icon" | "item_type" | "value"
+  "id" | "name" | "rarity" | "icon" | "item_type" | "value" | "loot_area"
 >;
 
 // Used by /items list page
@@ -24,7 +24,7 @@ export async function getAllItems(): Promise<ItemListRow[]> {
 
   const { data, error } = await supabase
     .from("items")
-    .select("id, name, rarity, icon, item_type, value")
+    .select("id, name, rarity, icon, item_type, value, loot_area")
     .order("name", { ascending: true });
 
   if (error) {

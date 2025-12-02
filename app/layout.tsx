@@ -1,6 +1,7 @@
 // app/layout.tsx
 import type { Metadata } from "next";
 import "./globals.css";
+import { TopNavMenu } from "@/components/TopNavMenu";
 
 export const metadata: Metadata = {
   title: "Raider Pal",
@@ -15,13 +16,11 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full">
       <body className="min-h-full bg-[#050910] text-gray-100">
-        {/* App Shell */}
         <div className="min-h-screen flex flex-col">
           {/* Header */}
           <header className="border-b border-slate-800 bg-[#050910]/95 backdrop-blur">
-            <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between gap-4">
+            <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                {/* Simple logo placeholder */}
                 <div className="h-8 w-8 rounded bg-sky-500/20 border border-sky-500/40 flex items-center justify-center text-xs font-semibold">
                   RP
                 </div>
@@ -35,36 +34,32 @@ export default function RootLayout({
                 </div>
               </div>
 
-              {/* Basic nav (extend later) */}
-              <nav className="flex items-center gap-3 text-sm">
-                <a
-                  href="/items"
-                  className="px-3 py-1.5 rounded border border-slate-700 bg-slate-900/60 hover:bg-slate-800 transition-colors"
-                >
-                  Items
-                </a>
-                {/* Reserve for future pages:
-                <a href="/favorites" className="text-gray-400 hover:text-gray-200">
-                  Favorites
-                </a>
-                <a href="/widget" className="text-gray-400 hover:text-gray-200">
-                  Widget
-                </a>
-                */}
-              </nav>
+              <TopNavMenu />
             </div>
           </header>
 
-          {/* Main content */}
+          {/* Main */}
           <main className="flex-1">
-            <div className="mx-auto max-w-6xl px-4 py-6">{children}</div>
+            <div className="mx-auto w-full max-w-7xl px-2 sm:px-4 py-4">
+              <div className="min-w-0">{children}</div>
+            </div>
           </main>
 
-          {/* Footer (minimal for now) */}
+          {/* Footer */}
           <footer className="border-t border-slate-800 bg-[#050910]">
-            <div className="mx-auto max-w-6xl px-4 py-3 text-xs text-gray-500 flex justify-between">
-              <span>Raider Pal · Unofficial Arc Raiders companion</span>
-              <span>Built with Next.js & Supabase</span>
+            <div className="mx-auto max-w-7xl px-4 py-3 text-xs text-gray-500 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+              <span className="text-gray-400">
+                Raider Pal — unofficial Arc Raiders companion. All game data is
+                property of Embark Studios and provided by MetaForge via{" "}
+                <a
+                  href="https://metaforge.app/arc-raiders"
+                  className="text-sky-300 hover:text-sky-200"
+                >
+                  metaforge.app/arc-raiders
+                </a>
+                .
+              </span>
+              <span className="text-gray-500">Built with Next.js & Supabase</span>
             </div>
           </footer>
         </div>

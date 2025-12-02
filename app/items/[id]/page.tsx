@@ -5,7 +5,9 @@ import { getItemById } from "@/data/items";
 import { getCraftingForItem } from "@/data/crafting";
 import { getRecyclingForItem } from "@/data/recycling";
 import { getUsedInForItem } from "@/data/usedIn";
-import { getBestSourcesForItem } from "@/data/yields"; // ⬅ new import
+import { getBestSourcesForItem } from "@/data/yields";
+import { RarityBadge } from "@/components/ItemCard";
+import { ItemDetailsTabs } from "@/components/ItemDetailsTabs";
 
 type ItemPageProps = {
   // Next 14/15: params is async
@@ -20,7 +22,7 @@ export default async function ItemPage({ params }: ItemPageProps) {
     getCraftingForItem(id),
     getRecyclingForItem(id),
     getUsedInForItem(id),
-    getBestSourcesForItem(id), // ⬅ new call
+    getBestSourcesForItem(id),
   ]);
 
   if (!item) {
@@ -28,207 +30,83 @@ export default async function ItemPage({ params }: ItemPageProps) {
   }
 
   return (
-    <div className="text-gray-100 p-4 space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        {item.icon && (
-          <img
-            src={item.icon}
-            alt={item.name ?? "Item image"}
-            className="w-16 h-16 rounded border border-gray-700"
-          />
-        )}
+    <div className="text-gray-100 space-y-6">
+      {/* Top section: icon, name, rarity, description, stats */}
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-8">
+        {/* Left: icon + name + description */}
+        <div className="flex-1 space-y-3">
+          <div className="flex items-center gap-4">
+            {item.icon && (
+              <img
+                src={item.icon}
+                alt={item.name ?? "Item image"}
+                className="w-16 h-16 rounded border border-gray-700 bg-slate-950 object-contain"
+              />
+            )}
 
-        <div>
-          <h1 className="text-2xl font-bold">{item.name}</h1>
+            <div>
+              <h1 className="text-2xl font-semibold">{item.name}</h1>
+              <div className="mt-1 flex items-center gap-2 text-xs text-gray-400">
+                <RarityBadge rarity={item.rarity} />
+                {item.item_type && <span>{item.item_type}</span>}
+              </div>
+            </div>
+          </div>
 
-          {item.rarity && (
-            <span
-              className={`inline-block mt-1 px-2 py-1 text-xs rounded ${
-                item.rarity === "Common"
-                  ? "bg-gray-700 text-gray-300"
-                  : item.rarity === "Uncommon"
-                  ? "bg-green-700 text-green-200"
-                  : item.rarity === "Rare"
-                  ? "bg-blue-700 text-blue-200"
-                  : item.rarity === "Epic"
-                  ? "bg-purple-700 text-purple-200"
-                  : "bg-yellow-700 text-yellow-200"
-              }`}
-            >
-              {item.rarity}
-            </span>
+          {item.description && (
+            <p className="text-sm text-gray-300 max-w-2xl">
+              {item.description}
+            </p>
           )}
+        </div>
+
+        {/* Right: compact stats panel */}
+        <div className="w-full max-w-xs rounded-lg border border-slate-800 bg-slate-950/90 p-3 text-sm text-gray-200">
+          <h2 className="text-xs font-semibold text-gray-300 mb-2 uppercase tracking-wide">
+            Stats
+          </h2>
+          <dl className="space-y-1.5 text-xs">
+            {item.value != null && (
+              <div className="flex justify-between gap-3">
+                <dt className="text-gray-400">Value</dt>
+                <dd className="font-medium text-gray-100">{item.value}</dd>
+              </div>
+            )}
+            {item.item_type && (
+              <div className="flex justify-between gap-3">
+                <dt className="text-gray-400">Type</dt>
+                <dd className="font-medium text-gray-100">
+                  {item.item_type}
+                </dd>
+              </div>
+            )}
+            {item.workbench && (
+              <div className="flex justify-between gap-3">
+                <dt className="text-gray-400">Workbench</dt>
+                <dd className="font-medium text-gray-100">
+                  {item.workbench}
+                </dd>
+              </div>
+            )}
+            {item.loot_area && (
+              <div className="flex justify-between gap-3">
+                <dt className="text-gray-400">Loot Area</dt>
+                <dd className="font-medium text-gray-100">
+                  {item.loot_area}
+                </dd>
+              </div>
+            )}
+          </dl>
         </div>
       </div>
 
-      {/* Description */}
-      {item.description && (
-        <p className="text-gray-400">{item.description}</p>
-      )}
-
-      {/* Stats */}
-      <div>
-        <h2 className="text-lg font-semibold mb-2 text-gray-200">Stats</h2>
-        <ul className="text-gray-300 space-y-1">
-          {item.value != null && (
-            <li>
-              <strong>Value:</strong> {item.value}
-            </li>
-          )}
-          {item.item_type && (
-            <li>
-              <strong>Type:</strong> {item.item_type}
-            </li>
-          )}
-          {item.workbench && (
-            <li>
-              <strong>Workbench:</strong> {item.workbench}
-            </li>
-          )}
-          {item.loot_area && (
-            <li>
-              <strong>Loot Area:</strong> {item.loot_area}
-            </li>
-          )}
-        </ul>
-      </div>
-
-      {/* Crafting */}
-      {crafting?.length > 0 && (
-        <div>
-          <h2 className="text-lg font-semibold mb-2 text-gray-200">
-            Crafting Recipe
-          </h2>
-          <ul className="space-y-2">
-            {crafting.map((c, idx) => (
-              <li
-                key={`${c.component_id ?? "unknown"}-${idx}`}
-                className="flex items-center gap-3 p-2 bg-gray-800 border border-gray-700 rounded"
-              >
-                {c.component_icon && (
-                  <img
-                    src={c.component_icon}
-                    alt={c.component_name ?? "Component icon"}
-                    className="w-8 h-8 rounded border border-gray-700"
-                  />
-                )}
-
-                <a
-                  href={`/items/${c.component_id}`}
-                  className="text-gray-100 hover:underline"
-                >
-                  {c.component_name}
-                </a>
-                {c.quantity != null && (
-                  <span className="text-gray-400 ml-auto">×{c.quantity}</span>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Recycling */}
-      {recycling?.length > 0 && (
-        <div>
-          <h2 className="text-lg font-semibold mb-2 text-gray-200">
-            Recycles Into
-          </h2>
-          <ul className="space-y-2">
-            {recycling.map((r: any, idx: number) => (
-              <li
-                key={`${r.component_id}-${idx}`}
-                className="flex items-center gap-3 p-2 bg-gray-800 border border-gray-700 rounded"
-              >
-                {r.component_icon && (
-                  <img
-                    src={r.component_icon}
-                    alt={r.component_name ?? "Component icon"}
-                    className="w-8 h-8 rounded border border-gray-700"
-                  />
-                )}
-
-                <a
-                  href={`/items/${r.component_id}`}
-                  className="text-gray-100 hover:underline"
-                >
-                  {r.component_name}
-                </a>
-                <span className="text-gray-400 ml-auto">×{r.quantity}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Best Sources (direct recycle) */}
-      {bestSources?.length > 0 && (
-        <div>
-          <h2 className="text-lg font-semibold mb-2 text-gray-200">
-            Best Sources (direct recycle)
-          </h2>
-          <ul className="space-y-2">
-            {bestSources.map((s, idx) => (
-              <li
-                key={`${s.sourceItemId}-${idx}`}
-                className="flex items-center gap-3 p-2 bg-gray-800 border border-gray-700 rounded"
-              >
-                {s.sourceIcon && (
-                  <img
-                    src={s.sourceIcon}
-                    alt={s.sourceName ?? "Source item"}
-                    className="w-8 h-8 rounded border border-gray-700"
-                  />
-                )}
-
-                <a
-                  href={`/items/${s.sourceItemId}`}
-                  className="text-gray-100 hover:underline"
-                >
-                  {s.sourceName}
-                </a>
-                <span className="text-gray-400 ml-auto">
-                  ×{s.quantity} per recycle
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Used In */}
-      {usedIn?.length > 0 && (
-        <div>
-          <h2 className="text-lg font-semibold mb-2 text-gray-200">Used In</h2>
-          <ul className="space-y-2">
-            {usedIn.map((u: any, idx: number) => (
-              <li
-                key={`${u.product_id}-${idx}`}
-                className="flex items-center gap-3 p-2 bg-gray-800 border border-gray-700 rounded"
-              >
-                {u.product_icon && (
-                  <img
-                    src={u.product_icon}
-                    alt={u.product_name ?? "Product icon"}
-                    className="w-8 h-8 rounded border border-gray-700"
-                  />
-                )}
-
-                <a
-                  href={`/items/${u.product_id}`}
-                  className="text-gray-100 hover:underline"
-                >
-                  {u.product_name}
-                </a>
-                <span className="text-gray-400 ml-auto">
-                  {u.quantity && `×${u.quantity}`}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      {/* Bottom: tabbed details */}
+      <ItemDetailsTabs
+        crafting={crafting ?? []}
+        recycling={recycling ?? []}
+        bestSources={bestSources ?? []}
+        usedIn={usedIn ?? []}
+      />
     </div>
   );
 }

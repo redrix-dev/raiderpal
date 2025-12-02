@@ -45,3 +45,80 @@ export async function getRecyclingForItem(
 
   return (data ?? []) as RecyclingSourceRow[];
 }
+
+/**
+ * ID sets used by the Recycle Helper UI:
+ *
+ * - needableIds: items you can "need" (appear as component_id in recycling)
+ * - haveableIds: items you can "have" (appear as source_item_id in recycling)
+ *
+ * These are *optional* hints for the UI. If they end up empty, the
+ * helper falls back to showing all non-excluded items.
+ */
+export async function getRecyclingIdSets(): Promise<{
+  needableIds: string[];
+  haveableIds: string[];
+}> {
+  const supabase = createServerClient();
+
+  const { data, error } = await supabase
+    .from("view_recycling_sources")
+    .select(
+      `
+      source_item_id,
+      component_id
+    `
+    );
+
+  if (error) {
+    throw new Error(`getRecyclingIdSets failed: ${error.message}`);
+  }
+
+  const needableIds = new Set<string>();
+  const haveableIds = new Set<string>();
+
+  for (const row of data ?? []) {
+    const sourceId = row.source_item_id as string | null;
+    const componentId = row.component_id as string | null;
+
+    if (componentId) needableIds.add(componentId);
+    if (sourceId) haveableIds.add(sourceId);
+  }
+
+  return {
+    needableIds: Array.from(needableIds),
+    haveableIds: Array.from(haveableIds),
+  };
+}
+
+/**
+ * Distinct item types that actually participate in recycling,
+ * based on the recycling view.
+ *
+ * Right now this pulls from component_type (the type of items
+ * produced by recycling). If later you add source_item_type
+ * to the view, you can fold that in here too.
+ */
+export async function getRecyclingItemTypes(): Promise<string[]> {
+  const supabase = createServerClient();
+
+  const { data, error } = await supabase
+    .from("view_recycling_sources")
+    .select("component_type")
+    .not("component_type", "is", null);
+
+  if (error) {
+    throw new Error(`getRecyclingItemTypes failed: ${error.message}`);
+  }
+
+  const types = new Set<string>();
+
+  for (const row of data ?? []) {
+    const t = row.component_type as string | null;
+    if (t && t.trim()) {
+      types.add(t.trim());
+    }
+  }
+
+  return Array.from(types).sort((a, b) => a.localeCompare(b));
+}
