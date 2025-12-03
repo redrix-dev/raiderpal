@@ -1,16 +1,14 @@
 import { createServerClient } from "@/lib/supabaseServer";
 import type { NextRequest } from "next/server";
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_req: NextRequest, context: any) {
+  const { id } = context?.params ?? {};
   const supabase = createServerClient();
 
   const { data, error } = await supabase
     .from("view_crafting_recipes")
     .select("*")
-    .eq("item_id", params.id);
+    .eq("item_id", id);
 
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), {

@@ -88,7 +88,7 @@ export function ItemsBrowseClient({
         crafting: craftRes ?? [],
         recycling: recRes ?? [],
       });
-    } catch (e) {
+    } catch {
       setDetails({ crafting: [], recycling: [] });
     } finally {
       setLoadingDetails(false);
