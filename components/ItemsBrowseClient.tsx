@@ -76,10 +76,10 @@ export function ItemsBrowseClient({
 
     try {
       const [craftRes, recRes] = await Promise.all([
-        cachedFetchJson(`/items/${item.id}/crafting`, {
+        cachedFetchJson<any[]>(`/items/${item.id}/crafting`, {
           version: dataVersion ?? undefined,
         }),
-        cachedFetchJson(`/items/${item.id}/recycling`, {
+        cachedFetchJson<any[]>(`/items/${item.id}/recycling`, {
           version: dataVersion ?? undefined,
         }),
       ]);
