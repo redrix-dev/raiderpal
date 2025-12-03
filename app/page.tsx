@@ -8,9 +8,10 @@ export default function HomePage() {
       <section className="space-y-3">
         <h1 className="text-3xl font-semibold tracking-tight">Raider Pal</h1>
         <p className="text-sm text-gray-300 max-w-2xl">
-          A simple landing pad for Arc Raiders loot info. Raider Pal helps you
-          browse items, see where to find them, and plan recycling paths without
-          hammering your game data endpoints.
+          A Raider simply cannot waste time pondering the best way
+          to acquire steel springs. Raider Pal puts that info at your fingertips.
+          Or...feet...tips? <em> We got you Scrappy</em>
+          Jokes aside, this is a hobby tool for something I wanted myself and somehow it turned into an entire project. Hope you find it useful too.
         </p>
       </section>
 
