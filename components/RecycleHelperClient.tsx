@@ -25,9 +25,11 @@ type Props = {
 type Mode = "need" | "have";
 type SortKey = "quantityDesc" | "quantityAsc" | "name" | "rarity";
 type SelectionMap = Set<string>;
+type BooleanOption = boolean;
 
 // Item types we never want to show in this helper at all
 const EXCLUDED_ITEM_TYPES = new Set<string>(["Blueprint", "Key"]);
+const EXCLUDED_NEED_TYPES = new Set<string>(["Weapon"]);
 
 export function RecycleHelperClient({
   initialItems,
@@ -56,6 +58,7 @@ export function RecycleHelperClient({
   const [resultTypeFilter, setResultTypeFilter] = useState<string>("all");
   const [sortKey, setSortKey] = useState<SortKey>("quantityDesc");
   const [selectedRows, setSelectedRows] = useState<SelectionMap>(new Set());
+  const [hideWeapons, setHideWeapons] = useState<BooleanOption>(true);
   const { addMany, isAdded } = useRaidReminders();
 
   // Sets for quick membership checks
@@ -89,6 +92,8 @@ export function RecycleHelperClient({
       // Must have a type that is relevant for this mode
       if (!type) return false;
       if (EXCLUDED_ITEM_TYPES.has(type)) return false;
+      if (mode === "need" && hideWeapons && EXCLUDED_NEED_TYPES.has(type))
+        return false;
       if (!itemTypes.includes(type)) return false;
 
       // Item must participate in recycling for this mode
@@ -108,6 +113,7 @@ export function RecycleHelperClient({
     pickerQuery,
     needableSet,
     haveableSet,
+    hideWeapons,
   ]);
 
   // Selected item object
@@ -189,6 +195,10 @@ export function RecycleHelperClient({
 
     if (resultTypeFilter !== "all") {
       out = out.filter((r) => r.sourceType === resultTypeFilter);
+    }
+
+    if (hideWeapons) {
+      out = out.filter((r) => (r.sourceType ?? "").toLowerCase() !== "weapon");
     }
 
     out.sort((a, b) => {
@@ -281,147 +291,202 @@ export function RecycleHelperClient({
   const hasSelection = selectedRows.size > 0;
 
   return (
-    <div className="space-y-6">
-      {/* Mode toggle */}
-      <div className="inline-flex rounded-md border border-slate-700 bg-slate-950/70 p-1 text-xs">
-        <button
-          type="button"
-          onClick={() => handleModeChange("need")}
-          className={
-            "px-3 py-1 rounded " +
-            (mode === "need"
-              ? "bg-sky-600 text-white"
-              : "text-gray-300 hover:bg-slate-900")
-          }
-        >
-          I need this item
-        </button>
-        <button
-          type="button"
-          onClick={() => handleModeChange("have")}
-          className={
-            "px-3 py-1 rounded " +
-            (mode === "have"
-              ? "bg-sky-600 text-white"
-              : "text-gray-300 hover:bg-slate-900")
-          }
-        >
-          I have this item
-        </button>
+    <div className="space-y-4 rounded-lg border border-slate-800 bg-slate-950/60 p-4">
+      {/* Mode toggle header */}
+      <div className="flex flex-wrap gap-3 items-center justify-between">
+        <div className="text-sm text-slate-200 font-medium">Recycle Helper</div>
+        <div className="inline-flex w-full sm:w-auto rounded-md border border-slate-700 bg-slate-900 p-1 text-xs">
+          <button
+            type="button"
+            onClick={() => handleModeChange("need")}
+            className={
+              "flex-1 px-3 py-1 rounded " +
+              (mode === "need"
+                ? "bg-sky-600 text-white"
+                : "text-gray-200 hover:bg-slate-800")
+            }
+          >
+            I need this item
+          </button>
+          <button
+            type="button"
+            onClick={() => handleModeChange("have")}
+            className={
+              "flex-1 px-3 py-1 rounded " +
+              (mode === "have"
+                ? "bg-sky-600 text-white"
+                : "text-gray-200 hover:bg-slate-800")
+            }
+          >
+            I have this item
+          </button>
+        </div>
       </div>
 
-      {/* Top controls: item-type + item picker with internal search */}
-      <div className="space-y-4 rounded-md border border-slate-800 bg-slate-900/70 p-3">
-        <div className="flex flex-col gap-3 md:flex-row md:items-end">
-          <div className="flex-1">
-            <label className="block text-xs font-medium text-gray-400 mb-1">
-              Item type
-            </label>
-            <select
-              value={itemTypeFilter}
-              onChange={(e) => {
-                setItemTypeFilter(e.target.value);
-                setSelectedItemId("");
-                setPickerQuery("");
-              }}
-              className="w-full rounded-md border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-gray-100 focus:outline-none focus:ring-1 focus:ring-sky-500"
-            >
-              <option value="all">All types</option>
-              {itemTypes.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex-[2]">
-            <label className="block text-xs font-medium text-gray-400 mb-1">
-              {mode === "need"
-                ? "Item you want to obtain"
-                : "Item you want to recycle"}
-            </label>
-
-            {/* Item selector with absolute dropdown */}
-            <div className="relative">
-              {/* Trigger button */}
-              <button
-                type="button"
-                onClick={() => setPickerOpen((open) => !open)}
-                className="w-full rounded-md border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-gray-100 flex items-center justify-between focus:outline-none focus:ring-1 focus:ring-sky-500"
+      {/* Picker modules */}
+      <div className="grid gap-4">
+        <div className="rounded-md border border-slate-800 bg-slate-900/80 p-3">
+          <div className="grid gap-3 md:grid-cols-[1.5fr_1fr] md:items-end">
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-gray-400 mb-1">
+                Item type
+              </label>
+              <select
+                value={itemTypeFilter}
+                onChange={(e) => {
+                  setItemTypeFilter(e.target.value);
+                  setSelectedItemId("");
+                  setPickerQuery("");
+                }}
+                className="w-full h-10 rounded-md border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-gray-100 focus:outline-none focus:ring-1 focus:ring-sky-500"
               >
-                <span className="truncate">
-                  {selectedItem?.name ?? "Select an item..."}
-                </span>
-                <span className="ml-2 text-xs text-gray-500">
-                  {pickerOpen ? "^" : "v"}
-                </span>
-              </button>
+                <option value="all">All types</option>
+                {itemTypes.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-              {/* Dropdown panel (absolute) */}
-              {pickerOpen && (
-                <div
-                  className="
-                    absolute z-20 left-0 top-full mt-1
-                    w-full rounded-md border border-slate-800
-                    bg-slate-950/95 shadow-lg text-xs
-                  "
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-gray-400 mb-1">
+                {mode === "need"
+                  ? "Item you want to obtain"
+                  : "Item you want to recycle"}
+              </label>
+
+              {/* Item selector with absolute dropdown */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setPickerOpen((open) => !open)}
+                  className="w-full h-10 rounded-md border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-gray-100 flex items-center justify-between focus:outline-none focus:ring-1 focus:ring-sky-500"
                 >
-                  {/* Filter input inside dropdown */}
-                  <div className="border-b border-slate-800 p-2">
-                    <input
-                      type="text"
-                      value={pickerQuery}
-                      onChange={(e) => setPickerQuery(e.target.value)}
-                      placeholder="Filter by name..."
-                      className="w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
-                    />
-                  </div>
+                  <span className="truncate">
+                    {selectedItem?.name ?? "Select an item..."}
+                  </span>
+                  <span className="ml-2 text-xs text-gray-500">
+                    {pickerOpen ? "^" : "v"}
+                  </span>
+                </button>
 
-                  {/* Scrollable list */}
-                  <div className="max-h-64 overflow-y-auto">
-                    {filteredItems.length === 0 ? (
-                      <div className="p-3 text-xs text-gray-500">
-                        No items match your filters.
-                      </div>
-                    ) : (
-                      <ul className="divide-y divide-slate-800 text-xs">
-                        {filteredItems.map((item) => (
-                          <li key={item.id}>
-                            <button
-                              type="button"
-                              onClick={() => handleSelectItem(item)}
-                              className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-slate-900"
-                            >
-                              {item.icon && (
-                                <img
-                                  src={item.icon}
-                                  alt={item.name ?? "icon"}
-                                  className="h-6 w-6 rounded border border-slate-700 bg-slate-950 object-contain"
-                                />
-                              )}
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2">
-                                  <span className="truncate text-gray-100">
-                                    {item.name}
-                                  </span>
-                                  <RarityBadge
-                                    rarity={item.rarity ?? undefined}
+                {pickerOpen && (
+                  <div className="absolute z-20 left-0 top-full mt-1 w-full rounded-md border border-slate-800 bg-slate-950/95 shadow-lg text-xs">
+                    <div className="border-b border-slate-800 p-2">
+                      <input
+                        type="text"
+                        value={pickerQuery}
+                        onChange={(e) => setPickerQuery(e.target.value)}
+                        placeholder="Filter by name..."
+                        className="w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                      />
+                    </div>
+
+                    <div className="max-h-64 overflow-y-auto">
+                      {filteredItems.length === 0 ? (
+                        <div className="p-3 text-xs text-gray-500">
+                          No items match your filters.
+                        </div>
+                      ) : (
+                        <ul className="divide-y divide-slate-800 text-xs">
+                          {filteredItems.map((item) => (
+                            <li key={item.id}>
+                              <button
+                                type="button"
+                                onClick={() => handleSelectItem(item)}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-slate-900"
+                              >
+                                {item.icon && (
+                                  <img
+                                    src={item.icon}
+                                    alt={item.name ?? "icon"}
+                                    className="h-6 w-6 rounded border border-slate-700 bg-slate-950 object-contain"
                                   />
-                                </div>
-                                {item.item_type && (
-                                  <div className="text-[10px] text-gray-500">
-                                    {item.item_type}
-                                  </div>
                                 )}
-                              </div>
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <span className="truncate text-gray-100">
+                                      {item.name}
+                                    </span>
+                                    <RarityBadge
+                                      rarity={item.rarity ?? undefined}
+                                    />
+                                  </div>
+                                  {item.item_type && (
+                                    <div className="text-[10px] text-gray-500">
+                                      {item.item_type}
+                                    </div>
+                                  )}
+                                </div>
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-md border border-slate-800 bg-slate-900/80 p-3">
+          <div className="grid gap-3 md:grid-cols-[1.5fr_1fr] md:items-end">
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-gray-400 mb-1">
+                Filter results by item type
+              </label>
+              <select
+                value={resultTypeFilter}
+                onChange={(e) => setResultTypeFilter(e.target.value)}
+                className="w-full h-10 rounded-md border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-gray-100 focus:outline-none focus:ring-1 focus:ring-sky-500"
+              >
+                <option value="all">All types</option>
+                {resultTypes.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+              {resultTypes.length === 0 &&
+                selectedItemId &&
+                !loading &&
+                !error && (
+                  <p className="mt-1 text-[11px] text-gray-500">
+                    No specific result types yet for this item; you can still see
+                    all results below.
+                  </p>
+                )}
+            </div>
+
+            <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
+              <div className="w-full md:flex-1">
+                <label className="block text-xs font-medium text-gray-400 mb-1">
+                  Sort results
+                </label>
+                <select
+                  value={sortKey}
+                  onChange={(e) => setSortKey(e.target.value as SortKey)}
+                  className="w-full h-10 rounded-md border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-gray-100 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                >
+                  <option value="quantityDesc">Quantity (high to low)</option>
+                  <option value="quantityAsc">Quantity (low to high)</option>
+                  <option value="name">Name (A to Z)</option>
+                  <option value="rarity">Rarity (A to Z)</option>
+                </select>
+              </div>
+              {mode === "need" && (
+                <label className="inline-flex items-center gap-2 h-10 px-2 text-sm text-gray-200 md:justify-end">
+                  <input
+                    type="checkbox"
+                    checked={hideWeapons}
+                    onChange={(e) => setHideWeapons(e.target.checked)}
+                    className="h-5 w-5 rounded border-slate-700 bg-slate-900 text-sky-500 focus:ring-sky-500"
+                  />
+                  Hide weapons
+                </label>
               )}
             </div>
           </div>
@@ -453,52 +518,6 @@ export function RecycleHelperClient({
           </div>
         </div>
       )}
-
-      {/* Result-side filters */}
-      <div className="flex flex-col gap-3 md:flex-row md:items-end">
-        <div className="flex-1">
-          <label className="block text-xs font-medium text-gray-400 mb-1">
-            Filter results by item type
-          </label>
-          <select
-            value={resultTypeFilter}
-            onChange={(e) => setResultTypeFilter(e.target.value)}
-            className="w-full rounded-md border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-gray-100 focus:outline-none focus:ring-1 focus:ring-sky-500"
-          >
-            <option value="all">All types</option>
-            {resultTypes.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-          {resultTypes.length === 0 &&
-            selectedItemId &&
-            !loading &&
-            !error && (
-              <p className="mt-1 text-[11px] text-gray-500">
-                No specific result types yet for this item; you can still see
-                all results below.
-              </p>
-            )}
-        </div>
-
-        <div className="w-full md:w-48">
-          <label className="block text-xs font-medium text-gray-400 mb-1">
-            Sort results
-          </label>
-          <select
-            value={sortKey}
-            onChange={(e) => setSortKey(e.target.value as SortKey)}
-            className="w-full rounded-md border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-gray-100 focus:outline-none focus:ring-1 focus:ring-sky-500"
-          >
-            <option value="quantityDesc">Quantity (high to low)</option>
-            <option value="quantityAsc">Quantity (low to high)</option>
-            <option value="name">Name (A to Z)</option>
-            <option value="rarity">Rarity (A to Z)</option>
-          </select>
-        </div>
-      </div>
 
       {/* Status */}
       {loading && (
@@ -687,8 +706,9 @@ export function RecycleHelperClient({
 
       {!selectedItemId && !loading && !error && (
         <div className="text-[11px] text-gray-500">
-          Choose an item type, then open the item picker and filter by name to
-          see recycling info.
+          {mode === "need"
+            ? "Pick a type, then choose what you want to obtain to see where it drops."
+            : "Pick a type, then choose what you have to see what it recycles into."}
         </div>
       )}
     </div>

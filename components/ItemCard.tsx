@@ -114,13 +114,20 @@ export function ItemCard({ item, onClick, action }: ItemCardProps) {
 
   if (onClick) {
     return (
-      <button
-        type="button"
+      <div
+        role="button"
+        tabIndex={0}
         onClick={onClick}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onClick();
+          }
+        }}
         className="text-left w-full focus:outline-none"
       >
         {inner}
-      </button>
+      </div>
     );
   }
 
