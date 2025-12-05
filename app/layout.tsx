@@ -1,7 +1,7 @@
 // app/layout.tsx
 import type { Metadata } from "next";
 import "./globals.css";
-import { TopNavMenu } from "@/components/TopNavMenu";
+import { HeaderControls } from "@/components/HeaderControls";
 
 export const metadata: Metadata = {
   title: "Raider Pal",
@@ -34,7 +34,7 @@ export default function RootLayout({
                 </div>
               </div>
 
-              <TopNavMenu />
+              <HeaderControls />
             </div>
           </header>
 

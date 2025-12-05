@@ -13,6 +13,7 @@ export type ItemCardProps = {
     workbench?: string | null;
   };
   onClick?: () => void;
+  action?: React.ReactNode;
 };
 
 function rarityClasses(rarity?: string | null) {
@@ -47,7 +48,7 @@ export function RarityBadge({ rarity }: { rarity?: string | null }) {
   );
 }
 
-export function ItemCard({ item, onClick }: ItemCardProps) {
+export function ItemCard({ item, onClick, action }: ItemCardProps) {
   const inner = (
     <div
       className={`group flex items-center gap-3 rounded-lg border px-3 py-2.5 text-sm hover:border-sky-500/70 hover:bg-slate-900 transition-colors ${rarityClasses(
@@ -95,10 +96,17 @@ export function ItemCard({ item, onClick }: ItemCardProps) {
       </div>
 
       {/* Value */}
-      {item.value != null && (
-        <div className="ml-2 text-right text-xs text-gray-300">
-          <div className="font-semibold">{item.value}</div>
-          <div className="text-[10px] text-gray-500">value</div>
+      {(item.value != null || action) && (
+        <div className="ml-2 flex flex-col items-end gap-2 text-right text-xs text-gray-300">
+          {item.value != null && (
+            <div>
+              <div className="font-semibold">{item.value}</div>
+              <div className="text-[10px] text-gray-500">value</div>
+            </div>
+          )}
+          {action && (
+            <div onClick={(e) => e.stopPropagation()}>{action}</div>
+          )}
         </div>
       )}
     </div>
@@ -106,13 +114,20 @@ export function ItemCard({ item, onClick }: ItemCardProps) {
 
   if (onClick) {
     return (
-      <button
-        type="button"
+      <div
+        role="button"
+        tabIndex={0}
         onClick={onClick}
-        className="text-left w-full focus:outline-none"
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onClick();
+          }
+        }}
+        className="text-left w-full focus:outline-none min-w-0"
       >
         {inner}
-      </button>
+      </div>
     );
   }
 
