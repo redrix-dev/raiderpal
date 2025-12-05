@@ -116,7 +116,7 @@ export function ItemsBrowseClient({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Name, type, or loot area…"
-            className="w-full rounded-md border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+            className="w-full rounded-md border border-slate-700 bg-slate-950/80 px-3 py-2 text-base sm:text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
           />
         </div>
 
@@ -127,7 +127,7 @@ export function ItemsBrowseClient({
           <select
             value={rarity}
             onChange={(e) => setRarity(e.target.value as any)}
-            className="w-full rounded-md border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-gray-100 focus:outline-none focus:ring-1 focus:ring-sky-500"
+            className="w-full rounded-md border border-slate-700 bg-slate-950/80 px-3 py-2 text-base sm:text-sm text-gray-100 focus:outline-none focus:ring-1 focus:ring-sky-500"
           >
             <option value="all">All rarities</option>
             {rarityOptions.map((r) => (
@@ -150,7 +150,7 @@ export function ItemsBrowseClient({
           No items match your filters.
         </div>
       ) : (
-        <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3 min-w-0">
           {filtered.map((item) => (
             <ItemCard
               key={item.id}

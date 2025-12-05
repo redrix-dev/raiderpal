@@ -124,7 +124,7 @@ export function ItemCard({ item, onClick, action }: ItemCardProps) {
             onClick();
           }
         }}
-        className="text-left w-full focus:outline-none"
+        className="text-left w-full focus:outline-none min-w-0"
       >
         {inner}
       </div>
