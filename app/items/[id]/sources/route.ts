@@ -6,9 +6,13 @@ type Params = { id: string };
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: Promise<Params> }
+  { params }: { params: Params }
 ) {
-  const { id } = await params;
-  const sources = await getBestSourcesForItem(id);
+  const { id } = params;
+  if (!id || typeof id !== "string" || !id.trim()) {
+    return NextResponse.json({ error: "Invalid item id" }, { status: 400 });
+  }
+
+  const sources = await getBestSourcesForItem(id.trim());
   return NextResponse.json(sources ?? []);
 }
