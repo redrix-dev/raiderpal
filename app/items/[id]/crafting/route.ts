@@ -5,9 +5,9 @@ type Params = { id: string };
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: Params }
+  { params }: { params: Promise<Params> }
 ) {
-  const { id } = params;
+  const { id } = await params;
   if (!id || typeof id !== "string" || !id.trim()) {
     return new Response(JSON.stringify({ error: "Invalid item id" }), {
       status: 400,

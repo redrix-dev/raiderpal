@@ -10,11 +10,11 @@ import { RarityBadge } from "@/components/ItemCard";
 import { ItemDetailsTabs } from "@/components/ItemDetailsTabs";
 
 type ItemPageProps = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 export default async function ItemPage({ params }: ItemPageProps) {
-  const { id } = params;
+  const { id } = await params;
 
   const [item, crafting, recycling, usedIn, bestSources] = await Promise.all([
     getItemById(id),
