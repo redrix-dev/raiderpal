@@ -9,6 +9,10 @@ export async function GET(
   { params }: { params: Promise<Params> }
 ) {
   const { id } = await params;
-  const sources = await getBestSourcesForItem(id);
+  if (!id || typeof id !== "string" || !id.trim()) {
+    return NextResponse.json({ error: "Invalid item id" }, { status: 400 });
+  }
+
+  const sources = await getBestSourcesForItem(id.trim());
   return NextResponse.json(sources ?? []);
 }

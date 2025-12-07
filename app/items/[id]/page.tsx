@@ -10,7 +10,6 @@ import { RarityBadge } from "@/components/ItemCard";
 import { ItemDetailsTabs } from "@/components/ItemDetailsTabs";
 
 type ItemPageProps = {
-  // Next 14/15: params is async
   params: Promise<{ id: string }>;
 };
 
