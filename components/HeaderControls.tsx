@@ -4,9 +4,12 @@ import { useState } from "react";
 import { TopNavMenu } from "./TopNavMenu";
 import { RaidRemindersDrawer } from "./RaidRemindersDrawer";
 import { LongCacheIndicator } from "./LongCacheToggle";
+import { useRaidReminders } from "@/hooks/useRaidReminders";
 
 export function HeaderControls() {
   const [open, setOpen] = useState(false);
+  const { items } = useRaidReminders();
+  const count = items.length;
 
   return (
     <div className="flex items-center justify-end gap-2 sm:gap-3">
@@ -19,6 +22,9 @@ export function HeaderControls() {
       >
         <span className="h-2 w-2 rounded-full bg-sky-400 animate-pulse" />
         Raid Reminders
+        <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[11px] sm:text-xs text-slate-200">
+          {count}
+        </span>
       </button>
 
       <TopNavMenu />
