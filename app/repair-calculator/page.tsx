@@ -1,8 +1,18 @@
 import { getRepairEconomy } from "@/data/repairEconomy";
+import { getDataVersion } from "@/data/version";
 import { RepairCalculatorClient } from "@/components/RepairCalculatorClient";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function RepairCalculatorPage() {
-  const items = await getRepairEconomy();
+  const [items, versionRow] = await Promise.all([
+    getRepairEconomy(),
+    getDataVersion(),
+  ]);
+
+  const dataVersion =
+    versionRow?.version != null ? String(versionRow.version) : undefined;
 
   return (
     <div className="space-y-4">
@@ -20,7 +30,7 @@ export default async function RepairCalculatorPage() {
           No repair data found yet. Add items to the economy view to use this calculator.
         </div>
       ) : (
-        <RepairCalculatorClient items={items} />
+        <RepairCalculatorClient items={items} dataVersion={dataVersion} />
       )}
     </div>
   );
