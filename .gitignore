@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local helpers (not checked in)
+scripts/generate_expensive_repair.sql

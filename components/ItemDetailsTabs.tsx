@@ -58,7 +58,9 @@ export function ItemDetailsTabs({
         {active === "crafting" && (
           <TabList
             emptyText="No crafting recipe."
-            rows={crafting}
+            rows={crafting.filter(
+              (c: any) => (c.component_type ?? "").toLowerCase() !== "blueprint"
+            )}
             mapRow={(c: any) => ({
               key: c.component_id ?? "unknown",
               href: `/items/${c.component_id}`,
