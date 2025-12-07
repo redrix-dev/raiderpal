@@ -8,8 +8,6 @@ import { useRaidReminders } from "@/hooks/useRaidReminders";
 
 export function HeaderControls() {
   const [open, setOpen] = useState(false);
-  const { items } = useRaidReminders();
-  const count = items.length;
 
   return (
     <div className="flex items-center justify-end gap-2 sm:gap-3">
