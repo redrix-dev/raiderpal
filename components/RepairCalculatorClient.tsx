@@ -318,10 +318,13 @@ function useCostList(
     );
     return Object.entries(costMap)
       .filter(([, qty]) => qty > 0)
-      .map(([id, qty]) => {
+      .filter(([id]) => {
         const meta = componentMeta.get(id) ?? itemMap.get(id);
         const itemType = (meta as any)?.item_type;
-        if (itemType === "Blueprint") return null;
+        return itemType !== "Blueprint";
+      })
+      .map(([id, qty]) => {
+        const meta = componentMeta.get(id) ?? itemMap.get(id);
         const name = (meta as any)?.name ?? id;
         return {
           id,
@@ -331,7 +334,6 @@ function useCostList(
           icon: (meta as any)?.icon,
         };
       })
-      .filter((row): row is CostRow => Boolean(row))
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [costMap, metaSources, items]);
 }
