@@ -19,16 +19,16 @@ export default function RootLayout({
         <div className="min-h-screen flex flex-col">
           {/* Header */}
           <header className="border-b border-slate-800 bg-[#050910]/95 backdrop-blur">
-            <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between gap-4">
+            <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="h-8 w-8 rounded bg-sky-500/20 border border-sky-500/40 flex items-center justify-center text-xs font-semibold">
+                <div className="h-10 w-10 rounded bg-sky-500/20 border border-sky-500/40 flex items-center justify-center text-sm font-semibold">
                   RP
                 </div>
-                <div>
-                  <h1 className="text-lg font-semibold tracking-tight">
+                <div className="hidden sm:flex flex-col">
+                  <h1 className="text-lg font-semibold tracking-tight text-center sm:text-left">
                     Raider Pal
                   </h1>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-gray-400 text-center sm:text-left">
                     Arc Raiders item explorer & crafting companion
                   </p>
                 </div>

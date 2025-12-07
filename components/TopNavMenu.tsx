@@ -4,15 +4,18 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { LongCacheSettingsModal } from "./LongCacheToggle";
 
 const links = [
   { label: "Home", href: "/" },
   { label: "Item Browser", href: "/items/browse" },
   { label: "Recycle Helper", href: "/recycle-helper" },
+  { label: "Repair or Replace Calculator", href: "/repair-calculator" },
 ];
 
 export function TopNavMenu() {
   const [open, setOpen] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const pathname = usePathname();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -24,6 +27,7 @@ export function TopNavMenu() {
   // Close when clicking outside or pressing escape
   useEffect(() => {
     function handleClick(event: MouseEvent) {
+      if (showSettings) return;
       if (
         containerRef.current &&
         !containerRef.current.contains(event.target as Node)
@@ -44,51 +48,81 @@ export function TopNavMenu() {
       document.removeEventListener("mousedown", handleClick);
       document.removeEventListener("keydown", handleKey);
     };
-  }, []);
+  }, [showSettings]);
+
+  function handleToggleMenu() {
+    setShowSettings(false);
+    setOpen((prev) => !prev);
+  }
+
+  function handleOpenSettings() {
+    setShowSettings(true);
+    setOpen(false);
+  }
 
   return (
-    <div ref={containerRef} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((prev) => !prev)}
-        aria-expanded={open}
-        aria-label="Toggle navigation"
-        className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-slate-800 bg-slate-900/60 text-gray-100 transition hover:border-slate-700 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-slate-950"
-      >
-        <MenuIcon open={open} />
-      </button>
+    <>
+      <div ref={containerRef} className="relative">
+        <button
+          type="button"
+          onClick={handleToggleMenu}
+          aria-expanded={open}
+          aria-label="Toggle navigation"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-slate-800 bg-slate-900/60 text-gray-100 transition hover:border-slate-700 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-slate-950"
+        >
+          <MenuIcon open={open} />
+        </button>
 
-      {open && (
-        <div className="absolute right-0 z-20 mt-2 w-56">
-          <div className="overflow-hidden rounded-lg border border-slate-800 bg-slate-950/95 shadow-2xl backdrop-blur">
-            <div className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-400">
-              Navigation
+        {open && (
+          <div className="absolute right-0 z-20 mt-2 w-56">
+            <div className="overflow-hidden rounded-lg border border-slate-800 bg-slate-950/95 shadow-2xl backdrop-blur">
+              <div className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-400">
+                Navigation
+              </div>
+              <div className="pb-2">
+                {links.map((link) => {
+                  const active =
+                    link.href === "/"
+                      ? pathname === link.href
+                      : pathname.startsWith(link.href);
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={`block px-4 py-2 text-sm transition ${
+                        active
+                          ? "bg-slate-900 text-white"
+                          : "text-slate-200 hover:bg-slate-900 hover:text-white"
+                      }`}
+                    >
+                      {link.label}
+                    </Link>
+                  );
+                })}
+              </div>
+
+              <div className="border-t border-slate-900 pt-3 pb-4 space-y-2">
+                <div className="px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-400">
+                  Settings
+                </div>
+                <button
+                  type="button"
+                  onClick={handleOpenSettings}
+                className="block w-full text-left rounded-md px-4 py-2 text-sm text-slate-100 transition hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-slate-950"
+              >
+                Long Term Caching
+              </button>
             </div>
-            <div className="pb-2">
-              {links.map((link) => {
-                const active =
-                  link.href === "/"
-                    ? pathname === link.href
-                    : pathname.startsWith(link.href);
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={`block px-4 py-2 text-sm transition ${
-                      active
-                        ? "bg-slate-900 text-white"
-                        : "text-slate-200 hover:bg-slate-900 hover:text-white"
-                    }`}
-                  >
-                    {link.label}
-                  </Link>
-                );
-              })}
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+
+      <LongCacheSettingsModal
+        open={showSettings}
+        onClose={() => setShowSettings(false)}
+      />
+    </>
   );
 }
 
