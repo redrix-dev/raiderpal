@@ -9,9 +9,11 @@ import {
 } from "@/lib/repairCalculator";
 import type { RepairEconomyRow } from "@/data/repairEconomy";
 import { RarityBadge } from "./ItemCard";
+import { cachedFetchJson } from "@/lib/clientCache";
 
 type Props = {
   items: RepairEconomyRow[];
+  dataVersion?: string | number | null;
 };
 
 type CostRow = {
@@ -22,7 +24,34 @@ type CostRow = {
   icon?: string | null;
 };
 
-export function RepairCalculatorClient({ items }: Props) {
+export function RepairCalculatorClient({ items: initialItems, dataVersion }: Props) {
+  const [items, setItems] = useState<RepairEconomyRow[]>(initialItems);
+
+  // Keep local copy in sync with server payload
+  useEffect(() => {
+    setItems(initialItems);
+  }, [initialItems]);
+
+  // Refresh from route handler using cache + versioning so LTC users get reuse
+  useEffect(() => {
+    let active = true;
+
+    cachedFetchJson<RepairEconomyRow[]>("/repair-economy", {
+      version: dataVersion ?? undefined,
+    })
+      .then((data) => {
+        if (!active || !data) return;
+        setItems(data);
+      })
+      .catch(() => {
+        // Swallow to avoid breaking UI if the fetch fails
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [dataVersion]);
+
   const eligibleItems = useMemo(
     () =>
       items
