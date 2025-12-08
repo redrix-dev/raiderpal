@@ -6,7 +6,6 @@ import type { RecyclingSourceRow } from "@/data/recycling";
 import { RarityBadge } from "@/components/ItemCard";
 import { cachedFetchJson } from "@/lib/clientCache";
 import { useRaidReminders } from "@/hooks/useRaidReminders";
-import { ModulePanel } from "@/components/ModulePanel";
 
 type HelperItem = {
   id: string;
@@ -291,52 +290,45 @@ export function RecycleHelperClient({
 
   const hasSelection = selectedRows.size > 0;
 
-  const modeToggle = (
-    <div className="inline-flex w-full sm:w-auto rounded-md border border-slate-700 bg-slate-900 p-1 text-xs">
-      <button
-        type="button"
-        onClick={() => handleModeChange("need")}
-        className={
-          "flex-1 px-3 py-1 rounded " +
-          (mode === "need"
-            ? "bg-[#4fc1e9] text-white"
-            : "text-warm hover:bg-slate-800")
-        }
-      >
-        I need this item
-      </button>
-      <button
-        type="button"
-        onClick={() => handleModeChange("have")}
-        className={
-          "flex-1 px-3 py-1 rounded " +
-          (mode === "have"
-            ? "bg-[#4fc1e9] text-white"
-            : "text-warm hover:bg-slate-800")
-        }
-      >
-        I have this item
-      </button>
-    </div>
-  );
-
   return (
-    <ModulePanel
-      title="Recycle Helper"
-      headerRight={modeToggle}
-      className="overflow-visible"
-      bodyClassName="space-y-4"
-    >
-      <p className="text-base text-warm">
-        Quickly answer two questions: what should I recycle to get a specific item, and what do I get from recycling something I already have.
-      </p>
+    <div className="space-y-4 rounded-lg border border-slate-800 bg-panel-texture p-4">
+      {/* Mode toggle header */}
+      <div className="flex flex-wrap gap-3 items-center justify-between">
+        <div className="text-sm text-warm font-medium">Recycle Helper</div>
+        <div className="inline-flex w-full sm:w-auto rounded-md border border-slate-700 bg-slate-900 p-1 text-xs">
+          <button
+            type="button"
+            onClick={() => handleModeChange("need")}
+            className={
+              "flex-1 px-3 py-1 rounded " +
+              (mode === "need"
+                ? "bg-[#4fc1e9] text-white"
+                : "text-warm hover:bg-slate-800")
+            }
+          >
+            I need this item
+          </button>
+          <button
+            type="button"
+            onClick={() => handleModeChange("have")}
+            className={
+              "flex-1 px-3 py-1 rounded " +
+              (mode === "have"
+                ? "bg-[#4fc1e9] text-white"
+                : "text-warm hover:bg-slate-800")
+            }
+          >
+            I have this item
+          </button>
+        </div>
+      </div>
 
       {/* Picker modules */}
       <div className="grid gap-4">
-        <div className="rounded-md border border-slate-800 bg-slate-900/80 p-4">
+        <div className="rounded-md border border-slate-800 bg-slate-900/80 p-3">
           <div className="grid gap-3 md:grid-cols-[1.5fr_1fr] md:items-end">
             <div className="flex-1">
-              <label className="block text-sm font-medium text-warm mb-1">
+              <label className="block text-xs font-medium text-warm-muted mb-1">
                 Item type
               </label>
               <select
@@ -346,7 +338,7 @@ export function RecycleHelperClient({
                   setSelectedItemId("");
                   setPickerQuery("");
                 }}
-                className="w-full h-10 rounded-md border border-slate-800 bg-slate-900 px-3 py-2 text-base text-warm focus:outline-none focus:ring-1 focus:ring-[#4fc1e9] hover:border-[#4fc1e9]"
+                className="w-full h-10 rounded-md border border-[#4fc1e9]/60 bg-panel-texture px-3 py-2 text-sm text-warm focus:outline-none focus:ring-1 focus:ring-[#4fc1e9] hover:border-[#4fc1e9]"
               >
                 <option value="all">All types</option>
                 {itemTypes.map((t) => (
@@ -358,7 +350,7 @@ export function RecycleHelperClient({
             </div>
 
             <div className="flex-1">
-              <label className="block text-sm font-medium text-warm mb-1">
+              <label className="block text-xs font-medium text-warm-muted mb-1">
                 {mode === "need"
                   ? "Item you want to obtain"
                   : "Item you want to recycle"}
@@ -369,7 +361,7 @@ export function RecycleHelperClient({
                 <button
                   type="button"
                   onClick={() => setPickerOpen((open) => !open)}
-                  className="w-full h-10 rounded-md border border-slate-800 bg-slate-900 px-3 py-2 text-base text-warm flex items-center justify-between focus:outline-none focus:ring-1 focus:ring-[#4fc1e9] hover:border-[#4fc1e9]"
+                  className="w-full h-10 rounded-md border border-[#4fc1e9]/60 bg-panel-texture px-3 py-2 text-sm text-warm flex items-center justify-between focus:outline-none focus:ring-1 focus:ring-[#4fc1e9] hover:border-[#4fc1e9]"
                 >
                   <span className="truncate">
                     {selectedItem?.name ?? "Select an item..."}
@@ -380,8 +372,8 @@ export function RecycleHelperClient({
                 </button>
 
                 {pickerOpen && (
-                  <div className="absolute z-40 left-0 top-full mt-1 w-full rounded-md border border-slate-800 bg-slate-900 shadow-lg text-xs max-h-[70vh] overflow-auto">
-                    <div className="border-b border-slate-800 p-2 bg-slate-900/80 rounded-t-md">
+                  <div className="absolute z-20 left-0 top-full mt-1 w-full rounded-md border border-[#4fc1e9]/60 bg-panel-texture shadow-lg text-xs">
+                    <div className="border-b border-[#4fc1e9]/60 p-2 bg-slate-900/60 rounded-t-md">
                       <input
                         type="text"
                         value={pickerQuery}
@@ -391,7 +383,7 @@ export function RecycleHelperClient({
                       />
                     </div>
 
-                    <div className="max-h-80 overflow-y-auto">
+                    <div className="max-h-64 overflow-y-auto">
                       {filteredItems.length === 0 ? (
                         <div className="p-3 text-xs text-warm-muted">
                           No items match your filters.
@@ -440,16 +432,16 @@ export function RecycleHelperClient({
           </div>
         </div>
 
-        <div className="rounded-md border border-slate-800 bg-slate-900/80 p-4">
+        <div className="rounded-md border border-slate-800 bg-slate-900/80 p-3">
           <div className="grid gap-3 md:grid-cols-[1.5fr_1fr] md:items-end">
             <div className="flex-1">
-              <label className="block text-sm font-medium text-warm mb-1">
+              <label className="block text-xs font-medium text-warm-muted mb-1">
                 Filter results by item type
               </label>
               <select
                 value={resultTypeFilter}
                 onChange={(e) => setResultTypeFilter(e.target.value)}
-                className="w-full h-10 rounded-md border border-slate-800 bg-slate-900 px-3 py-2 text-base text-warm focus:outline-none focus:ring-1 focus:ring-[#4fc1e9] hover:border-[#4fc1e9]"
+            className="w-full h-10 rounded-md border border-[#4fc1e9]/60 bg-panel-texture px-3 py-2 text-sm text-warm focus:outline-none focus:ring-1 focus:ring-[#4fc1e9] hover:border-[#4fc1e9]"
               >
                 <option value="all">All types</option>
                 {resultTypes.map((t) => (
@@ -471,13 +463,13 @@ export function RecycleHelperClient({
 
             <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
               <div className="w-full md:flex-1">
-                <label className="block text-sm font-medium text-warm mb-1">
+                <label className="block text-xs font-medium text-warm-muted mb-1">
                   Sort results
                 </label>
                 <select
                   value={sortKey}
                   onChange={(e) => setSortKey(e.target.value as SortKey)}
-                  className="w-full h-10 rounded-md border border-slate-800 bg-slate-900 px-3 py-2 text-base text-warm focus:outline-none focus:ring-1 focus:ring-[#4fc1e9] hover:border-[#4fc1e9]"
+                className="w-full h-10 rounded-md border border-[#4fc1e9]/60 bg-panel-texture px-3 py-2 text-sm text-warm focus:outline-none focus:ring-1 focus:ring-[#4fc1e9] hover:border-[#4fc1e9]"
                 >
                   <option value="quantityDesc">Quantity (high to low)</option>
                   <option value="quantityAsc">Quantity (low to high)</option>
@@ -719,6 +711,6 @@ export function RecycleHelperClient({
             : "Pick a type, then choose what you have to see what it recycles into."}
         </div>
       )}
-    </ModulePanel>
+    </div>
   );
 }

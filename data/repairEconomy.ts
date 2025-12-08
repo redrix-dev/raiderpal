@@ -29,7 +29,9 @@ export async function getRepairEconomy(): Promise<RepairEconomyRow[]> {
       cheap_repair_cost,
       expensive_repair_cost,
       craft_components,
-      recycle_outputs
+      recycle_outputs,
+      required_item_id,
+      net_upgrade_cost
     `
     )
     .order("name", { ascending: true });

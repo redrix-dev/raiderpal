@@ -16,13 +16,7 @@ export default async function RecyclePage() {
     versionRow?.version != null ? String(versionRow.version) : undefined;
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-xl font-semibold text-gray-100">Recycle helper</h1>
-      <p className="text-sm text-gray-400">
-        Quickly answer two questions: what should I recycle to get a specific
-        item, and what do I get from recycling something I already have.
-      </p>
-
+    <div className="rounded-xl border border-[#130918] bg-panel-texture p-4 sm:p-5 space-y-4 shadow-[0_0_40px_rgba(0,0,0,0.6)] min-h-[70vh] lg:min-h-[75vh] xl:min-h-[79vh]">
       <RecycleHelperClient
         initialItems={items}
         needableIds={needableIds}
