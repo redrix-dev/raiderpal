@@ -282,9 +282,7 @@ export function RepairCalculatorClient({
                       {selected.name}
                     </div>
                     <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-warm-muted font-medium">
-                      {selected.rarity ? (
-                        <RarityBadge rarity={selected.rarity} size="sm" />
-                      ) : null}
+                      {selected.rarity ? <RarityBadge rarity={selected.rarity} /> : null}
                       {selected.item_type ? (
                         <span className="inline-flex items-center rounded border border-white/10 bg-black/40 px-2 py-0.5">
                           {selected.item_type}
@@ -355,7 +353,7 @@ function useCostList(
     );
 
     return Object.entries(costMap)
-      .map(([componentId, quantity]) => {
+      .flatMap<CostRow | null>(([componentId, quantity]) => {
         const key = normalize(componentId);
         if (excludeSet.has(key)) return null;
         const meta = metaById.get(key);
@@ -390,9 +388,17 @@ function useCostList(
               "credit" || componentId === "CREDIT",
         };
       })
-      .filter((row): row is CostRow => Boolean(row))
+      .filter((row): row is CostRow => row !== null)
       .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
-  }, [costMap, metaSources, items]);
+  }, [
+    costMap,
+    metaSources,
+    items,
+    excludeIds,
+    excludeNames,
+    selectedItemType,
+    selectedItemId,
+  ]);
 }
 
 function CostCard({ title, items }: { title: string; items: CostRow[] }) {
