@@ -28,10 +28,10 @@ export function ItemDetailsTabs({
   const [active, setActive] = useState<TabId>("crafting");
 
   return (
-    <div className="h-full w-full rounded-xl border border-white/5 bg-panel-texture shadow-[0_0_40px_rgba(0,0,0,0.6)] overflow-hidden">
+    <div className="mt-6 rounded-lg border border-slate-800 bg-panel-texture">
       {/* Tabs header */}
-      <div className="border-b border-white/5 bg-black/20 overflow-x-auto">
-        <div className="flex gap-2 px-5 pt-4 pb-3 text-sm whitespace-nowrap">
+      <div className="border-b border-slate-800 overflow-x-auto">
+        <div className="flex gap-1 px-3 pt-2 pb-1 text-xs whitespace-nowrap">
           {TABS.map((tab) => {
             const isActive = tab.id === active;
             return (
@@ -40,10 +40,10 @@ export function ItemDetailsTabs({
                 type="button"
                 onClick={() => setActive(tab.id)}
                 className={
-                  "px-3.5 py-2 rounded-md border text-sm font-medium font-condensed tracking-wide uppercase " +
+                  "px-3 py-1.5 rounded-md border text-xs font-medium " +
                   (isActive
-                    ? "border-[#4fc1e9] bg-[#4fc1e9]/15 text-warm"
-                    : "border-transparent bg-transparent text-warm-muted hover:bg-black/30 hover:text-warm")
+                    ? "border-[#4fc1e9] bg-[#4fc1e9]/10 text-warm font-medium"
+                    : "border-transparent bg-transparent text-warm-muted hover:bg-slate-900 hover:text-warm")
               }
             >
               {tab.label}
@@ -54,7 +54,7 @@ export function ItemDetailsTabs({
       </div>
 
       {/* Tab content */}
-      <div className="px-5 py-5 text-base text-warm">
+      <div className="px-3 py-3 text-sm text-warm">
         {active === "crafting" && (
           <TabList
             emptyText="No crafting recipe."
@@ -135,29 +135,27 @@ type TabListProps = {
 
 function TabList({ rows, emptyText, mapRow }: TabListProps) {
   if (!rows || rows.length === 0) {
-    <p className="text-sm text-warm-muted leading-relaxed">
-        {emptyText}
-    </p>
-  };
+    return <p className="text-xs text-warm-muted">{emptyText}</p>;
+  }
 
   return (
-    <ul className="space-y-2">
+    <ul className="space-y-1">
       {rows.map((raw, idx) => {
         const row = mapRow(raw);
         return (
           <li
             key={`${row.key}-${idx}`}
-            className="flex items-center justify-between gap-3 rounded-lg border border-white/5 bg-black/30 px-5 py-3 text-base font-semibold"
+            className="flex items-center justify-between gap-2 rounded-md border border-slate-800 bg-slate-900/80 px-3 py-2 text-xs font-medium"
           >
             <a
               href={row.href}
-              className="flex items-center gap-3 min-w-0 text-warm hover:underline"
+              className="flex items-center gap-2 min-w-0 text-warm hover:underline"
             >
               {row.icon && (
                 <img
                   src={row.icon}
                   alt={row.name}
-                  className="h-10 w-10 rounded border border-white/10 bg-black/60 object-contain flex-shrink-0"
+                  className="h-7 w-7 rounded border border-slate-700 bg-slate-950 object-contain flex-shrink-0"
                 />
               )}
               <span className="truncate">{row.name}</span>
@@ -168,7 +166,7 @@ function TabList({ rows, emptyText, mapRow }: TabListProps) {
                 <span className="font-semibold">×{row.quantity}</span>
               )}
               {row.quantitySuffix && (
-                <span className="block text-[11px] text-warm-muted">
+                <span className="block text-[10px] text-warm-muted">
                   {row.quantitySuffix}
                 </span>
               )}

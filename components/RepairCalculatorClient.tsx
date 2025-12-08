@@ -1,15 +1,15 @@
-// components/RepairCalculatorClient.tsx
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   recommendAction,
-  type ItemEconomy,
   type ComponentCost,
+  type ItemEconomy,
 } from "@/lib/repairCalculator";
 import type { RepairEconomyRow } from "@/data/repairEconomy";
-import { RarityBadge } from "./ItemCard";
 import { cachedFetchJson } from "@/lib/clientCache";
+import { RarityBadge } from "./ItemCard";
+import { ModulePanel } from "./ModulePanel";
 
 type Props = {
   items: RepairEconomyRow[];
@@ -18,24 +18,25 @@ type Props = {
 
 type CostRow = {
   id: string;
-  name: string;
+  name?: string | null;
   quantity: number;
   rarity?: string | null;
   icon?: string | null;
+  isCredit?: boolean;
 };
 
-export function RepairCalculatorClient({ items: initialItems, dataVersion }: Props) {
-  const [items, setItems] = useState<RepairEconomyRow[]>(initialItems);
+export function RepairCalculatorClient({
+  items: initialItems,
+  dataVersion,
+}: Props) {
+  const [items, setItems] = useState(initialItems);
 
-  // Keep local copy in sync with server payload
-  useEffect(() => {
-    setItems(initialItems);
-  }, [initialItems]);
+  // Keep local state in sync with server-side props
+  useEffect(() => setItems(initialItems), [initialItems]);
 
-  // Refresh from route handler using cache + versioning so LTC users get reuse
+  // Refresh client-side when the data version changes
   useEffect(() => {
     let active = true;
-
     cachedFetchJson<RepairEconomyRow[]>("/repair-economy", {
       version: dataVersion ?? undefined,
     })
@@ -43,10 +44,7 @@ export function RepairCalculatorClient({ items: initialItems, dataVersion }: Pro
         if (!active || !data) return;
         setItems(data);
       })
-      .catch(() => {
-        // Swallow to avoid breaking UI if the fetch fails
-      });
-
+      .catch(() => {});
     return () => {
       active = false;
     };
@@ -70,35 +68,41 @@ export function RepairCalculatorClient({ items: initialItems, dataVersion }: Pro
     eligibleItems.length ? eligibleItems[0].id : null
   );
 
+  useEffect(() => {
+    setSelectedId((prev) => {
+      if (eligibleItems.length === 0) return null;
+      if (!prev || !eligibleItems.some((item) => item.id === prev)) {
+        return eligibleItems[0].id;
+      }
+      return prev;
+    });
+  }, [eligibleItems]);
+
   const selected = useMemo(
     () => eligibleItems.find((i) => i.id === selectedId) ?? null,
     [eligibleItems, selectedId]
   );
 
-  const [durability, setDurability] = useState<number>(selected?.max_durability ?? 0);
+  const baseItem = useMemo(
+    () =>
+      selected?.required_item_id
+        ? items.find((i) => i.id === selected.required_item_id) ?? null
+        : null,
+    [items, selected?.required_item_id]
+  );
 
-  // Keep durability in sync when item changes
+  const [durability, setDurability] = useState<number>(
+    selected?.max_durability ?? 0
+  );
   useEffect(() => {
     setDurability(selected?.max_durability ?? 0);
   }, [selected?.max_durability]);
 
-  useEffect(() => {
-    if (!selectedId && eligibleItems.length) {
-      setSelectedId(eligibleItems[0].id);
-    } else if (
-      selectedId &&
-      !eligibleItems.some((i) => i.id === selectedId) &&
-      eligibleItems.length
-    ) {
-      setSelectedId(eligibleItems[0].id);
-    }
-  }, [eligibleItems, selectedId]);
-
   const filteredItems = useMemo(() => {
     const q = pickerQuery.trim().toLowerCase();
     if (!q) return eligibleItems;
-    return eligibleItems.filter((i) =>
-      (i.name ?? "").toLowerCase().includes(q)
+    return eligibleItems.filter((item) =>
+      (item.name ?? "").toLowerCase().includes(q)
     );
   }, [eligibleItems, pickerQuery]);
 
@@ -112,33 +116,47 @@ export function RepairCalculatorClient({ items: initialItems, dataVersion }: Pro
     result?.repairBand === "cheap"
       ? selected?.cheap_repair_cost
       : selected?.expensive_repair_cost,
-    items
+    items,
+    [selected?.required_item_id, selected?.id],
+    [selected?.name, baseItem?.name],
+    selected?.item_type,
+    selected?.id ?? undefined
   );
   const craftCosts = useCostList(
     result?.trueCraftCost,
     selected?.craft_components,
-    items
+    items,
+    [selected?.required_item_id, selected?.id],
+    [selected?.name, baseItem?.name],
+    selected?.item_type,
+    selected?.id ?? undefined
   );
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-5">
+    <ModulePanel title="Repair or Replace Calculator">
+      <div className="space-y-4">
+        <p className="text-base text-warm">
+          Compare repair cost vs craft cost (minus recycle outputs) to choose
+          the better move.
+        </p>
+
         <div className="grid gap-6 lg:grid-cols-2 items-stretch">
-          {/* Left column: selector + durability in a card */}
-          <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-5 space-y-6 h-full flex flex-col">
+          <div className="rounded-lg border border-white/5 bg-black/20 p-5 space-y-6 h-full flex flex-col overflow-visible">
             <div className="space-y-3">
-              <label className="text-sm text-slate-300">Select item</label>
+              <label className="text-base text-warm font-semibold">
+                Select item
+              </label>
               <div className="relative">
                 <button
                   type="button"
-                  onClick={() => setPickerOpen((prev) => !prev)}
-                  className="w-full inline-flex items-center justify-between rounded-md border border-slate-800 bg-slate-900/70 px-4 py-3 text-base text-slate-100 transition hover:border-slate-700 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-slate-950"
+                  onClick={() => setPickerOpen((open) => !open)}
+                  className="w-full h-11 rounded-md border border-slate-800 bg-slate-900 px-3 py-2 text-base text-warm flex items-center justify-between transition hover:border-[#4fc1e9] focus:outline-none focus:ring-2 focus:ring-[#4fc1e9] focus:ring-offset-2 focus:ring-offset-slate-950"
                 >
                   <span className="flex items-center gap-3 truncate">
                     {selected?.icon ? (
                       <img
                         src={selected.icon}
-                        alt={selected.name}
+                        alt={selected.name ?? "Selected item"}
                         className="h-8 w-8 rounded border border-slate-800 bg-slate-950 object-contain"
                       />
                     ) : null}
@@ -146,59 +164,59 @@ export function RepairCalculatorClient({ items: initialItems, dataVersion }: Pro
                       {selected?.name ?? "Select an item..."}
                     </span>
                   </span>
-                  <span className="text-xs text-slate-400">▼</span>
+                  <span className="ml-2 text-xs text-warm-muted">
+                    {pickerOpen ? "▲" : "▼"}
+                  </span>
                 </button>
 
                 {pickerOpen && (
-                  <div className="absolute z-10 mt-2 w-full md:w-[420px] rounded-lg border border-slate-800 bg-slate-950/95 shadow-2xl backdrop-blur">
-                    <div className="border-b border-slate-900 px-3 py-2">
+                  <div className="absolute z-40 left-0 top-full mt-2 w-full md:w-[420px] rounded-lg border border-slate-800 bg-slate-900 shadow-2xl backdrop-blur text-sm max-h-[70vh] overflow-auto">
+                    <div className="border-b border-slate-800 px-3 py-2 bg-slate-900/80 rounded-t-lg">
                       <input
-                        autoFocus
                         type="text"
+                        placeholder="Filter items..."
                         value={pickerQuery}
                         onChange={(e) => setPickerQuery(e.target.value)}
-                        placeholder="Search items..."
-                        className="w-full rounded-md border border-slate-800 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                        className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-warm placeholder:text-warm-muted focus:outline-none focus:ring-2 focus:ring-[#4fc1e9]"
                       />
                     </div>
-                    <div className="max-h-72 overflow-y-auto py-1">
-                      {filteredItems.map((item) => (
-                        <button
-                          key={item.id}
-                          type="button"
-                          onClick={() => {
-                            setSelectedId(item.id);
-                            setPickerOpen(false);
-                            setPickerQuery("");
-                          }}
-                          className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-slate-900"
-                        >
-                          {item.icon ? (
-                            <img
-                              src={item.icon}
-                              alt={item.name ?? ""}
-                              className="h-10 w-10 rounded border border-slate-800 bg-slate-950 object-contain"
-                            />
-                          ) : null}
-                          <div className="min-w-0">
-                            <div className="truncate text-sm text-slate-100">
-                              {item.name}
-                            </div>
-                            <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
-                              {item.item_type && (
-                                <span className="inline-flex items-center rounded-full bg-slate-800 px-2 py-0.5">
-                                  {item.item_type}
-                                </span>
-                              )}
-                              {item.rarity ? <RarityBadge rarity={item.rarity} /> : null}
-                            </div>
-                          </div>
-                        </button>
-                      ))}
-                      {filteredItems.length === 0 && (
-                        <div className="px-3 py-4 text-sm text-slate-400">
+                    <div className="max-h-72 overflow-y-auto">
+                      {filteredItems.length === 0 ? (
+                        <div className="px-3 py-4 text-sm text-warm-muted">
                           No items found.
                         </div>
+                      ) : (
+                        <ul className="divide-y divide-slate-800">
+                          {filteredItems.map((item) => (
+                            <li key={item.id}>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedId(item.id);
+                                  setPickerOpen(false);
+                                  setPickerQuery("");
+                                }}
+                                className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-slate-900"
+                              >
+                                {item.icon ? (
+                                  <img
+                                    src={item.icon}
+                                    alt={item.name ?? "Item icon"}
+                                    className="h-10 w-10 rounded border border-slate-800 bg-slate-950 object-contain"
+                                  />
+                                ) : null}
+                                <div className="min-w-0">
+                                  <div className="truncate text-sm text-warm">
+                                    {item.name}
+                                  </div>
+                                  <div className="text-[11px] text-warm-muted">
+                                    Max durability: {item.max_durability ?? 0}
+                                  </div>
+                                </div>
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
                       )}
                     </div>
                   </div>
@@ -206,219 +224,234 @@ export function RepairCalculatorClient({ items: initialItems, dataVersion }: Pro
               </div>
             </div>
 
-            <div className="mt-6 space-y-4">
-              <label className="text-sm text-slate-300">
-                Current durability
-                {selected?.max_durability != null
-                  ? ` (max ${selected.max_durability})`
-                  : ""}
+            <div className="space-y-3">
+              <label className="text-base text-warm font-semibold flex items-center justify-between">
+                <span>Current durability</span>
+                <span className="text-xs text-warm-muted">{durability}</span>
               </label>
-              <div className="flex items-center gap-4">
-                <input
-                  type="range"
-                  min={0}
-                  max={selected?.max_durability ?? 100}
-                  value={durability}
-                  onChange={(e) => setDurability(parseInt(e.target.value, 10))}
-                  className="w-full accent-sky-500"
-                />
-                <input
-                  type="number"
-                  min={0}
-                  max={selected?.max_durability ?? 100}
-                  value={durability}
-                  onChange={(e) =>
-                    setDurability(
-                      Math.max(
-                        0,
-                        Math.min(selected?.max_durability ?? 0, Number(e.target.value))
-                      )
-                    )
-                  }
-                  className="w-24 rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                />
+              <input
+                type="range"
+                min={0}
+                max={selected?.max_durability ?? 0}
+                value={durability}
+                onChange={(e) => setDurability(Number(e.target.value))}
+                className="w-full accent-[#4fc1e9]"
+              />
+              <div className="text-xs text-warm-muted">
+                Max durability: {selected?.max_durability ?? 0}
               </div>
             </div>
+
+            {selected && result && (
+              <div className="rounded-lg border border-white/5 bg-black/20 p-4 space-y-2">
+                <div className="text-sm text-warm font-semibold">
+                  Recommended:{" "}
+                  {result.recommendedAction === "REPAIR" ? "Repair it" : "Replace it"}
+                </div>
+                {result.repairBand && (
+                  <div className="text-xs text-warm-muted font-medium">
+                    Repair band: {result.repairBand}
+                  </div>
+                )}
+                <span
+                  className={`inline-flex items-center gap-2 rounded-md px-3 py-1 text-sm font-semibold ${
+                    result.recommendedAction === "REPAIR"
+                      ? "bg-emerald-900/30 text-emerald-200 border border-emerald-700/50"
+                      : "bg-amber-900/30 text-amber-100 border border-amber-700/50"
+                  }`}
+                >
+                  {result.recommendedAction === "REPAIR" ? "Repair" : "Replace"}
+                </span>
+              </div>
+            )}
           </div>
 
-          {/* Right column: quick details, recommendation, costs */}
-          <div className="space-y-4 h-full flex flex-col">
-            <div className="grid gap-3 md:grid-cols-2">
-              <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-4 space-y-3 order-2 md:order-1">
-                <div className="text-sm font-semibold text-slate-100">
-                  Quick details
-                </div>
-                <dl className="grid grid-cols-2 gap-3 text-sm text-slate-200">
-                  <InfoRow label="Max durability">
-                    {selected?.max_durability ?? "Unknown"}
-                  </InfoRow>
-                  <InfoRow label="Cheap threshold">
-                    {selected?.cheap_threshold ?? "Unknown"}
-                  </InfoRow>
-                  <InfoRow label="Item type">
-                    {selected?.item_type ?? "Unknown"}
-                  </InfoRow>
-                  <InfoRow label="Rarity">
-                    {selected?.rarity ? (
-                      <RarityBadge rarity={selected.rarity} />
-                    ) : (
-                      "Unknown"
-                    )}
-                  </InfoRow>
-                </dl>
-              </div>
-
-              {selected && result ? (
-                <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-4 space-y-3 order-1 md:order-2">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <div className="text-xs uppercase tracking-[0.08em] text-slate-400">
-                        Recommendation
-                      </div>
-                      <div className="text-lg font-semibold text-slate-100">
-                        {result.recommendedAction === "REPAIR"
-                          ? "Repair it"
-                          : result.recommendedAction === "REPLACE"
-                          ? "Replace it"
-                          : "Unknown"}
-                      </div>
-                      {result.repairBand && (
-                        <div className="text-xs text-slate-400">
-                          Repair band: {result.repairBand}
-                        </div>
-                      )}
+          <div className="rounded-lg border border-white/5 bg-black/20 p-5 space-y-4 overflow-visible">
+            {selected && (
+              <div className="rounded-lg border border-white/5 bg-black/25 p-4 space-y-2">
+                <div className="flex items-start gap-3">
+                  {selected.icon ? (
+                    <img
+                      src={selected.icon}
+                      alt={selected.name ?? "Selected item"}
+                      className="h-12 w-12 rounded border border-white/10 bg-black/60 object-contain"
+                    />
+                  ) : null}
+                  <div className="min-w-0">
+                    <div className="text-lg font-condensed font-semibold text-warm truncate">
+                      {selected.name}
                     </div>
-                    <span
-                      className={`inline-flex items-center justify-center rounded-full px-4 py-1.5 text-sm font-semibold ${
-                        result.recommendedAction === "REPAIR"
-                          ? "bg-emerald-900/40 text-emerald-100 border border-emerald-500/50"
-                          : result.recommendedAction === "REPLACE"
-                          ? "bg-sky-900/40 text-sky-100 border border-sky-500/50"
-                          : "bg-slate-900/60 text-slate-200 border border-slate-700"
-                      }`}
-                    >
-                      {result.recommendedAction === "REPAIR"
-                        ? "Repair"
-                        : result.recommendedAction === "REPLACE"
-                        ? "Replace"
-                        : "Unknown"}
-                    </span>
+                    <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-warm-muted font-medium">
+                      {selected.rarity ? <RarityBadge rarity={selected.rarity} /> : null}
+                      {selected.item_type ? (
+                        <span className="inline-flex items-center rounded border border-white/10 bg-black/40 px-2 py-0.5">
+                          {selected.item_type}
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="mt-1 text-xs text-warm-muted">
+                      Max durability: {selected.max_durability ?? "N/A"}
+                    </div>
                   </div>
                 </div>
-              ) : null}
-            </div>
+              </div>
+            )}
 
-            <div className="grid gap-3 md:grid-cols-2">
-              <CostCard
-                title="Repair cost"
-                costs={repairCosts}
-                emptyHint="No repair cost found."
-              />
+            <div className="grid gap-4 md:grid-cols-2">
+              <CostCard title="Repair cost" items={repairCosts} />
               <CostCard
                 title="True craft cost (craft - recycle)"
-                costs={craftCosts}
-                emptyHint="No craft cost found."
+                items={craftCosts}
               />
             </div>
           </div>
         </div>
-      </div>
 
-      {selected && result ? null : (
-        <div className="rounded-lg border border-amber-700/50 bg-amber-900/20 p-4 text-sm text-amber-100">
-          Could not compute a recommendation for this item (missing durability
-          data).
-        </div>
-      )}
-    </div>
+        {!selected || !result ? (
+          <div className="rounded-lg border border-amber-700/50 bg-amber-900/20 p-4 text-sm text-amber-100">
+            Could not compute yet. Choose an item with repair and craft data.
+          </div>
+        ) : null}
+      </div>
+    </ModulePanel>
   );
 }
 
 function useCostList(
-  costMap: Record<string, number> | undefined,
-  metaSources: ComponentCost[] | undefined,
-  items: RepairEconomyRow[]
-): CostRow[] {
-  return useMemo(() => {
+  costMap: Record<string, number> | null | undefined,
+  metaSources: ComponentCost[] | null | undefined,
+  items: RepairEconomyRow[],
+  excludeIds: Array<string | null | undefined> = [],
+  excludeNames: Array<string | null | undefined> = [],
+  selectedItemType?: string | null,
+  selectedItemId?: string
+) {
+  return useMemo<CostRow[]>(() => {
     if (!costMap) return [];
-    const itemMap = new Map(items.map((i) => [i.id, i]));
-    const componentMeta = new Map(
-      (metaSources ?? []).map((c) => [c.component_item_id, c])
+
+    const normalize = (id: string | null | undefined) =>
+      (id ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
+
+    const excludeSet = new Set(
+      excludeIds.map(normalize).filter((id) => id.length > 0)
     );
+    const excludeNameSet = new Set(
+      excludeNames
+        .map((name) => (name ?? "").trim().toLowerCase())
+        .filter((n) => n.length > 0)
+    );
+
+    const metaById = new Map<string, ComponentCost>();
+    (metaSources ?? []).forEach((c) => {
+      if (c.component_item_id) {
+        metaById.set(normalize(c.component_item_id), c);
+      }
+    });
+
+    const itemById = new Map<string, RepairEconomyRow>(
+      items.map((i) => [normalize(i.id), i])
+    );
+
     return Object.entries(costMap)
-      .filter(([, qty]) => qty > 0)
-      .filter(([id]) => {
-        const meta = componentMeta.get(id) ?? itemMap.get(id);
-        const itemType = (meta as any)?.item_type;
-        return itemType !== "Blueprint";
-      })
-      .map(([id, qty]) => {
-        const meta = componentMeta.get(id) ?? itemMap.get(id);
-        const name = (meta as any)?.name ?? id;
+      .flatMap<CostRow | null>(([componentId, quantity]) => {
+        const key = normalize(componentId);
+        if (excludeSet.has(key)) return null;
+        const meta = metaById.get(key);
+        const fallback = itemById.get(key);
+        const itemType = (meta?.item_type ?? fallback?.item_type ?? "").toLowerCase();
+        if (itemType.includes("blueprint")) return null;
+
+        const name = meta?.name ?? fallback?.name ?? componentId;
+        const nameLower = name.toLowerCase();
+        if (excludeNameSet.has(nameLower)) return null;
+        if (nameLower.includes("blueprint")) return null;
+
+        // If the cost row is another weapon of the same type as the selected item, hide it (previous-tier placeholder).
+        const selectedTypeLower = (selectedItemType ?? "").toLowerCase();
+        const selectedIdNorm = normalize(selectedItemId);
+        if (
+          selectedTypeLower &&
+          itemType === selectedTypeLower &&
+          key !== selectedIdNorm
+        ) {
+          return null;
+        }
+
         return {
-          id,
+          id: componentId,
+          quantity,
           name,
-          quantity: qty,
-          rarity: (meta as any)?.rarity,
-          icon: (meta as any)?.icon,
+          rarity: meta?.rarity ?? fallback?.rarity,
+          icon: meta?.icon ?? fallback?.icon,
+          isCredit:
+            (meta?.item_type ?? fallback?.item_type)?.toLowerCase() ===
+              "credit" || componentId === "CREDIT",
         };
       })
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }, [costMap, metaSources, items]);
+      .filter((row): row is CostRow => row !== null)
+      .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+  }, [
+    costMap,
+    metaSources,
+    items,
+    excludeIds,
+    excludeNames,
+    selectedItemType,
+    selectedItemId,
+  ]);
 }
 
-function CostCard({
-  title,
-  costs,
-  emptyHint,
-}: {
-  title: string;
-  costs: CostRow[];
-  emptyHint: string;
-}) {
+function CostCard({ title, items }: { title: string; items: CostRow[] }) {
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-4 space-y-3">
-      <div className="text-sm font-semibold text-slate-100">{title}</div>
-      {costs.length === 0 ? (
-        <div className="text-sm text-slate-400">{emptyHint}</div>
-      ) : (
-        <ul className="space-y-2 text-sm text-slate-200">
-          {costs.map((c) => (
-            <li
-              key={c.id}
-              className="flex items-center justify-between rounded-md border border-slate-800 bg-slate-900/60 px-3 py-2"
+    <div className="rounded-lg border border-white/5 bg-black/25 p-4 space-y-3">
+      <div className="text-base font-semibold text-warm">{title}</div>
+      <div className="space-y-3">
+        {items.length === 0 ? (
+          <div className="text-sm text-warm-muted">No data.</div>
+        ) : (
+          items.map((item) => (
+            <div
+              key={item.id}
+              className="flex items-center justify-between gap-3 rounded-md border border-white/5 bg-black/30 px-3 py-2"
             >
-              <span className="flex items-center gap-2 truncate">
-                {c.icon ? (
+              <div className="flex items-center gap-3 min-w-0">
+                {item.icon ? (
                   <img
-                    src={c.icon}
-                    alt={c.name}
-                    className="h-6 w-6 rounded border border-slate-800 bg-slate-950 object-contain"
+                    src={item.icon}
+                    alt={item.name ?? "Component"}
+                    className="h-8 w-8 rounded border border-white/10 bg-black/50 object-contain flex-shrink-0"
                   />
                 ) : null}
-                <span className="truncate">{c.name}</span>
-                {c.rarity ? (
-                  <span className="shrink-0">
-                    <RarityBadge rarity={c.rarity} />
-                  </span>
-                ) : null}
-              </span>
-              <span className="text-slate-100 font-semibold">x{c.quantity}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
-function InfoRow({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="space-y-0.5">
-      <div className="text-xs uppercase tracking-[0.08em] text-slate-400">
-        {label}
+                <div className="min-w-0">
+                  <div className="truncate text-sm text-warm font-semibold">
+                    {item.name}
+                  </div>
+                  {item.isCredit ? (
+                    <div className="text-[11px] text-warm-muted">Credit</div>
+                  ) : item.rarity ? (
+                    <div className="text-[11px] text-warm-muted">
+                      {item.rarity}
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+              {item.quantity !== 0 ? (
+                <div
+                  className={`text-sm font-semibold ${
+                    item.quantity < 0 ? "text-emerald-300" : "text-warm"
+                  }`}
+                >
+                  {item.quantity < 0
+                    ? `+${Math.abs(item.quantity)}`
+                    : `x${item.quantity}`}
+                </div>
+              ) : (
+                <div className="text-sm font-semibold text-warm-muted">—</div>
+              )}
+            </div>
+          ))
+        )}
       </div>
-      <div className="text-slate-100">{children}</div>
     </div>
   );
 }

@@ -15,13 +15,15 @@ export type ItemEconomy = {
   icon?: string | null;
   max_durability: number | null;
   cheap_threshold: number | null;
+  required_item_id?: string | null;
+  net_upgrade_cost?: ComponentCost[];
   cheap_repair_cost: ComponentCost[];
   expensive_repair_cost: ComponentCost[];
   craft_components: ComponentCost[];
   recycle_outputs: ComponentCost[];
 };
 
-function toMap(list: ComponentCost[]): Record<string, number> {
+function toMap(list: ComponentCost[] = []): Record<string, number> {
   return list.reduce((acc, c) => {
     acc[c.component_item_id] = (acc[c.component_item_id] ?? 0) + c.quantity;
     return acc;
@@ -53,7 +55,24 @@ export function recommendAction(
   const craft = toMap(item.craft_components);
   const recycle = toMap(item.recycle_outputs);
 
-  const trueCraftCost = subtractMaps(craft, recycle);
+  // Prefer the raw craft minus recycle math so we keep credit/outputs in view.
+  const rawTrueCraft = subtractMaps(craft, recycle);
+
+  // Remove any placeholder/base item from the net craft cost (e.g., Anvil I inside Anvil II).
+  const trueCraftCost = { ...rawTrueCraft };
+  const normalize = (id: string | null | undefined) =>
+    (id ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const placeholderId = normalize(item.required_item_id ?? item.id);
+  for (const key of Object.keys(trueCraftCost)) {
+    const keyLower = normalize(key);
+    const isPlaceholder =
+      placeholderId &&
+      (keyLower === placeholderId || keyLower === `${placeholderId}blueprint`);
+    const isBlueprint = keyLower.includes("blueprint");
+    if (isPlaceholder || isBlueprint) {
+      delete trueCraftCost[key];
+    }
+  }
 
   const useCheap = currentDurability >= item.cheap_threshold;
   const repairCost = useCheap ? cheap : expensive;

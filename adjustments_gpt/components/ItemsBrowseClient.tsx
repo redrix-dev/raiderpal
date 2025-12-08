@@ -1,7 +1,7 @@
 // components/ItemsBrowseClient.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { ItemCard, RarityBadge } from "@/components/ItemCard";
 import { cachedFetchJson } from "@/lib/clientCache";
 import { useRaidReminders } from "@/hooks/useRaidReminders";
@@ -41,9 +41,6 @@ export function ItemsBrowseClient({
   const [selectedItem, setSelectedItem] = useState<BrowseItem | null>(null);
   const [details, setDetails] = useState<PreviewDetails | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
-  const [page, setPage] = useState(1);
-  const pageSize = 20;
-  const visiblePageCount = 5;
 
   const rarityOptions = useMemo(() => {
     const set = new Set<string>();
@@ -73,23 +70,6 @@ export function ItemsBrowseClient({
       return name.includes(q) || type.includes(q) || loot.includes(q);
     });
   }, [initialItems, search, rarity]);
-
-  // Reset page when filters change
-  useEffect(() => {
-    setPage(1);
-  }, [search, rarity, initialItems]);
-
-  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
-  const pageWindowStart = Math.max(
-    1,
-    Math.min(page - Math.floor(visiblePageCount / 2), pageCount - visiblePageCount + 1)
-  );
-  const pageWindowEnd = Math.min(pageCount, pageWindowStart + visiblePageCount - 1);
-  const pageNumbers = Array.from(
-    { length: pageWindowEnd - pageWindowStart + 1 },
-    (_, i) => pageWindowStart + i
-  );
 
   async function handleOpenPreview(item: BrowseItem) {
     setSelectedItem(item);
@@ -147,7 +127,7 @@ export function ItemsBrowseClient({
           <select
             value={rarity}
             onChange={(e) => setRarity(e.target.value as any)}
-            className="w-full rounded-md border border-slate-800 bg-slate-900 px-3 py-2 text-base sm:text-sm text-warm focus:outline-none focus:ring-1 focus:ring-[#4fc1e9] hover:border-[#4fc1e9]"
+            className="w-full rounded-md border border-[#4fc1e9]/60 bg-panel-texture px-3 py-2 text-base sm:text-sm text-warm focus:outline-none focus:ring-1 focus:ring-[#4fc1e9] hover:border-[#4fc1e9]"
           >
             <option value="all">All rarities</option>
             {rarityOptions.map((r) => (
@@ -170,8 +150,8 @@ export function ItemsBrowseClient({
           No items match your filters.
         </div>
       ) : (
-        <div className="grid gap-3 md:grid-cols-2 min-w-0">
-          {paged.map((item) => (
+        <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3 min-w-0">
+          {filtered.map((item) => (
             <ItemCard
               key={item.id}
               item={item}
@@ -193,65 +173,6 @@ export function ItemsBrowseClient({
               }
             />
           ))}
-        </div>
-      )}
-
-      {/* Pagination */}
-      {filtered.length > pageSize && (
-        <div className="flex flex-col gap-2 text-sm text-warm-muted pt-2">
-          <div>Page {page} of {pageCount}</div>
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setPage((p) => Math.max(1, p - visiblePageCount))}
-                disabled={page === 1}
-                className="rounded-md border border-white/10 bg-black/30 px-3 py-1 text-sm text-warm hover:border-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                ‹‹
-              </button>
-              <button
-                type="button"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="rounded-md border border-white/10 bg-black/30 px-3 py-1 text-sm text-warm hover:border-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Prev
-              </button>
-              <button
-                type="button"
-                onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
-                disabled={page === pageCount}
-                className="rounded-md border border-white/10 bg-black/30 px-3 py-1 text-sm text-warm hover:border-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
-              <button
-                type="button"
-                onClick={() => setPage((p) => Math.min(pageCount, p + visiblePageCount))}
-                disabled={page === pageCount}
-                className="rounded-md border border-white/10 bg-black/30 px-3 py-1 text-sm text-warm hover:border-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                ››
-              </button>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              {pageNumbers.map((num) => (
-                <button
-                  key={num}
-                  type="button"
-                  onClick={() => setPage(num)}
-                  className={`rounded-md border px-3 py-1 text-sm ${
-                    num === page
-                      ? "border-[#4fc1e9] bg-[#4fc1e9]/15 text-warm"
-                      : "border-white/10 bg-black/20 text-warm hover:border-white/30"
-                  }`}
-                >
-                  {num}
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       )}
 

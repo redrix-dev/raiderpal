@@ -1,4 +1,4 @@
-﻿// app/layout.tsx
+// app/layout.tsx
 import type { Metadata } from "next";
 import "./globals.css";
 import { HeaderControls } from "@/components/HeaderControls";
@@ -45,16 +45,16 @@ export default function RootLayout({
               backgroundPosition: "center",
             }}
           >
-            <div className="mx-auto w-full max-w-[1680px] 2xl:max-w-[1800px] px-6 lg:px-8 py-4 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded bg-[#4fc1e9]/20 border border-[#4fc1e9]/40 flex items-center justify-center text-base font-semibold">
+            <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded bg-[#4fc1e9]/20 border border-[#4fc1e9]/40 flex items-center justify-center text-sm font-semibold">
                   RP
                 </div>
                 <div className="hidden sm:flex flex-col">
-                  <h1 className="text-xl font-bold tracking-wide uppercase font-condensed text-center sm:text-left">
+                  <h1 className="text-lg font-bold tracking-wide uppercase font-condensed text-center sm:text-left">
                     Raider Pal
                   </h1>
-                  <p className="text-sm text-warm-muted text-center sm:text-left font-medium">
+                  <p className="text-xs text-warm-muted text-center sm:text-left font-medium">
                     Arc Raiders item explorer & crafting companion
                   </p>
                 </div>
@@ -67,14 +67,14 @@ export default function RootLayout({
 
           {/* Main */}
           <main className="flex-1">
-            <div className="mx-auto w-full max-w-[1680px] 2xl:max-w-[1800px] px-3 sm:px-5 lg:px-8 py-5">
+            <div className="mx-auto w-full max-w-7xl px-2 sm:px-4 py-4">
               <div className="min-w-0">{children}</div>
             </div>
           </main>
 
           {/* Footer stripe accent */}
           <div
-            className="w-full h-3 md:h-4"
+            className="w-full h-2 md:h-3"
             style={{
               backgroundImage: 'url("/branding/stripe.png")',
               backgroundRepeat: "no-repeat",
@@ -94,16 +94,17 @@ export default function RootLayout({
               backgroundPosition: "center",
             }}
           >
-            <div className="mx-auto w-full max-w-[1680px] 2xl:max-w-[1800px] px-6 lg:px-8 py-4 text-sm text-warm-muted flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mx-auto max-w-7xl px-4 py-3 text-xs text-warm-muted flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
               <span className="text-warm-muted">
-                Raider Pal — an unofficial Arc Raiders companion. Game data and assets are © Embark Studios AB, with item information sourced from MetaForge (
+                Raider Pal — unofficial Arc Raiders companion. All game data is
+                property of Embark Studios and provided by MetaForge via{" "}
                 <a
                   href="https://metaforge.app/arc-raiders"
                   className="text-[#4fc1e9] hover:text-[#4fc1e9]"
                 >
                   metaforge.app/arc-raiders
                 </a>
-                ). “Arc Raiders” and its associated trademarks are owned by Embark Studios AB.
+                .
               </span>
               <span className="text-warm-muted">Built with Next.js & Supabase</span>
             </div>

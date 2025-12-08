@@ -2,7 +2,6 @@
 import { getAllItems } from "@/data/items";
 import { ItemsBrowseClient } from "@/components/ItemsBrowseClient";
 import { getDataVersion } from "@/data/version";
-import { ModulePanel } from "@/components/ModulePanel";
 
 export default async function ItemsBrowsePage() {
   const [items, versionRow] = await Promise.all([
@@ -14,19 +13,23 @@ export default async function ItemsBrowsePage() {
     versionRow?.version != null ? String(versionRow.version) : undefined;
 
   return (
-    <div className="rounded-xl border border-[#130918] bg-panel-texture p-4 sm:p-5 space-y-4 shadow-[0_0_40px_rgba(0,0,0,0.6)] min-h-[70vh] lg:min-h-[75vh] xl:min-h-[79vh]">
-      <ModulePanel title="Items Browser">
-        <div className="space-y-3">
-          <p className="text-base text-warm">
+    <div className="space-y-4">
+      <div className="rounded-lg border border-slate-800 bg-panel-texture p-4 space-y-3">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-xl font-condensed font-bold uppercase tracking-wide text-warm">
+            Items Browser
+          </h2>
+          <p className="text-sm text-warm-muted">
             Search and filter Arc Raiders items. Click a card for full details,
             crafting, recycling, and best sources.
           </p>
-          <ItemsBrowseClient
-            initialItems={items ?? []}
-            dataVersion={dataVersion}
-          />
         </div>
-      </ModulePanel>
+
+        <ItemsBrowseClient
+          initialItems={items ?? []}
+          dataVersion={dataVersion}
+        />
+      </div>
     </div>
   );
 }
