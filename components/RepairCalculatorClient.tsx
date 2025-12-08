@@ -113,9 +113,13 @@ export function RepairCalculatorClient({
 
   const repairCosts = useCostList(
     result?.repairCost,
-    result?.repairBand === "cheap"
-      ? selected?.cheap_repair_cost
-      : selected?.expensive_repair_cost,
+    [
+      ...(result?.repairBand === "cheap"
+        ? selected?.cheap_repair_cost ?? []
+        : selected?.expensive_repair_cost ?? []),
+      ...(selected?.craft_components ?? []),
+      ...(selected?.recycle_outputs ?? []),
+    ],
     items,
     [selected?.required_item_id, selected?.id],
     [selected?.name, baseItem?.name],
@@ -124,9 +128,11 @@ export function RepairCalculatorClient({
   );
   const craftCosts = useCostList(
     result?.trueCraftCost,
-    selected?.net_upgrade_cost?.length
-      ? [...selected.net_upgrade_cost, ...(selected.craft_components ?? [])]
-      : selected?.craft_components,
+    [
+      ...(selected?.net_upgrade_cost ?? []),
+      ...(selected?.craft_components ?? []),
+      ...(selected?.recycle_outputs ?? []),
+    ],
     items,
     [selected?.required_item_id, selected?.id],
     [selected?.name, baseItem?.name],
