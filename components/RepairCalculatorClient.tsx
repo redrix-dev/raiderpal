@@ -124,7 +124,9 @@ export function RepairCalculatorClient({
   );
   const craftCosts = useCostList(
     result?.trueCraftCost,
-    selected?.craft_components,
+    selected?.net_upgrade_cost?.length
+      ? [...selected.net_upgrade_cost, ...(selected.craft_components ?? [])]
+      : selected?.craft_components,
     items,
     [selected?.required_item_id, selected?.id],
     [selected?.name, baseItem?.name],
