@@ -19,6 +19,9 @@
     "Segoe UI",
     sans-serif
   );
+  --rp-offwhite: #ece2d0;
+  --rp-yellow: #f1aa1c;
+  --rp-deepblue: #130918;
 }
 
 /* Tailwind v4 theme helpers can confuse CSS validators. If your editor flags
@@ -98,6 +101,42 @@ input[type="range"]::-moz-range-progress {
 input[type="range"]::-moz-range-thumb {
   background: #4fc1e9;
   border: 1px solid #4fc1e9;
+}
+
+@layer components {
+  /* Main inner panels (tool bodies, info sections) */
+  .rp-panel {
+    @apply rounded-xl border p-4 sm:p-5;
+    border-color: var(--rp-deepblue);
+    background-image: linear-gradient(rgba(5, 9, 16, 0.35), rgba(5, 9, 16, 0.35)),
+      url("/backgrounds/ARC_Raiders_Module_Background.png");
+    background-repeat: repeat-x;
+    background-size: auto 140%;
+    background-position: center;
+    background-color: rgba(5, 9, 16, 0.6);
+  }
+
+  /* Secondary cards inside panels (subsections, result blocks) */
+  .rp-card {
+    @apply rounded-lg border p-4;
+    border-color: rgba(255, 255, 255, 0.06);
+    background-color: rgba(7, 4, 15, 0.92);
+  }
+
+  /* Generic pill/tag (non-rarity) */
+  .rp-pill {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium;
+    background-color: rgba(19, 9, 24, 0.9);
+    color: var(--rp-offwhite);
+    border: 1px solid rgba(236, 226, 208, 0.16);
+  }
+
+  /* Accent pill for highlighted states */
+  .rp-pill-accent {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold;
+    background-color: var(--rp-yellow);
+    color: #1a0704;
+  }
 }
 
 /* Panel texture helper: deep blue module texture with subtle tint */

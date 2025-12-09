@@ -1,22 +1,28 @@
 // app/items/[id]/sources/route.ts
-import { NextResponse, type NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 import { getBestSourcesForItem } from "@/data/yields";
+import { jsonError, type RouteContext } from "@/lib/http";
 
 type Params = { id: string };
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: Promise<Params> }
+  { params }: RouteContext<Params>
 ) {
   const { id } = await params;
+
   if (!id || typeof id !== "string" || !id.trim()) {
-    return NextResponse.json({ error: "Invalid item id" }, { status: 400 });
+    return jsonError("Missing or invalid id", 400);
   }
 
-  try {
-    const sources = await getBestSourcesForItem(id.trim());
-    return NextResponse.json(sources ?? []);
-  } catch (err) {
-    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+  const sources = await getBestSourcesForItem(id.trim());
+
+  if (!sources) {
+    return jsonError("Item not found", 404);
   }
+
+  return new Response(JSON.stringify(sources), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
 }

@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { DirectYieldSource } from "@/data/yields";
 import type { RecyclingSourceRow } from "@/data/recycling";
 import { RarityBadge } from "@/components/ItemCard";
-import { cachedFetchJson } from "@/lib/clientCache";
 import { useRaidReminders } from "@/hooks/useRaidReminders";
+import { useCachedJson } from "@/hooks/useCachedJson";
 import { ModulePanel } from "@/components/ModulePanel";
+import { ItemPicker, type PickerItem } from "@/components/ItemPicker";
+import { TwoOptionToggle } from "@/components/TwoOptionToggle";
+import { SelectedItemSummary } from "@/components/SelectedItemSummary";
 
 type HelperItem = {
   id: string;
@@ -44,17 +47,6 @@ export function RecycleHelperClient({
   const [itemTypeFilter, setItemTypeFilter] = useState<string>("all");
   const [selectedItemId, setSelectedItemId] = useState<string>("");
 
-  // Dropdown UI state
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const [pickerQuery, setPickerQuery] = useState("");
-
-  // Results
-  const [needResults, setNeedResults] = useState<DirectYieldSource[]>([]);
-  const [haveResults, setHaveResults] = useState<RecyclingSourceRow[]>([]);
-
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
   // Result-side filters
   const [resultTypeFilter, setResultTypeFilter] = useState<string>("all");
   const [sortKey, setSortKey] = useState<SortKey>("quantityDesc");
@@ -82,9 +74,8 @@ export function RecycleHelperClient({
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [initialItems, mode, needableSet, haveableSet]);
 
-  // ---- Items for the picker: filtered by mode + type + name ----
+  // ---- Items eligible for the picker: filtered by mode + type ----
   const filteredItems = useMemo(() => {
-    const q = pickerQuery.trim().toLowerCase();
     const activeSet = mode === "need" ? needableSet : haveableSet;
 
     return initialItems.filter((i) => {
@@ -102,74 +93,78 @@ export function RecycleHelperClient({
 
       if (itemTypeFilter !== "all" && type !== itemTypeFilter) return false;
 
-      if (!q) return true;
-      const n = i.name ?? "";
-      return n.toLowerCase().includes(q);
+      return true;
     });
   }, [
     initialItems,
     itemTypes,
     mode,
     itemTypeFilter,
-    pickerQuery,
     needableSet,
     haveableSet,
     hideWeapons,
   ]);
+
+  // Map to PickerItem[] for the shared picker
+  const pickerItems = useMemo<PickerItem[]>(
+    () =>
+      filteredItems.map((item) => ({
+        id: item.id,
+        name: item.name,
+        icon: item.icon,
+        rarity: item.rarity ?? undefined,
+        subtitle: item.item_type ?? undefined,
+      })),
+    [filteredItems]
+  );
 
   // Selected item object
   const selectedItem = selectedItemId
     ? initialItems.find((i) => i.id === selectedItemId) ?? null
     : null;
 
-  // ---- Fetch data when item or mode changes ----
-  useEffect(() => {
-    if (!selectedItemId) {
-      setNeedResults([]);
-      setHaveResults([]);
-      setError(null);
-      setSelectedRows(new Set());
-      return;
+  const {
+    data: needData,
+    loading: needLoading,
+    error: needError,
+  } = useCachedJson<DirectYieldSource[]>(
+    selectedItemId ? `/items/${selectedItemId}/sources` : null,
+    {
+      version: dataVersion ?? undefined,
+      initialData: [],
+      enabled: mode === "need" && Boolean(selectedItemId),
     }
+  );
 
-    const run = async () => {
-      setLoading(true);
-      setError(null);
+  const {
+    data: haveData,
+    loading: haveLoading,
+    error: haveError,
+  } = useCachedJson<RecyclingSourceRow[]>(
+    selectedItemId ? `/items/${selectedItemId}/recycling` : null,
+    {
+      version: dataVersion ?? undefined,
+      initialData: [],
+      enabled: mode === "have" && Boolean(selectedItemId),
+    }
+  );
 
-      try {
-        if (mode === "need") {
-          const data = await cachedFetchJson<DirectYieldSource[]>(
-            `/items/${selectedItemId}/sources`,
-            { version: dataVersion ?? undefined }
-          );
-          setNeedResults(data ?? []);
-        } else {
-          const data = await cachedFetchJson<RecyclingSourceRow[]>(
-            `/items/${selectedItemId}/recycling`,
-            { version: dataVersion ?? undefined }
-          );
-          setHaveResults(data ?? []);
-        }
-      } catch (e: any) {
-        setError(e?.message ?? "Unknown error");
-        setNeedResults([]);
-        setHaveResults([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const needResults = useMemo(() => needData ?? [], [needData]);
+  const haveResults = useMemo(() => haveData ?? [], [haveData]);
 
-    run();
-  }, [selectedItemId, mode, dataVersion]);
+  const loading = selectedItemId
+    ? mode === "need"
+      ? needLoading
+      : haveLoading
+    : false;
+  const error = selectedItemId
+    ? mode === "need"
+      ? needError
+      : haveError
+    : null;
 
   function handleModeChange(next: Mode) {
     setMode(next);
-    setSelectedRows(new Set());
-  }
-
-  function handleSelectItem(item: HelperItem) {
-    setSelectedItemId(item.id);
-    setPickerOpen(false);
     setSelectedRows(new Set());
   }
 
@@ -292,33 +287,14 @@ export function RecycleHelperClient({
   const hasSelection = selectedRows.size > 0;
 
   const modeToggle = (
-    <div className="inline-flex w-full sm:w-auto rounded-md border border-slate-700 bg-slate-900 p-1 text-xs">
-      <button
-        type="button"
-        onClick={() => handleModeChange("need")}
-        className={
-          "flex-1 px-3 py-1 rounded " +
-          (mode === "need"
-            ? "bg-[#4fc1e9] text-white"
-            : "text-warm hover:bg-slate-800")
-        }
-      >
-        I need this item
-      </button>
-      <button
-        type="button"
-        onClick={() => handleModeChange("have")}
-        className={
-          "flex-1 px-3 py-1 rounded " +
-          (mode === "have"
-            ? "bg-[#4fc1e9] text-white"
-            : "text-warm hover:bg-slate-800")
-        }
-      >
-        I have this item
-      </button>
-    </div>
-  );
+  <TwoOptionToggle
+    value={mode}
+    onChange={(m) => handleModeChange(m as Mode)}
+    optionA={{ value: "need", label: "I need this item" }}
+    optionB={{ value: "have", label: "I have this item" }}
+  />
+);
+
 
   return (
     <ModulePanel
@@ -333,7 +309,7 @@ export function RecycleHelperClient({
 
       {/* Picker modules */}
       <div className="grid gap-4">
-        <div className="rounded-md border border-slate-800 bg-slate-900/80 p-4">
+        <div className="rp-card">
           <div className="grid gap-3 md:grid-cols-[1.5fr_1fr] md:items-end">
             <div className="flex-1">
               <label className="block text-sm font-medium text-warm mb-1">
@@ -344,7 +320,6 @@ export function RecycleHelperClient({
                 onChange={(e) => {
                   setItemTypeFilter(e.target.value);
                   setSelectedItemId("");
-                  setPickerQuery("");
                 }}
                 className="w-full h-10 rounded-md border border-slate-800 bg-slate-900 px-3 py-2 text-base text-warm focus:outline-none focus:ring-1 focus:ring-[#4fc1e9] hover:border-[#4fc1e9]"
               >
@@ -364,83 +339,25 @@ export function RecycleHelperClient({
                   : "Item you want to recycle"}
               </label>
 
-              {/* Item selector with absolute dropdown */}
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setPickerOpen((open) => !open)}
-                  className="w-full h-10 rounded-md border border-slate-800 bg-slate-900 px-3 py-2 text-base text-warm flex items-center justify-between focus:outline-none focus:ring-1 focus:ring-[#4fc1e9] hover:border-[#4fc1e9]"
-                >
-                  <span className="truncate">
-                    {selectedItem?.name ?? "Select an item..."}
-                  </span>
-                  <span className="ml-2 text-xs text-warm-muted">
-                    {pickerOpen ? "^" : "v"}
-                  </span>
-                </button>
-
-                {pickerOpen && (
-                  <div className="absolute z-40 left-0 top-full mt-1 w-full rounded-md border border-slate-800 bg-slate-900 shadow-lg text-xs max-h-[70vh] overflow-auto">
-                    <div className="border-b border-slate-800 p-2 bg-slate-900/80 rounded-t-md">
-                      <input
-                        type="text"
-                        value={pickerQuery}
-                        onChange={(e) => setPickerQuery(e.target.value)}
-                        placeholder="Filter by name..."
-                        className="w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-warm placeholder:text-warm-muted focus:outline-none focus:ring-1 focus:ring-[#4fc1e9]"
-                      />
-                    </div>
-
-                    <div className="max-h-80 overflow-y-auto">
-                      {filteredItems.length === 0 ? (
-                        <div className="p-3 text-xs text-warm-muted">
-                          No items match your filters.
-                        </div>
-                      ) : (
-                        <ul className="divide-y divide-slate-800 text-xs">
-                          {filteredItems.map((item) => (
-                            <li key={item.id}>
-                              <button
-                                type="button"
-                                onClick={() => handleSelectItem(item)}
-                                className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-slate-900"
-                              >
-                                {item.icon && (
-                                  <img
-                                    src={item.icon}
-                                    alt={item.name ?? "icon"}
-                                    className="h-6 w-6 rounded border border-slate-700 bg-slate-950 object-contain"
-                                  />
-                                )}
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2">
-                                    <span className="truncate text-warm">
-                                      {item.name}
-                                    </span>
-                                    <RarityBadge
-                                      rarity={item.rarity ?? undefined}
-                                    />
-                                  </div>
-                                  {item.item_type && (
-                                    <div className="text-[10px] text-warm-muted">
-                                      {item.item_type}
-                                    </div>
-                                  )}
-                                </div>
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
+              <ItemPicker
+                items={pickerItems}
+                selectedId={selectedItemId || null}
+                onChange={(id) => {
+                  setSelectedItemId(id);
+                  setSelectedRows(new Set());
+                }}
+                placeholder={
+                  mode === "need"
+                    ? "Select what you want to obtain..."
+                    : "Select what you want to recycle..."
+                }
+                triggerClassName="h-10 text-sm"
+              />
             </div>
           </div>
         </div>
 
-        <div className="rounded-md border border-slate-800 bg-slate-900/80 p-4">
+        <div className="rp-card">
           <div className="grid gap-3 md:grid-cols-[1.5fr_1fr] md:items-end">
             <div className="flex-1">
               <label className="block text-sm font-medium text-warm mb-1">
@@ -503,29 +420,14 @@ export function RecycleHelperClient({
 
       {/* Selected item summary */}
       {selectedItem && (
-        <div className="rounded-md border border-slate-800 bg-slate-900/80 p-3 text-sm flex items-center gap-3">
-          {selectedItem.icon && (
-            <img
-              src={selectedItem.icon}
-              alt={selectedItem.name ?? ""}
-              className="h-10 w-10 rounded border border-slate-700 bg-slate-950 object-contain"
-            />
-          )}
-          <div>
-            <div className="font-medium text-warm">
-              {selectedItem.name ?? "Unnamed item"}
-            </div>
-            <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-warm-muted">
-              {selectedItem.item_type && (
-                <span className="inline-flex items-center rounded-full bg-slate-800 px-2 py-0.5">
-                  {selectedItem.item_type}
-                </span>
-              )}
-              <RarityBadge rarity={selectedItem.rarity ?? undefined} />
-            </div>
-          </div>
-        </div>
-      )}
+  <SelectedItemSummary
+    name={selectedItem.name}
+    icon={selectedItem.icon}
+    rarity={selectedItem.rarity ?? undefined}
+    itemType={selectedItem.item_type ?? undefined}
+  />
+)}
+
 
       {/* Status */}
       {loading && (
@@ -539,178 +441,326 @@ export function RecycleHelperClient({
 
       {/* Results table */}
       {selectedItemId && !loading && !error && (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between gap-3">
-            <div className="text-xs text-warm-muted">
-              Select rows and add them to Raid Reminders.
-            </div>
-            <button
-              type="button"
-              onClick={handleAddSelected}
-              disabled={!hasSelection}
-              className={`rounded-md px-3 py-2 text-sm font-medium border ${
-                hasSelection
-                  ? "border-[#4fc1e9]/60 bg-[#4fc1e9]/15 text-[#4fc1e9] hover:border-[#4fc1e9]"
-                  : "cursor-not-allowed border-slate-800 bg-slate-900 text-warm-muted"
-              }`}
-            >
-              Add to Raid Reminders
-            </button>
-          </div>
+  <div className="space-y-2">
+    <div className="flex items-center justify-between gap-3">
+      <div className="text-xs text-warm-muted">
+        Select rows and add them to Raid Reminders.
+      </div>
+      <button
+        type="button"
+        onClick={handleAddSelected}
+        disabled={!hasSelection}
+        className={`rounded-md px-3 py-2 text-sm font-medium border ${
+          hasSelection
+            ? "border-[#4fc1e9]/60 bg-[#4fc1e9]/15 text-[#4fc1e9] hover:border-[#4fc1e9]"
+            : "cursor-not-allowed border-slate-800 bg-slate-900 text-warm-muted"
+        }`}
+      >
+        Add to Raid Reminders
+      </button>
+    </div>
 
-          <div className="overflow-x-auto rounded-lg border border-slate-800 bg-slate-900/80">
-            <table className="min-w-full text-left text-sm">
-              <thead className="bg-slate-800/90 text-xs uppercase text-warm-muted">
+    {/* MOBILE: card layout */}
+    <div className="space-y-2 md:hidden">
+      {mode === "need" &&
+        (displayNeed.length > 0 ? (
+          displayNeed.map((row) => {
+            const rowId = row.sourceItemId;
+            const alreadyAdded = rowId ? isAdded(rowId) : true;
+            const checked = rowId ? selectedRows.has(rowId) : false;
+
+            return (
+              <div
+                key={row.sourceItemId}
+                className="rounded-md border border-slate-800 bg-slate-900/80 p-3 flex items-center gap-3"
+              >
+                {/* checkbox */}
+                <div className="flex-shrink-0">
+                  <input
+                    type="checkbox"
+                    disabled={!rowId || alreadyAdded}
+                    checked={checked}
+                    onChange={() => rowId && toggleRow(rowId)}
+                    className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-[#4fc1e9] disabled:opacity-50"
+                  />
+                </div>
+
+                {/* icon */}
+                {row.sourceIcon && (
+                  <img
+                    src={row.sourceIcon}
+                    alt={row.sourceName}
+                    className="h-10 w-10 rounded border border-slate-700 bg-slate-950 object-contain flex-shrink-0"
+                  />
+                )}
+
+                {/* main text */}
+                <div className="flex-1 min-w-0">
+                  <a
+                    href={`/items/${row.sourceItemId}`}
+                    className="block text-sm text-warm font-semibold truncate hover:underline"
+                  >
+                    {row.sourceName}
+                  </a>
+                  <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-warm-muted">
+                    <span>{row.sourceType ?? "–"}</span>
+                    <RarityBadge rarity={row.sourceRarity ?? undefined} />
+                    {alreadyAdded && (
+                      <span className="text-emerald-300">(added)</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* quantity on the right */}
+                <div className="flex-shrink-0 text-right">
+                  <div className="text-sm font-semibold text-warm">
+                    {row.quantity ?? 0}
+                  </div>
+                  <div className="text-[10px] text-warm-muted">Qty</div>
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <div className="rounded-md border border-slate-800 bg-slate-900/80 p-3 text-xs text-warm-muted text-center">
+            No direct recycle sources found.
+          </div>
+        ))}
+
+      {mode === "have" &&
+        (displayHave.length > 0 ? (
+          displayHave.map((row, idx) => {
+            const rowId = row.component_id ?? `row-${idx}`;
+            const hasRealId = Boolean(row.component_id);
+            const alreadyAdded = hasRealId ? isAdded(rowId) : true;
+            const checked = hasRealId ? selectedRows.has(rowId) : false;
+
+            return (
+              <div
+                key={`${row.component_id ?? "row"}-${idx}`}
+                className="rounded-md border border-slate-800 bg-slate-900/80 p-3 flex items-center gap-3"
+              >
+                {/* checkbox */}
+                <div className="flex-shrink-0">
+                  <input
+                    type="checkbox"
+                    disabled={!hasRealId || alreadyAdded}
+                    checked={checked}
+                    onChange={() => hasRealId && toggleRow(rowId)}
+                    className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-[#4fc1e9] disabled:opacity-50"
+                  />
+                </div>
+
+                {/* icon */}
+                {row.component_icon && (
+                  <img
+                    src={row.component_icon}
+                    alt={row.component_name ?? ""}
+                    className="h-10 w-10 rounded border border-slate-700 bg-slate-950 object-contain flex-shrink-0"
+                  />
+                )}
+
+                {/* main text */}
+                <div className="flex-1 min-w-0">
+                  {row.component_id ? (
+                    <a
+                      href={`/items/${row.component_id}`}
+                      className="block text-sm text-warm font-semibold truncate hover:underline"
+                    >
+                      {row.component_name ?? row.component_id}
+                    </a>
+                  ) : (
+                    <span className="block text-sm text-warm font-semibold truncate">
+                      {row.component_name ?? "Unknown item"}
+                    </span>
+                  )}
+                  <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-warm-muted">
+                    <span>{row.component_type ?? "–"}</span>
+                    <RarityBadge
+                      rarity={row.component_rarity ?? undefined}
+                    />
+                    {alreadyAdded && (
+                      <span className="text-emerald-300">(added)</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* quantity on the right */}
+                <div className="flex-shrink-0 text-right">
+                  <div className="text-sm font-semibold text-warm">
+                    {row.quantity ?? 0}
+                  </div>
+                  <div className="text-[10px] text-warm-muted">Qty</div>
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <div className="rounded-md border border-slate-800 bg-slate-900/80 p-3 text-xs text-warm-muted text-center">
+            No recycling outputs found.
+          </div>
+        ))}
+    </div>
+
+    {/* DESKTOP: table layout */}
+    <div className="hidden md:block">
+      <div className="overflow-x-auto rounded-lg border border-slate-800 bg-slate-900/80">
+        <table className="min-w-full text-left text-sm">
+          <thead className="bg-slate-800/90 text-xs uppercase text-warm-muted">
+            <tr>
+              <th className="px-3 py-2 w-12">Save</th>
+              <th className="px-3 py-2 font-medium">
+                {mode === "need" ? "Source item" : "Output item"}
+              </th>
+              <th className="px-3 py-2 font-medium">Type</th>
+              <th className="px-3 py-2 font-medium">Rarity</th>
+              <th className="px-3 py-2 font-medium text-right">Quantity</th>
+            </tr>
+          </thead>
+          <tbody>
+            {mode === "need" &&
+              (displayNeed.length > 0 ? (
+                displayNeed.map((row) => {
+                  const rowId = row.sourceItemId;
+                  const alreadyAdded = rowId ? isAdded(rowId) : true;
+                  const checked = rowId ? selectedRows.has(rowId) : false;
+                  return (
+                    <tr
+                      key={row.sourceItemId}
+                      className="border-t border-slate-800/80"
+                    >
+                      <td className="px-3 py-2 align-middle">
+                        <input
+                          type="checkbox"
+                          disabled={!rowId || alreadyAdded}
+                          checked={checked}
+                          onChange={() => rowId && toggleRow(rowId)}
+                          className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-[#4fc1e9] disabled:opacity-50"
+                        />
+                      </td>
+                      <td className="px-3 py-2 flex items-center gap-2">
+                        {row.sourceIcon && (
+                          <img
+                            src={row.sourceIcon}
+                            alt={row.sourceName}
+                            className="h-8 w-8 rounded border border-slate-700 bg-slate-950 object-contain"
+                          />
+                        )}
+                        <a
+                          href={`/items/${row.sourceItemId}`}
+                          className="hover:underline truncate"
+                        >
+                          {row.sourceName}
+                        </a>
+                        {alreadyAdded && (
+                          <span className="ml-2 text-[11px] text-emerald-300">
+                            (added)
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 text-xs text-warm">
+                        {row.sourceType ?? "–"}
+                      </td>
+                      <td className="px-3 py-2 text-xs text-warm">
+                        <RarityBadge
+                          rarity={row.sourceRarity ?? undefined}
+                        />
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        {row.quantity ?? 0}
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
                 <tr>
-                  <th className="px-3 py-2 w-12">Save</th>
-                  <th className="px-3 py-2 font-medium">
-                    {mode === "need" ? "Source item" : "Output item"}
-                  </th>
-                  <th className="px-3 py-2 font-medium">Type</th>
-                  <th className="px-3 py-2 font-medium">Rarity</th>
-                  <th className="px-3 py-2 font-medium text-right">
-                    Quantity
-                  </th>
+                  <td
+                    colSpan={5}
+                    className="px-3 py-4 text-center text-xs text-warm-muted"
+                  >
+                    No direct recycle sources found.
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {mode === "need" &&
-                  (displayNeed.length > 0 ? (
-                    displayNeed.map((row) => {
-                      const rowId = row.sourceItemId;
-                      const alreadyAdded = rowId ? isAdded(rowId) : true;
-                      const checked = rowId ? selectedRows.has(rowId) : false;
-                      return (
-                        <tr
-                          key={row.sourceItemId}
-                          className="border-t border-slate-800/80"
-                        >
-                          <td className="px-3 py-2 align-middle">
-                            <input
-                              type="checkbox"
-                              disabled={!rowId || alreadyAdded}
-                              checked={checked}
-                              onChange={() => rowId && toggleRow(rowId)}
-                              className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-[#4fc1e9] disabled:opacity-50"
-                            />
-                          </td>
-                          <td className="px-3 py-2 flex items-center gap-2">
-                            {row.sourceIcon && (
-                              <img
-                                src={row.sourceIcon}
-                                alt={row.sourceName}
-                                className="h-8 w-8 rounded border border-slate-700 bg-slate-950 object-contain"
-                              />
-                            )}
-                            <a
-                              href={`/items/${row.sourceItemId}`}
-                              className="hover:underline truncate"
-                            >
-                              {row.sourceName}
-                            </a>
-                            {alreadyAdded && (
-                              <span className="ml-2 text-[11px] text-emerald-300">
-                                (added)
-                              </span>
-                            )}
-                          </td>
-                          <td className="px-3 py-2 text-xs text-warm">
-                            {row.sourceType ?? "–"}
-                          </td>
-                          <td className="px-3 py-2 text-xs text-warm">
-                            <RarityBadge rarity={row.sourceRarity ?? undefined} />
-                          </td>
-                          <td className="px-3 py-2 text-right">
-                            {row.quantity ?? 0}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={5}
-                        className="px-3 py-4 text-center text-xs text-warm-muted"
-                      >
-                        No direct recycle sources found.
-                      </td>
-                    </tr>
-                  ))}
+              ))}
 
-                {mode === "have" &&
-                  (displayHave.length > 0 ? (
-                    displayHave.map((row, idx) => {
-                      const rowId = row.component_id ?? `row-${idx}`;
-                      const hasRealId = Boolean(row.component_id);
-                      const alreadyAdded = hasRealId ? isAdded(rowId) : true;
-                      const checked = hasRealId ? selectedRows.has(rowId) : false;
-                      return (
-                        <tr
-                          key={`${row.component_id ?? "row"}-${idx}`}
-                          className="border-t border-slate-800/80"
-                        >
-                          <td className="px-3 py-2 align-middle">
-                            <input
-                              type="checkbox"
-                              disabled={!hasRealId || alreadyAdded}
-                              checked={checked}
-                              onChange={() => hasRealId && toggleRow(rowId)}
-                              className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-[#4fc1e9] disabled:opacity-50"
-                            />
-                          </td>
-                          <td className="px-3 py-2 flex items-center gap-2">
-                            {row.component_icon && (
-                              <img
-                                src={row.component_icon}
-                                alt={row.component_name ?? ""}
-                                className="h-8 w-8 rounded border border-slate-700 bg-slate-950 object-contain"
-                              />
-                            )}
-                            {row.component_id ? (
-                              <a
-                                href={`/items/${row.component_id}`}
-                                className="hover:underline truncate"
-                              >
-                                {row.component_name ?? row.component_id}
-                              </a>
-                            ) : (
-                              <span className="truncate">
-                                {row.component_name ?? "Unknown item"}
-                              </span>
-                            )}
-                            {alreadyAdded && (
-                              <span className="ml-2 text-[11px] text-emerald-300">
-                                (added)
-                              </span>
-                            )}
-                          </td>
-                          <td className="px-3 py-2 text-xs text-warm">
-                            {row.component_type ?? "–"}
-                          </td>
-                          <td className="px-3 py-2 text-xs text-warm">
-                            <RarityBadge rarity={row.component_rarity ?? undefined} />
-                          </td>
-                          <td className="px-3 py-2 text-right">
-                            {row.quantity ?? 0}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={5}
-                        className="px-3 py-4 text-center text-xs text-warm-muted"
-                      >
-                        No recycling outputs found.
+            {mode === "have" &&
+              (displayHave.length > 0 ? (
+                displayHave.map((row, idx) => {
+                  const rowId = row.component_id ?? `row-${idx}`;
+                  const hasRealId = Boolean(row.component_id);
+                  const alreadyAdded = hasRealId ? isAdded(rowId) : true;
+                  const checked = hasRealId ? selectedRows.has(rowId) : false;
+                  return (
+                    <tr
+                      key={`${row.component_id ?? "row"}-${idx}`}
+                      className="border-t border-slate-800/80"
+                    >
+                      <td className="px-3 py-2 align-middle">
+                        <input
+                          type="checkbox"
+                          disabled={!hasRealId || alreadyAdded}
+                          checked={checked}
+                          onChange={() => hasRealId && toggleRow(rowId)}
+                          className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-[#4fc1e9] disabled:opacity-50"
+                        />
+                      </td>
+                      <td className="px-3 py-2 flex items-center gap-2">
+                        {row.component_icon && (
+                          <img
+                            src={row.component_icon}
+                            alt={row.component_name ?? ""}
+                            className="h-8 w-8 rounded border border-slate-700 bg-slate-950 object-contain"
+                          />
+                        )}
+                        {row.component_id ? (
+                          <a
+                            href={`/items/${row.component_id}`}
+                            className="hover:underline truncate"
+                          >
+                            {row.component_name ?? row.component_id}
+                          </a>
+                        ) : (
+                          <span className="truncate">
+                            {row.component_name ?? "Unknown item"}
+                          </span>
+                        )}
+                        {alreadyAdded && (
+                          <span className="ml-2 text-[11px] text-emerald-300">
+                            (added)
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 text-xs text-warm">
+                        {row.component_type ?? "–"}
+                      </td>
+                      <td className="px-3 py-2 text-xs text-warm">
+                        <RarityBadge
+                          rarity={row.component_rarity ?? undefined}
+                        />
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        {row.quantity ?? 0}
                       </td>
                     </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+                  );
+                })
+              ) : (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-3 py-4 text-center text-xs text-warm-muted"
+                  >
+                    No recycling outputs found.
+                  </td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+)}
+
 
       {!selectedItemId && !loading && !error && (
         <div className="text-[11px] text-warm-muted">
