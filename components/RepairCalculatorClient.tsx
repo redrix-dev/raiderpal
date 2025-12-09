@@ -7,9 +7,11 @@ import {
   type ItemEconomy,
 } from "@/lib/repairCalculator";
 import type { RepairEconomyRow } from "@/data/repairEconomy";
-import { cachedFetchJson } from "@/lib/clientCache";
+import { useCachedJson } from "@/hooks/useCachedJson";
 import { RarityBadge } from "./ItemCard";
 import { ModulePanel } from "./ModulePanel";
+import { SelectedItemSummary } from "@/components/SelectedItemSummary";
+import { ItemPicker, type PickerItem } from "@/components/ItemPicker";
 
 type Props = {
   items: RepairEconomyRow[];
@@ -29,26 +31,15 @@ export function RepairCalculatorClient({
   items: initialItems,
   dataVersion,
 }: Props) {
-  const [items, setItems] = useState(initialItems);
-
-  // Keep local state in sync with server-side props
-  useEffect(() => setItems(initialItems), [initialItems]);
-
-  // Refresh client-side when the data version changes
-  useEffect(() => {
-    let active = true;
-    cachedFetchJson<RepairEconomyRow[]>("/repair-economy", {
+  const { data: fetchedItems } = useCachedJson<RepairEconomyRow[]>(
+    "/repair-economy",
+    {
       version: dataVersion ?? undefined,
-    })
-      .then((data) => {
-        if (!active || !data) return;
-        setItems(data);
-      })
-      .catch(() => {});
-    return () => {
-      active = false;
-    };
-  }, [dataVersion]);
+      initialData: initialItems,
+    }
+  );
+
+  const items = fetchedItems ?? initialItems;
 
   const eligibleItems = useMemo(
     () =>
@@ -62,8 +53,6 @@ export function RepairCalculatorClient({
     [items]
   );
 
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const [pickerQuery, setPickerQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(
     eligibleItems.length ? eligibleItems[0].id : null
   );
@@ -93,13 +82,19 @@ export function RepairCalculatorClient({
     setDurability(selected?.max_durability ?? 0);
   }, [selected?.max_durability]);
 
-  const filteredItems = useMemo(() => {
-    const q = pickerQuery.trim().toLowerCase();
-    if (!q) return eligibleItems;
-    return eligibleItems.filter((item) =>
-      (item.name ?? "").toLowerCase().includes(q)
-    );
-  }, [eligibleItems, pickerQuery]);
+  const pickerItems = useMemo<PickerItem[]>(
+    () =>
+      eligibleItems.map((item) => ({
+        id: item.id,
+        name: item.name,
+        icon: item.icon,
+        rarity: item.rarity ?? undefined,
+        subtitle: item.max_durability
+          ? `Max durability: ${item.max_durability}`
+          : null,
+      })),
+    [eligibleItems]
+  );
 
   const result = useMemo(() => {
     if (!selected) return null;
@@ -137,87 +132,19 @@ export function RepairCalculatorClient({
 
         <div className="grid gap-6 lg:grid-cols-2 items-stretch">
           {/* LEFT: controls */}
-          <div className="rounded-lg border border-white/5 bg-black/20 p-5 space-y-6 h-full flex flex-col overflow-visible">
+          <div className="rp-card space-y-6 h-full flex flex-col overflow-visible">
             <div className="space-y-3">
               <label className="text-base text-warm font-semibold">
                 Select item
               </label>
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setPickerOpen((open) => !open)}
-                  className="w-full h-11 rounded-md border border-slate-800 bg-slate-900 px-3 py-2 text-base text-warm flex items-center justify-between transition hover:border-[#4fc1e9] focus:outline-none focus:ring-2 focus:ring-[#4fc1e9] focus:ring-offset-2 focus:ring-offset-slate-950"
-                >
-                  <span className="flex items-center gap-3 truncate">
-                    {selected?.icon ? (
-                      <img
-                        src={selected.icon}
-                        alt={selected.name ?? "Selected item"}
-                        className="h-8 w-8 rounded border border-slate-800 bg-slate-950 object-contain"
-                      />
-                    ) : null}
-                    <span className="truncate">
-                      {selected?.name ?? "Select an item..."}
-                    </span>
-                  </span>
-                  <span className="ml-2 text-xs text-warm-muted">
-                    {pickerOpen ? "▲" : "▼"}
-                  </span>
-                </button>
-
-                {pickerOpen && (
-                  <div className="absolute z-40 left-0 top-full mt-2 w-full md:w-[420px] rounded-lg border border-slate-800 bg-slate-900 shadow-2xl backdrop-blur text-sm max-h-[70vh] overflow-auto">
-                    <div className="border-b border-slate-800 px-3 py-2 bg-slate-900/80 rounded-t-lg">
-                      <input
-                        type="text"
-                        placeholder="Filter items..."
-                        value={pickerQuery}
-                        onChange={(e) => setPickerQuery(e.target.value)}
-                        className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-warm placeholder:text-warm-muted focus:outline-none focus:ring-2 focus:ring-[#4fc1e9]"
-                      />
-                    </div>
-                    <div className="max-h-72 overflow-y-auto">
-                      {filteredItems.length === 0 ? (
-                        <div className="px-3 py-4 text-sm text-warm-muted">
-                          No items found.
-                        </div>
-                      ) : (
-                        <ul className="divide-y divide-slate-800">
-                          {filteredItems.map((item) => (
-                            <li key={item.id}>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setSelectedId(item.id);
-                                  setPickerOpen(false);
-                                  setPickerQuery("");
-                                }}
-                                className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-slate-900"
-                              >
-                                {item.icon ? (
-                                  <img
-                                    src={item.icon}
-                                    alt={item.name ?? "Item icon"}
-                                    className="h-10 w-10 rounded border border-slate-800 bg-slate-950 object-contain"
-                                  />
-                                ) : null}
-                                <div className="min-w-0">
-                                  <div className="truncate text-sm text-warm">
-                                    {item.name}
-                                  </div>
-                                  <div className="text-[11px] text-warm-muted">
-                                    Max durability: {item.max_durability ?? 0}
-                                  </div>
-                                </div>
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
+              <ItemPicker
+                items={pickerItems}
+                selectedId={selectedId}
+                onChange={(id) => setSelectedId(id)}
+                placeholder="Select an item..."
+                triggerClassName="h-11 text-base"
+                dropdownClassName="md:w-[420px]"
+              />
             </div>
 
             <div className="space-y-3">
@@ -267,38 +194,18 @@ export function RepairCalculatorClient({
           </div>
 
           {/* RIGHT: breakdown */}
-          <div className="rounded-lg border border-white/5 bg-black/20 p-5 space-y-4 overflow-visible">
+          <div className="rp-card space-y-4 overflow-visible">
             {selected && (
-              <div className="rounded-lg border border-white/5 bg-black/25 p-4 space-y-2">
-                <div className="flex items-start gap-3">
-                  {selected.icon ? (
-                    <img
-                      src={selected.icon}
-                      alt={selected.name ?? "Selected item"}
-                      className="h-12 w-12 rounded border border-white/10 bg-black/60 object-contain"
-                    />
-                  ) : null}
-                  <div className="min-w-0">
-                    <div className="text-lg font-condensed font-semibold text-warm truncate">
-                      {selected.name}
-                    </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-warm-muted font-medium">
-                      {selected.rarity ? (
-                        <RarityBadge rarity={selected.rarity} />
-                      ) : null}
-                      {selected.item_type ? (
-                        <span className="inline-flex items-center rounded border border-white/10 bg-black/40 px-2 py-0.5">
-                          {selected.item_type}
-                        </span>
-                      ) : null}
-                    </div>
-                    <div className="mt-1 text-xs text-warm-muted">
-                      Max durability: {selected.max_durability ?? "N/A"}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+  <SelectedItemSummary
+    name={selected.name}
+    icon={selected.icon}
+    rarity={selected.rarity ?? undefined}
+    itemType={selected.item_type ?? undefined}
+    maxDurability={selected.max_durability ?? undefined}
+    className="rounded-lg border border-white/5 bg-black/25 p-4"
+  />
+)}
+
 
             <div className="grid gap-4 md:grid-cols-2">
               <CostCard title="Repair cost" items={repairCosts} />
