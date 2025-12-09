@@ -1,6 +1,7 @@
-﻿// app/layout.tsx
+// app/layout.tsx
 import type { Metadata } from "next";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import { HeaderControls } from "@/components/HeaderControls";
 import { Barlow, Barlow_Condensed } from "next/font/google";
 
@@ -71,6 +72,7 @@ export default function RootLayout({
               <div className="min-w-0">{children}</div>
             </div>
           </main>
+          <Analytics />
 
           {/* Footer stripe accent */}
           <div
