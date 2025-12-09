@@ -68,6 +68,7 @@ export function RepairCalculatorClient({
     eligibleItems.length ? eligibleItems[0].id : null
   );
 
+  // Keep selectedId valid as eligibleItems list changes
   useEffect(() => {
     setSelectedId((prev) => {
       if (eligibleItems.length === 0) return null;
@@ -83,17 +84,11 @@ export function RepairCalculatorClient({
     [eligibleItems, selectedId]
   );
 
-  const baseItem = useMemo(
-    () =>
-      selected?.required_item_id
-        ? items.find((i) => i.id === selected.required_item_id) ?? null
-        : null,
-    [items, selected?.required_item_id]
-  );
-
   const [durability, setDurability] = useState<number>(
     selected?.max_durability ?? 0
   );
+
+  // Reset durability when selected item changes
   useEffect(() => {
     setDurability(selected?.max_durability ?? 0);
   }, [selected?.max_durability]);
@@ -120,24 +115,16 @@ export function RepairCalculatorClient({
       ...(selected?.craft_components ?? []),
       ...(selected?.recycle_outputs ?? []),
     ],
-    items,
-    [selected?.required_item_id, selected?.id],
-    [selected?.name, baseItem?.name],
-    selected?.item_type,
-    selected?.id ?? undefined
+    items
   );
+
   const craftCosts = useCostList(
     result?.trueCraftCost,
     [
-      ...(selected?.net_upgrade_cost ?? []),
       ...(selected?.craft_components ?? []),
       ...(selected?.recycle_outputs ?? []),
     ],
-    items,
-    [selected?.required_item_id, selected?.id],
-    [selected?.name, baseItem?.name],
-    selected?.item_type,
-    selected?.id ?? undefined
+    items
   );
 
   return (
@@ -149,6 +136,7 @@ export function RepairCalculatorClient({
         </p>
 
         <div className="grid gap-6 lg:grid-cols-2 items-stretch">
+          {/* LEFT: controls */}
           <div className="rounded-lg border border-white/5 bg-black/20 p-5 space-y-6 h-full flex flex-col overflow-visible">
             <div className="space-y-3">
               <label className="text-base text-warm font-semibold">
@@ -254,7 +242,9 @@ export function RepairCalculatorClient({
               <div className="rounded-lg border border-white/5 bg-black/20 p-4 space-y-2">
                 <div className="text-sm text-warm font-semibold">
                   Recommended:{" "}
-                  {result.recommendedAction === "REPAIR" ? "Repair it" : "Replace it"}
+                  {result.recommendedAction === "REPAIR"
+                    ? "Repair it"
+                    : "Replace it"}
                 </div>
                 {result.repairBand && (
                   <div className="text-xs text-warm-muted font-medium">
@@ -268,12 +258,15 @@ export function RepairCalculatorClient({
                       : "bg-amber-900/30 text-amber-100 border border-amber-700/50"
                   }`}
                 >
-                  {result.recommendedAction === "REPAIR" ? "Repair" : "Replace"}
+                  {result.recommendedAction === "REPAIR"
+                    ? "Repair"
+                    : "Replace"}
                 </span>
               </div>
             )}
           </div>
 
+          {/* RIGHT: breakdown */}
           <div className="rounded-lg border border-white/5 bg-black/20 p-5 space-y-4 overflow-visible">
             {selected && (
               <div className="rounded-lg border border-white/5 bg-black/25 p-4 space-y-2">
@@ -290,7 +283,9 @@ export function RepairCalculatorClient({
                       {selected.name}
                     </div>
                     <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-warm-muted font-medium">
-                      {selected.rarity ? <RarityBadge rarity={selected.rarity} /> : null}
+                      {selected.rarity ? (
+                        <RarityBadge rarity={selected.rarity} />
+                      ) : null}
                       {selected.item_type ? (
                         <span className="inline-flex items-center rounded border border-white/10 bg-black/40 px-2 py-0.5">
                           {selected.item_type}
@@ -328,26 +323,13 @@ export function RepairCalculatorClient({
 function useCostList(
   costMap: Record<string, number> | null | undefined,
   metaSources: ComponentCost[] | null | undefined,
-  items: RepairEconomyRow[],
-  excludeIds: Array<string | null | undefined> = [],
-  excludeNames: Array<string | null | undefined> = [],
-  selectedItemType?: string | null,
-  selectedItemId?: string
+  items: RepairEconomyRow[]
 ) {
   return useMemo<CostRow[]>(() => {
     if (!costMap) return [];
 
     const normalize = (id: string | null | undefined) =>
       (id ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
-
-    const excludeSet = new Set(
-      excludeIds.map(normalize).filter((id) => id.length > 0)
-    );
-    const excludeNameSet = new Set(
-      excludeNames
-        .map((name) => (name ?? "").trim().toLowerCase())
-        .filter((n) => n.length > 0)
-    );
 
     const metaById = new Map<string, ComponentCost>();
     (metaSources ?? []).forEach((c) => {
@@ -363,25 +345,15 @@ function useCostList(
     return Object.entries(costMap)
       .flatMap<CostRow | null>(([componentId, quantity]) => {
         const key = normalize(componentId);
-        if (excludeSet.has(key)) return null;
         const meta = metaById.get(key);
         const fallback = itemById.get(key);
-        const itemType = (meta?.item_type ?? fallback?.item_type ?? "").toLowerCase();
-        if (itemType.includes("blueprint")) return null;
 
+        const rawType = (meta?.item_type ?? fallback?.item_type ?? "").toLowerCase();
         const name = meta?.name ?? fallback?.name ?? componentId;
         const nameLower = name.toLowerCase();
-        if (excludeNameSet.has(nameLower)) return null;
-        if (nameLower.includes("blueprint")) return null;
 
-        // If the cost row is another weapon of the same type as the selected item, hide it (previous-tier placeholder).
-        const selectedTypeLower = (selectedItemType ?? "").toLowerCase();
-        const selectedIdNorm = normalize(selectedItemId);
-        if (
-          selectedTypeLower &&
-          itemType === selectedTypeLower &&
-          key !== selectedIdNorm
-        ) {
+        // Extra safety: hide any lingering blueprints if they ever slip in.
+        if (rawType.includes("blueprint") || nameLower.includes("blueprint")) {
           return null;
         }
 
@@ -398,15 +370,7 @@ function useCostList(
       })
       .filter((row): row is CostRow => row !== null)
       .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
-  }, [
-    costMap,
-    metaSources,
-    items,
-    excludeIds,
-    excludeNames,
-    selectedItemType,
-    selectedItemId,
-  ]);
+  }, [costMap, metaSources, items]);
 }
 
 function CostCard({ title, items }: { title: string; items: CostRow[] }) {
