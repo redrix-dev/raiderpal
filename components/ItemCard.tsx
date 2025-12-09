@@ -14,6 +14,7 @@ export type ItemCardProps = {
   };
   onClick?: () => void;
   action?: React.ReactNode;
+  ariaControls?: string;
 };
 
 function rarityClasses(rarity?: string | null) {
@@ -48,7 +49,7 @@ export function RarityBadge({ rarity }: { rarity?: string | null }) {
   );
 }
 
-export function ItemCard({ item, onClick, action }: ItemCardProps) {
+export function ItemCard({ item, onClick, action, ariaControls }: ItemCardProps) {
   const inner = (
     <div
       className={`group flex items-center gap-3 rounded-lg border px-3 py-2.5 text-sm hover:border-[#4fc1e9]/70 hover:bg-slate-900 transition-colors ${rarityClasses(
@@ -117,6 +118,7 @@ export function ItemCard({ item, onClick, action }: ItemCardProps) {
       <div
         role="button"
         tabIndex={0}
+        aria-controls={ariaControls}
         onClick={onClick}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {

@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { ModulePanel } from "@/components/ModulePanel";
+import { ToolPanel } from "@/components/ToolPanel";
 
 // app/page.tsx
 
 export default function HomePage() {
   return (
-    <div className="rounded-xl border border-[#130918] bg-panel-texture p-4 sm:p-5 space-y-8 shadow-[0_0_40px_rgba(0,0,0,0.6)] min-h-[70vh] lg:min-h-[75vh] xl:min-h-[79vh]">
+    <ToolPanel>
       <section className="space-y-3 sm:hidden">
         <h1 className="text-3xl font-bold tracking-wide uppercase font-condensed">
           Raider Pal
@@ -73,6 +74,6 @@ export default function HomePage() {
           </div>
         </ModulePanel>
       </section>
-    </div>
+    </ToolPanel>
   );
 }

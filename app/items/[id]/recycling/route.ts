@@ -1,25 +1,27 @@
 import { getRecyclingForItem } from "@/data/recycling";
 import type { NextRequest } from "next/server";
+import { jsonError, type RouteContext } from "@/lib/http";
 
 type Params = { id: string };
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: Promise<Params> }
+  { params }: RouteContext<Params>
 ) {
   const { id } = await params;
+
   if (!id || typeof id !== "string" || !id.trim()) {
-    return new Response(JSON.stringify({ error: "Invalid item id" }), {
-      status: 400,
-    });
+    return jsonError("Missing or invalid id", 400);
   }
 
-  try {
-    const data = await getRecyclingForItem(id.trim());
-    return Response.json(data ?? []);
-  } catch (err) {
-    return new Response(JSON.stringify({ error: "Internal error" }), {
-      status: 500,
-    });
+  const data = await getRecyclingForItem(id.trim());
+
+  if (!data) {
+    return jsonError("Item not found", 404);
   }
+
+  return new Response(JSON.stringify(data), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
 }

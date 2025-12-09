@@ -1,9 +1,9 @@
 // components/ItemsBrowseClient.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ItemCard, RarityBadge } from "@/components/ItemCard";
-import { cachedFetchJson } from "@/lib/clientCache";
+import { useCachedJson } from "@/hooks/useCachedJson";
 import { useRaidReminders } from "@/hooks/useRaidReminders";
 
 
@@ -34,13 +34,13 @@ export function ItemsBrowseClient({
   initialItems,
   dataVersion,
 }: ItemsBrowseClientProps) {
+  const dialogId = "item-preview-dialog";
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const [search, setSearch] = useState("");
   const [rarity, setRarity] = useState<string | "all">("all");
   const { add, isAdded } = useRaidReminders();
 
   const [selectedItem, setSelectedItem] = useState<BrowseItem | null>(null);
-  const [details, setDetails] = useState<PreviewDetails | null>(null);
-  const [loadingDetails, setLoadingDetails] = useState(false);
   const [page, setPage] = useState(1);
   const pageSize = 20;
   const visiblePageCount = 5;
@@ -91,37 +91,53 @@ export function ItemsBrowseClient({
     (_, i) => pageWindowStart + i
   );
 
-  async function handleOpenPreview(item: BrowseItem) {
+  const {
+    data: craftingData,
+    loading: craftingLoading,
+  } = useCachedJson<any[]>(
+    selectedItem ? `/items/${selectedItem.id}/crafting` : null,
+    { version: dataVersion ?? undefined, enabled: Boolean(selectedItem) }
+  );
+
+  const {
+    data: recyclingData,
+    loading: recyclingLoading,
+  } = useCachedJson<any[]>(
+    selectedItem ? `/items/${selectedItem.id}/recycling` : null,
+    { version: dataVersion ?? undefined, enabled: Boolean(selectedItem) }
+  );
+
+  const details = useMemo<PreviewDetails | null>(() => {
+    if (!selectedItem) return null;
+    return {
+      crafting: craftingData ?? [],
+      recycling: recyclingData ?? [],
+    };
+  }, [selectedItem, craftingData, recyclingData]);
+
+  const loadingDetails = craftingLoading || recyclingLoading;
+
+  function handleOpenPreview(item: BrowseItem) {
     setSelectedItem(item);
-    setLoadingDetails(true);
-    setDetails(null);
-
-    try {
-      const [craftRes, recRes] = await Promise.all([
-        cachedFetchJson<any[]>(`/items/${item.id}/crafting`, {
-          version: dataVersion ?? undefined,
-        }),
-        cachedFetchJson<any[]>(`/items/${item.id}/recycling`, {
-          version: dataVersion ?? undefined,
-        }),
-      ]);
-
-      setDetails({
-        crafting: craftRes ?? [],
-        recycling: recRes ?? [],
-      });
-    } catch {
-      setDetails({ crafting: [], recycling: [] });
-    } finally {
-      setLoadingDetails(false);
-    }
   }
 
   function handleClosePreview() {
     setSelectedItem(null);
-    setDetails(null);
-    setLoadingDetails(false);
   }
+
+  // Focus management: focus close button when dialog opens
+  useEffect(() => {
+    if (selectedItem && closeButtonRef.current) {
+      closeButtonRef.current.focus();
+    }
+  }, [selectedItem]);
+
+  // Focus management for modal: focus close button when opened
+  useEffect(() => {
+    if (selectedItem && closeButtonRef.current) {
+      closeButtonRef.current.focus();
+    }
+  }, [selectedItem]);
 
   return (
     <div className="space-y-4">
@@ -176,6 +192,7 @@ export function ItemsBrowseClient({
               key={item.id}
               item={item}
               onClick={() => handleOpenPreview(item)}
+              ariaControls={dialogId}
               action={
                 <AddReminderButton
                   item={item}
@@ -262,8 +279,34 @@ export function ItemsBrowseClient({
           onClick={handleClosePreview}
         >
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="item-preview-title"
+            id={dialogId}
             className="w-full max-w-md md:max-w-lg mx-0 md:mx-4 rounded-lg border border-slate-700 bg-slate-950 p-4 shadow-xl"
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                handleClosePreview();
+              }
+              if (e.key === "Tab") {
+                const focusable = Array.from(
+                  (e.currentTarget as HTMLElement).querySelectorAll<HTMLElement>(
+                    'button, a, input, select, textarea, [tabindex]:not([tabindex="-1"])'
+                  )
+                ).filter((el) => !el.hasAttribute("disabled"));
+                if (focusable.length === 0) return;
+                const first = focusable[0];
+                const last = focusable[focusable.length - 1];
+                if (e.shiftKey && document.activeElement === first) {
+                  e.preventDefault();
+                  last.focus();
+                } else if (!e.shiftKey && document.activeElement === last) {
+                  e.preventDefault();
+                  first.focus();
+                }
+              }
+            }}
           >
             <div className="flex items-start justify-between gap-3 mb-3">
               <div className="flex items-center gap-3">
@@ -275,7 +318,10 @@ export function ItemsBrowseClient({
                   />
                 )}
                 <div>
-                  <h3 className="text-base font-condensed font-semibold text-warm">
+                  <h3
+                    id="item-preview-title"
+                    className="text-base font-condensed font-semibold text-warm"
+                  >
                     {selectedItem.name}
                   </h3>
                   <div className="text-xs text-warm-muted flex flex-wrap gap-2 items-center font-medium">
@@ -293,8 +339,9 @@ export function ItemsBrowseClient({
                 onClick={handleClosePreview}
                 className="text-xs text-warm-muted hover:text-warm"
                 aria-label="Close"
+                ref={closeButtonRef}
               >
-                ✕
+                Close
               </button>
             </div>
 
@@ -411,3 +458,5 @@ function AddReminderButton({
     </button>
   );
 }
+
+
