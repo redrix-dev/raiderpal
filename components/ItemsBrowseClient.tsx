@@ -35,8 +35,6 @@ export function ItemsBrowseClient({
   const { add, isAdded } = useRaidReminders();
 
   const [selectedItem, setSelectedItem] = useState<BrowseItem | null>(null);
-  const [details, setDetails] = useState<PreviewDetails | null>(null);
-  const [loadingDetails, setLoadingDetails] = useState(false);
   const [page, setPage] = useState(1);
   const pageSize = 20;
   const visiblePageCount = 5;
@@ -115,28 +113,6 @@ export function ItemsBrowseClient({
 
   function handleOpenPreview(item: BrowseItem) {
     setSelectedItem(item);
-    setLoadingDetails(true);
-    setDetails(null);
-
-    try {
-      const [craftRes, recRes] = await Promise.all([
-        cachedFetchJson<any[]>(`/items/${item.id}/crafting`, {
-          version: dataVersion ?? undefined,
-        }),
-        cachedFetchJson<any[]>(`/items/${item.id}/recycling`, {
-          version: dataVersion ?? undefined,
-        }),
-      ]);
-
-      setDetails({
-        crafting: craftRes ?? [],
-        recycling: recRes ?? [],
-      });
-    } catch {
-      setDetails({ crafting: [], recycling: [] });
-    } finally {
-      setLoadingDetails(false);
-    }
   }
 
   function handleClosePreview() {
@@ -476,5 +452,4 @@ function AddReminderButton({
     </button>
   );
 }
-
 
