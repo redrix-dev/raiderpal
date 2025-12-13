@@ -17,7 +17,7 @@ export default function HomePage() {
       </section>
 
       <section className="grid gap-4 md:grid-cols-2">
-        <ModulePanel title="Item Browser" className="h-full">
+        <ModulePanel title="Item Browser" className="h-full" headerClassName="[&_>div]:justify-center [&_h2]:text-center">
           <div className="space-y-2">
             <p className="text-sm text-warm-muted">
               Search and filter every known item, peek at crafting inputs and
@@ -32,7 +32,7 @@ export default function HomePage() {
           </div>
         </ModulePanel>
 
-        <ModulePanel title="Recycle Helper" className="h-full">
+        <ModulePanel title="Recycle Helper" className="h-full" headerClassName="[&_>div]:justify-center [&_h2]:text-center">
           <div className="space-y-2">
             <p className="text-sm text-warm-muted">
               Pick an item you need or have and get the best recycling sources or
@@ -47,7 +47,7 @@ export default function HomePage() {
           </div>
         </ModulePanel>
 
-        <ModulePanel title="Repair or Replace Calculator" className="h-full">
+        <ModulePanel title="Repair or Replace Calculator" className="h-full" headerClassName="[&_>div]:justify-center [&_h2]:text-center">
           <div className="space-y-2">
             <p className="text-sm text-warm-muted">
               Compare repairing versus crafting new to choose the most efficient option.
@@ -61,7 +61,7 @@ export default function HomePage() {
             </Link>
           </div>
         </ModulePanel>
-        <ModulePanel title="About Raider Pal" className="h-full">
+        <ModulePanel title="About Raider Pal" className="h-full" headerClassName="[&_>div]:justify-center [&_h2]:text-center">
           <div className="space-y-2 text-sm text-warm">
             <p>
               A Raider simply cannot waste time pondering the best way to acquire steel springs.

@@ -1,0 +1,46 @@
+[20:13:21.778] [INFO] storybook v10.1.6
+[20:13:22.172] [INFO] Loading main config failed as the file does not seem to be valid ESM. Trying a temporary fix, please ensure the main config is valid ESM.
+[20:13:23.677] [DEBUG] Getting package.json info for C:/Users/Churro/dev/raider_pal/package.json...
+[20:13:23.785] [ERROR] [38;2;241;97;97mSB_CORE-SERVER_0002 (CriticalPresetLoadError): Storybook failed to load the following preset: C:/Users/Churro/dev/raider_pal/.storybook/main.ts.
+
+Please check whether your setup is correct, the Storybook dependencies (and their peer dependencies) are installed correctly and there are no package version clashes.
+
+If you believe this is a bug, please open an issue on Github.
+
+ReferenceError: __dirname is not defined in ES module scope
+    at file:///C:/Users/Churro/dev/raider_pal/.storybook/main.ts:17:31
+    at ModuleJob.run (node:internal/modules/esm/module_job:377:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:671:26)
+    at async importModule (file:///C:/Users/Churro/dev/raider_pal/node_modules/storybook/dist/_node-chunks/chunk-MZPY44R3.js:732:11)
+    at async loadMainConfig (file:///C:/Users/Churro/dev/raider_pal/node_modules/storybook/dist/_node-chunks/chunk-T4NL27CC.js:11670:12)
+    at async buildDevStandalone (file:///C:/Users/Churro/dev/raider_pal/node_modules/storybook/dist/core-server/index.js:7523:16)
+    at async withTelemetry (file:///C:/Users/Churro/dev/raider_pal/node_modules/storybook/dist/_node-chunks/chunk-BV46V7UA.js:209:12)
+    at async dev (file:///C:/Users/Churro/dev/raider_pal/node_modules/storybook/dist/bin/core.js:2734:3)
+    at async _Command.<anonymous> (file:///C:/Users/Churro/dev/raider_pal/node_modules/storybook/dist/bin/core.js:2801:92)
+
+More info: 
+[39m
+    at loadPreset (file:///C:/Users/Churro/dev/raider_pal/node_modules/storybook/dist/_node-chunks/chunk-T4NL27CC.js:10101:13)
+    at async Promise.all (index 1)
+    at async loadPresets (file:///C:/Users/Churro/dev/raider_pal/node_modules/storybook/dist/_node-chunks/chunk-T4NL27CC.js:10110:73)
+    at async getPresets (file:///C:/Users/Churro/dev/raider_pal/node_modules/storybook/dist/_node-chunks/chunk-T4NL27CC.js:10141:23)
+    at async buildDevStandalone (file:///C:/Users/Churro/dev/raider_pal/node_modules/storybook/dist/core-server/index.js:7537:17)
+    at async withTelemetry (file:///C:/Users/Churro/dev/raider_pal/node_modules/storybook/dist/_node-chunks/chunk-BV46V7UA.js:209:12)
+    at async dev (file:///C:/Users/Churro/dev/raider_pal/node_modules/storybook/dist/bin/core.js:2734:3)
+    at async _Command.<anonymous> (file:///C:/Users/Churro/dev/raider_pal/node_modules/storybook/dist/bin/core.js:2801:92)
+[20:13:23.793] [WARN] Broken build, fix the error above.
+You may need to refresh the browser.
+[20:13:23.810] [WARN]   Failed to load preset: "C:/Users/Churro/dev/raider_pal/.storybook/main.ts"
+[20:13:23.813] [ERROR] [38;2;241;97;97mReferenceError: __dirname is not defined in ES module scope[39m
+    at file:///C:/Users/Churro/dev/raider_pal/.storybook/main.ts:17:31
+    at ModuleJob.run (node:internal/modules/esm/module_job:377:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:671:26)
+    at async importModule (file:///C:/Users/Churro/dev/raider_pal/node_modules/storybook/dist/_node-chunks/chunk-MZPY44R3.js:732:11)
+    at async loadMainConfig (file:///C:/Users/Churro/dev/raider_pal/node_modules/storybook/dist/_node-chunks/chunk-T4NL27CC.js:11670:12)
+    at async buildDevStandalone (file:///C:/Users/Churro/dev/raider_pal/node_modules/storybook/dist/core-server/index.js:7523:16)
+    at async withTelemetry (file:///C:/Users/Churro/dev/raider_pal/node_modules/storybook/dist/_node-chunks/chunk-BV46V7UA.js:209:12)
+    at async dev (file:///C:/Users/Churro/dev/raider_pal/node_modules/storybook/dist/bin/core.js:2734:3)
+    at async _Command.<anonymous> (file:///C:/Users/Churro/dev/raider_pal/node_modules/storybook/dist/bin/core.js:2801:92)
+[20:13:25.727] [INFO] Loading main config failed as the file does not seem to be valid ESM. Trying a temporary fix, please ensure the main config is valid ESM.
+[20:13:25.801] [INFO] Loading main config failed as the file does not seem to be valid ESM. Trying a temporary fix, please ensure the main config is valid ESM.
+[20:13:25.880] [INFO] Loading main config failed as the file does not seem to be valid ESM. Trying a temporary fix, please ensure the main config is valid ESM.
