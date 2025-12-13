@@ -38,7 +38,7 @@ export default function ItemsList({ initialItems }: ItemsListProps) {
               {item.icon && (
                 <img
                   src={item.icon}
-                  alt={item.name}
+                  alt={item.name ?? "Item icon"}
                   className="w-10 h-10 rounded border border-slate-700 bg-slate-950"
                 />
               )}
