@@ -2,12 +2,16 @@
 "use client";
 
 import { useState } from "react";
+import type { CraftingRecipeRow } from "@/data/crafting";
+import type { RecyclingSourceRow } from "@/data/recycling";
+import type { DirectYieldSource } from "@/data/yields";
+import type { UsedInRow } from "@/data/usedIn";
 
 type ItemDetailsTabsProps = {
-  crafting: any[];     // rows from getCraftingForItem
-  recycling: any[];    // rows from getRecyclingForItem
-  bestSources: any[];  // rows from getBestSourcesForItem
-  usedIn: any[];       // rows from getUsedInForItem
+  crafting: CraftingRecipeRow[]; // rows from getCraftingForItem
+  recycling: RecyclingSourceRow[]; // rows from getRecyclingForItem
+  bestSources: DirectYieldSource[]; // rows from getBestSourcesForItem
+  usedIn: UsedInRow[]; // rows from getUsedInForItem
 };
 
 type TabId = "crafting" | "recycling" | "sources" | "usedIn";
@@ -59,14 +63,14 @@ export function ItemDetailsTabs({
           <TabList
             emptyText="No crafting recipe."
             rows={crafting.filter(
-              (c: any) => (c.component_type ?? "").toLowerCase() !== "blueprint"
+              (c) => (c.component_type ?? "").toLowerCase() !== "blueprint"
             )}
-            mapRow={(c: any) => ({
+            mapRow={(c) => ({
               key: c.component_id ?? "unknown",
               href: `/items/${c.component_id}`,
-              name: c.component_name,
+              name: c.component_name ?? "Unknown component",
               icon: c.component_icon,
-              quantity: c.quantity,
+              quantity: c.quantity ?? undefined,
             })}
           />
         )}
@@ -75,12 +79,12 @@ export function ItemDetailsTabs({
           <TabList
             emptyText="No recycling outputs."
             rows={recycling}
-            mapRow={(r: any) => ({
-              key: r.component_id,
+            mapRow={(r) => ({
+              key: r.component_id ?? "unknown",
               href: `/items/${r.component_id}`,
-              name: r.component_name,
+              name: r.component_name ?? "Unknown component",
               icon: r.component_icon,
-              quantity: r.quantity,
+              quantity: r.quantity ?? undefined,
             })}
           />
         )}
@@ -89,7 +93,7 @@ export function ItemDetailsTabs({
           <TabList
             emptyText="No direct recycle sources."
             rows={bestSources}
-            mapRow={(s: any) => ({
+            mapRow={(s) => ({
               key: s.sourceItemId,
               href: `/items/${s.sourceItemId}`,
               name: s.sourceName,
@@ -104,12 +108,12 @@ export function ItemDetailsTabs({
           <TabList
             emptyText="Not used in any recipes."
             rows={usedIn}
-            mapRow={(u: any) => ({
-              key: u.product_id,
+            mapRow={(u) => ({
+              key: u.product_id ?? "unknown",
               href: `/items/${u.product_id}`,
-              name: u.product_name,
+              name: u.product_name ?? "Unknown item",
               icon: u.product_icon,
-              quantity: u.quantity,
+              quantity: u.quantity ?? undefined,
             })}
           />
         )}
@@ -123,22 +127,24 @@ type TabListRow = {
   href: string;
   name: string;
   icon?: string | null;
-  quantity?: number | null;
+  quantity?: number;
   quantitySuffix?: string;
 };
 
-type TabListProps = {
-  rows: any[];
+type TabListProps<TRow> = {
+  rows: TRow[];
   emptyText: string;
-  mapRow: (row: any) => TabListRow;
+  mapRow: (row: TRow) => TabListRow;
 };
 
-function TabList({ rows, emptyText, mapRow }: TabListProps) {
+function TabList<TRow>({ rows, emptyText, mapRow }: TabListProps<TRow>) {
   if (!rows || rows.length === 0) {
-    <p className="text-sm text-warm-muted leading-relaxed">
+    return (
+      <p className="text-sm text-warm-muted leading-relaxed">
         {emptyText}
-    </p>
-  };
+      </p>
+    );
+  }
 
   return (
     <ul className="space-y-2">

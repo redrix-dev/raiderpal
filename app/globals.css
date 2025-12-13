@@ -1,4 +1,7 @@
 @import "tailwindcss";
+@source "./**/*.{ts,tsx,mdx}";
+@source "../components/**/*.{ts,tsx}";
+@source "../stories/**/*.{ts,tsx,mdx}";
 
 :root {
   --color-bg: #050910;

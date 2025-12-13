@@ -39,8 +39,20 @@ export async function getUsedInForItem(
     );
   }
 
+  type UsedInViewRow = {
+    result_item_id: string | null;
+    result_item_name: string | null;
+    result_item_icon: string | null;
+    result_item_rarity: string | null;
+    result_item_type: string | null;
+    result_item_value: number | null;
+    quantity: number | null;
+  };
+
   // Map DB column names -> shape the UI expects
-  return (data ?? []).map((row: any) => ({
+  const rows = (data ?? []) as UsedInViewRow[];
+
+  return rows.map((row) => ({
     product_id: row.result_item_id,
     product_name: row.result_item_name,
     product_icon: row.result_item_icon,
