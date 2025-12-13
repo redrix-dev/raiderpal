@@ -21,5 +21,7 @@ export async function GET(
     return jsonError("Item not found", 404);
   }
 
-  return jsonOk(sources);
+  return jsonOk(sources, 200, {
+    "Cache-Control": "public, max-age=86400, stale-while-revalidate=2592000",
+  });
 }

@@ -7,9 +7,12 @@ export const revalidate = 0;
 export async function GET(_req: NextRequest) {
   try {
     const data = await getRepairEconomy();
-    return jsonOk(data);
+    return jsonOk(data, 200, {
+      "Cache-Control": "public, max-age=86400, stale-while-revalidate=2592000",
+    });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return jsonError(message, 500);
-  }
+  const message = error instanceof Error ? error.message : "Unknown error";
+  return jsonError(message, 500);
+}
+
 }

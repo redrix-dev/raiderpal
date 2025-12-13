@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ItemCard, RarityBadge } from "@/components/ItemCard";
 import { useCachedJson } from "@/hooks/useCachedJson";
 import { useRaidReminders } from "@/hooks/useRaidReminders";
+import { useAppVersion } from "@/hooks/useAppVersion";
 import type { CraftingRecipeRow } from "@/data/crafting";
 import type { RecyclingSourceRow } from "@/data/recycling";
 import type { ItemListRow } from "@/data/items";
@@ -28,6 +29,8 @@ export function ItemsBrowseClient({
   initialItems,
   dataVersion,
 }: ItemsBrowseClientProps) {
+  const { version: appVersion } = useAppVersion({ initialVersion: dataVersion });
+  const cacheVersion = appVersion ?? dataVersion ?? undefined;
   const dialogId = "item-preview-dialog";
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const [search, setSearch] = useState("");
@@ -89,16 +92,16 @@ export function ItemsBrowseClient({
     data: craftingData,
     loading: craftingLoading,
   } = useCachedJson<CraftingRecipeRow[]>(
-    selectedItem ? `/items/${selectedItem.id}/crafting` : null,
-    { version: dataVersion ?? undefined, enabled: Boolean(selectedItem) }
+    selectedItem ? `/api/items/${selectedItem.id}/crafting` : null,
+    { version: cacheVersion, enabled: Boolean(selectedItem) }
   );
 
   const {
     data: recyclingData,
     loading: recyclingLoading,
   } = useCachedJson<RecyclingSourceRow[]>(
-    selectedItem ? `/items/${selectedItem.id}/recycling` : null,
-    { version: dataVersion ?? undefined, enabled: Boolean(selectedItem) }
+    selectedItem ? `/api/items/${selectedItem.id}/recycling` : null,
+    { version: cacheVersion, enabled: Boolean(selectedItem) }
   );
 
   const details = useMemo<PreviewDetails | null>(() => {
@@ -452,4 +455,3 @@ function AddReminderButton({
     </button>
   );
 }
-
