@@ -5,18 +5,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ItemCard, RarityBadge } from "@/components/ItemCard";
 import { useCachedJson } from "@/hooks/useCachedJson";
 import { useRaidReminders } from "@/hooks/useRaidReminders";
+import type { CraftingRecipeRow } from "@/data/crafting";
+import type { RecyclingSourceRow } from "@/data/recycling";
+import type { ItemListRow } from "@/data/items";
 
-
-export type BrowseItem = {
-  id: string;
-  name: string | null;
-  icon?: string | null;
-  rarity?: string | null;
-  value?: number | null;
-  item_type?: string | null;
-  loot_area?: string | null;
-  workbench?: string | null;
-};
+export type BrowseItem = ItemListRow & { workbench?: string | null };
 
 type ItemsBrowseClientProps = {
   initialItems: BrowseItem[];
@@ -24,11 +17,12 @@ type ItemsBrowseClientProps = {
 };
 
 type PreviewDetails = {
-  crafting: any[];
-  recycling: any[];
+  crafting: CraftingRecipeRow[];
+  recycling: RecyclingSourceRow[];
 };
 
 const rarityOrder = ["Legendary", "Epic", "Rare", "Uncommon", "Common"];
+type RarityFilter = "all" | NonNullable<BrowseItem["rarity"]>;
 
 export function ItemsBrowseClient({
   initialItems,
@@ -37,7 +31,7 @@ export function ItemsBrowseClient({
   const dialogId = "item-preview-dialog";
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const [search, setSearch] = useState("");
-  const [rarity, setRarity] = useState<string | "all">("all");
+  const [rarity, setRarity] = useState<RarityFilter>("all");
   const { add, isAdded } = useRaidReminders();
 
   const [selectedItem, setSelectedItem] = useState<BrowseItem | null>(null);
@@ -94,7 +88,7 @@ export function ItemsBrowseClient({
   const {
     data: craftingData,
     loading: craftingLoading,
-  } = useCachedJson<any[]>(
+  } = useCachedJson<CraftingRecipeRow[]>(
     selectedItem ? `/items/${selectedItem.id}/crafting` : null,
     { version: dataVersion ?? undefined, enabled: Boolean(selectedItem) }
   );
@@ -102,7 +96,7 @@ export function ItemsBrowseClient({
   const {
     data: recyclingData,
     loading: recyclingLoading,
-  } = useCachedJson<any[]>(
+  } = useCachedJson<RecyclingSourceRow[]>(
     selectedItem ? `/items/${selectedItem.id}/recycling` : null,
     { version: dataVersion ?? undefined, enabled: Boolean(selectedItem) }
   );
@@ -162,7 +156,7 @@ export function ItemsBrowseClient({
           </label>
           <select
             value={rarity}
-            onChange={(e) => setRarity(e.target.value as any)}
+            onChange={(e) => setRarity(e.target.value as RarityFilter)}
             className="w-full rounded-md border border-slate-800 bg-slate-900 px-3 py-2 text-base sm:text-sm text-warm focus:outline-none focus:ring-1 focus:ring-[#4fc1e9] hover:border-[#4fc1e9]"
           >
             <option value="all">All rarities</option>
@@ -371,14 +365,14 @@ export function ItemsBrowseClient({
                     </div>
                   ) : (
                     <ul className="space-y-1">
-                      {details.crafting.map((c: any, idx: number) => (
+                      {details.crafting.map((c, idx) => (
                         <li
-                          key={`${c.component_id}-${idx}`}
+                          key={`${c.component_id ?? "component"}-${idx}`}
                           className="flex items-center justify-between text-xs text-warm font-medium"
                         >
-                          <span>{c.component_name}</span>
+                          <span>{c.component_name ?? "Unknown component"}</span>
                           <span className="text-warm-muted">
-                            ×{c.quantity}
+                            ×{c.quantity ?? "-"}
                           </span>
                         </li>
                       ))}
@@ -397,14 +391,14 @@ export function ItemsBrowseClient({
                     </div>
                   ) : (
                     <ul className="space-y-1">
-                      {details.recycling.map((r: any, idx: number) => (
+                      {details.recycling.map((r, idx) => (
                         <li
-                          key={`${r.component_id}-${idx}`}
+                          key={`${r.component_id ?? "component"}-${idx}`}
                           className="flex items-center justify-between text-xs text-warm font-medium"
                         >
-                          <span>{r.component_name}</span>
+                          <span>{r.component_name ?? "Unknown component"}</span>
                           <span className="text-warm-muted">
-                            ×{r.quantity}
+                            ×{r.quantity ?? "-"}
                           </span>
                         </li>
                       ))}
@@ -458,5 +452,3 @@ function AddReminderButton({
     </button>
   );
 }
-
-

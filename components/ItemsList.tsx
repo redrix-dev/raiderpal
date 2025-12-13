@@ -1,14 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import type { ItemListRow } from "@/data/items";
 
-export default function ItemsList({ initialItems }: { initialItems: any[] }) {
-  const [items] = useState<any[]>(initialItems);
+type ItemsListProps = {
+  initialItems: ItemListRow[];
+};
+
+export default function ItemsList({ initialItems }: ItemsListProps) {
+  const [items] = useState<ItemListRow[]>(initialItems);
   const [query, setQuery] = useState("");
 
-  const filtered = items.filter((item) =>
-    item.name.toLowerCase().includes(query.toLowerCase())
-  );
+  const filtered = items.filter((item) => {
+    const name = item.name ?? "";
+    return name.toLowerCase().includes(query.toLowerCase());
+  });
 
   return (
     <div className="space-y-4">
