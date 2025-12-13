@@ -175,6 +175,33 @@ export function RepairCalculatorClient({
                 Max durability: {selected?.max_durability ?? 0}
               </div>
             </div>
+
+            {selected && result && (
+              <div className="rounded-lg border border-white/5 bg-black/20 p-4 space-y-2">
+                <div className="text-sm text-warm font-semibold">
+                  Recommended:{" "}
+                  {result.recommendedAction === "REPAIR"
+                    ? "Repair it"
+                    : "Replace it"}
+                </div>
+                {result.repairBand && (
+                  <div className="text-xs text-warm-muted font-medium">
+                    Repair band: {result.repairBand}
+                  </div>
+                )}
+                <span
+                  className={`inline-flex items-center gap-2 rounded-md px-3 py-1 text-sm font-semibold ${
+                    result.recommendedAction === "REPAIR"
+                      ? "bg-emerald-900/30 text-emerald-200 border border-emerald-700/50"
+                      : "bg-amber-900/30 text-amber-100 border border-amber-700/50"
+                  }`}
+                >
+                  {result.recommendedAction === "REPAIR"
+                    ? "Repair"
+                    : "Replace"}
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="rp-card space-y-4 overflow-visible">
@@ -198,6 +225,12 @@ export function RepairCalculatorClient({
             </div>
           </div>
         </div>
+
+        {!selected || !result ? (
+          <div className="rounded-lg border border-amber-700/50 bg-amber-900/20 p-4 text-sm text-amber-100">
+            Could not compute yet. Choose an item with repair and craft data.
+          </div>
+        ) : null}
       </div>
     </ModulePanel>
   );
@@ -235,6 +268,7 @@ function useCostList(
         const name = meta?.name ?? fallback?.name ?? componentId;
         const nameLower = name.toLowerCase();
 
+        // Extra safety: hide any lingering blueprints if they ever slip in.
         if (rawType.includes("blueprint") || nameLower.includes("blueprint")) {
           return null;
         }
@@ -289,11 +323,19 @@ function CostCard({ title, items }: { title: string; items: CostRow[] }) {
                   ) : null}
                 </div>
               </div>
-              <div className="text-sm font-semibold text-warm">
-                {item.quantity < 0
-                  ? `+${Math.abs(item.quantity)}`
-                  : `x${item.quantity}`}
-              </div>
+              {item.quantity !== 0 ? (
+                <div
+                  className={`text-sm font-semibold ${
+                    item.quantity < 0 ? "text-emerald-300" : "text-warm"
+                  }`}
+                >
+                  {item.quantity < 0
+                    ? `+${Math.abs(item.quantity)}`
+                    : `x${item.quantity}`}
+                </div>
+              ) : (
+                <div className="text-sm font-semibold text-warm-muted">—</div>
+              )}
             </div>
           ))
         )}
