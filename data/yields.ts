@@ -34,7 +34,18 @@ export async function getBestSourcesForItem(
     return [];
   }
 
-  const mapped: DirectYieldSource[] = data.map((row: any) => ({
+  type DirectYieldSourceRow = {
+    source_item_id: string;
+    source_name: string;
+    source_icon: string | null;
+    source_rarity: string | null;
+    source_type: string | null;
+    quantity: number;
+  };
+
+  const rows = data as DirectYieldSourceRow[];
+
+  const mapped: DirectYieldSource[] = rows.map((row) => ({
     sourceItemId: row.source_item_id,
     sourceName: row.source_name,
     sourceIcon: row.source_icon,

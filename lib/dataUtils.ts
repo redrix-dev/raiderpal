@@ -21,24 +21,53 @@ export function parseJsonArray(value: unknown): unknown[] {
   return [];
 }
 
-function normalizeComponentCost(entry: any): ComponentCost | null {
-  const source = entry?.component ?? entry;
-  const componentId =
-    source?.component_item_id ??
-    source?.id ??
-    entry?.component_item_id ??
-    entry?.id;
+type ComponentLike = Record<string, unknown>;
 
-  const quantity = Number(entry?.quantity ?? source?.quantity);
-  if (!componentId || !Number.isFinite(quantity)) return null;
+function toRecord(value: unknown): ComponentLike | null {
+  return value && typeof value === "object" ? (value as ComponentLike) : null;
+}
+
+function readString(obj: ComponentLike, key: string): string | null {
+  const value = obj[key];
+  return typeof value === "string" ? value : null;
+}
+
+function readNumber(obj: ComponentLike, key: string): number | null {
+  const value = obj[key];
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : null;
+  }
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
+function normalizeComponentCost(entry: unknown): ComponentCost | null {
+  const record = toRecord(entry);
+  if (!record) return null;
+
+  const source = toRecord(record.component) ?? record;
+
+  const componentId =
+    readString(source, "component_item_id") ??
+    readString(source, "id") ??
+    readString(record, "component_item_id") ??
+    readString(record, "id");
+
+  const quantity =
+    readNumber(record, "quantity") ?? readNumber(source, "quantity");
+  if (!componentId || quantity == null) return null;
 
   return {
-    component_item_id: String(componentId),
+    component_item_id: componentId,
     quantity,
-    name: source?.name ?? entry?.name ?? null,
-    rarity: source?.rarity ?? entry?.rarity ?? null,
-    item_type: source?.item_type ?? entry?.item_type ?? null,
-    icon: source?.icon ?? entry?.icon ?? null,
+    name: readString(source, "name") ?? readString(record, "name"),
+    rarity: readString(source, "rarity") ?? readString(record, "rarity"),
+    item_type:
+      readString(source, "item_type") ?? readString(record, "item_type"),
+    icon: readString(source, "icon") ?? readString(record, "icon"),
   };
 }
 

@@ -37,13 +37,13 @@ export function ModulePanel({
   return (
     <div
       className={
-        "h-full w-full rounded-xl border border-white/5 bg-panel-texture shadow-[0_0_40px_rgba(0,0,0,0.6)] overflow-hidden text-base text-warm " +
+        "h-full w-full rounded-xl border border-white/15 bg-panel-texture shadow-[0_0_40px_rgba(0,0,0,0.6)] overflow-hidden text-base text-warm " +
         className
       }
     >
       <div
         className={
-          "bg-black/30 border-b border-white/5 px-6 md:px-7 py-4 " +
+          "bg-black/50 border-b border-white/10 px-6 md:px-7 py-4 " +
           headerClassName
         }
       >
