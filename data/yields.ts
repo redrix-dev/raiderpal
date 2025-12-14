@@ -1,5 +1,6 @@
 // /data/yields.ts
 import { createServerClient } from "@/lib/supabaseServer";
+import { DB } from "@/lib/dbRelations";
 
 export type DirectYieldSource = {
   sourceItemId: string;
@@ -16,23 +17,20 @@ export async function getBestSourcesForItem(
   const supabase = createServerClient();
 
   const { data, error } = await supabase
-    .from("view_recycling_sources")
+    .from(DB.recyclingFull) // ✅ NO QUOTES
     .select(
       `
-        source_item_id,
-        quantity,
-        source_name,
-        source_icon,
-        source_rarity,
-        source_type
+      source_item_id,
+      quantity,
+      source_name,
+      source_icon,
+      source_rarity,
+      source_type
       `
     )
     .eq("component_id", targetItemId);
 
-  if (error || !data) {
-    // If something goes wrong, just say "no best sources"
-    return [];
-  }
+  if (error || !data) return [];
 
   type DirectYieldSourceRow = {
     source_item_id: string;
@@ -55,6 +53,5 @@ export async function getBestSourcesForItem(
   }));
 
   mapped.sort((a, b) => b.quantity - a.quantity);
-
   return mapped;
 }

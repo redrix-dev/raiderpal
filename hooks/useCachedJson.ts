@@ -68,7 +68,7 @@ export function useCachedJson<T>(
         setLoading(false);
       }
     },
-    [url, enabled, version, ttlMs]
+    [url, enabled, version, ttlMs, disableCache]
   );
 
   useEffect(() => {

@@ -1,5 +1,6 @@
 // /data/items.ts
 import { createServerClient } from "@/lib/supabaseServer";
+import { DB } from "@/lib/dbRelations";
 
 export type ItemRow = {
   id: string;
@@ -18,12 +19,11 @@ export type ItemListRow = Pick<
   "id" | "name" | "rarity" | "icon" | "item_type" | "value" | "loot_area"
 >;
 
-// Used by /items list page
 export async function getAllItems(): Promise<ItemListRow[]> {
   const supabase = createServerClient();
 
   const { data, error } = await supabase
-    .from("items")
+    .from(DB.items) // ✅ NO QUOTES
     .select("id, name, rarity, icon, item_type, value, loot_area")
     .order("name", { ascending: true });
 
@@ -34,12 +34,11 @@ export async function getAllItems(): Promise<ItemListRow[]> {
   return (data ?? []) as ItemListRow[];
 }
 
-// Used by /items/[id]
 export async function getItemById(id: string): Promise<ItemRow | null> {
   const supabase = createServerClient();
 
   const { data, error } = await supabase
-    .from("items")
+    .from(DB.items) // ✅ NO QUOTES
     .select(
       "id, name, description, item_type, rarity, icon, value, workbench, loot_area"
     )

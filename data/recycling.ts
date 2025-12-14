@@ -1,5 +1,6 @@
-// data/recycling.ts
+// /data/recycling.ts
 import { createServerClient } from "@/lib/supabaseServer";
+import { DB } from "@/lib/dbRelations";
 
 export type RecyclingSourceRow = {
   source_item_id: string | null;
@@ -12,16 +13,13 @@ export type RecyclingSourceRow = {
   component_value: number | null;
 };
 
-/**
- * What this item recycles into.
- */
 export async function getRecyclingForItem(
   itemId: string
 ): Promise<RecyclingSourceRow[]> {
   const supabase = createServerClient();
 
   const { data, error } = await supabase
-    .from("view_recycling_sources")
+    .from(DB.recycling) // ✅ NO QUOTES
     .select(
       `
       source_item_id,
@@ -38,23 +36,12 @@ export async function getRecyclingForItem(
     .order("component_name", { ascending: true });
 
   if (error) {
-    throw new Error(
-      `getRecyclingForItem failed for ${itemId}: ${error.message}`
-    );
+    throw new Error(`getRecyclingForItem failed for ${itemId}: ${error.message}`);
   }
 
   return (data ?? []) as RecyclingSourceRow[];
 }
 
-/**
- * ID sets used by the Recycle Helper UI:
- *
- * - needableIds: items you can "need" (appear as component_id in recycling)
- * - haveableIds: items you can "have" (appear as source_item_id in recycling)
- *
- * These are *optional* hints for the UI. If they end up empty, the
- * helper falls back to showing all non-excluded items.
- */
 export async function getRecyclingIdSets(): Promise<{
   needableIds: string[];
   haveableIds: string[];
@@ -62,13 +49,8 @@ export async function getRecyclingIdSets(): Promise<{
   const supabase = createServerClient();
 
   const { data, error } = await supabase
-    .from("view_recycling_sources")
-    .select(
-      `
-      source_item_id,
-      component_id
-    `
-    );
+    .from(DB.recycling) // ✅ NO QUOTES
+    .select(`source_item_id, component_id`);
 
   if (error) {
     throw new Error(`getRecyclingIdSets failed: ${error.message}`);
@@ -80,7 +62,6 @@ export async function getRecyclingIdSets(): Promise<{
   for (const row of data ?? []) {
     const sourceId = row.source_item_id as string | null;
     const componentId = row.component_id as string | null;
-
     if (componentId) needableIds.add(componentId);
     if (sourceId) haveableIds.add(sourceId);
   }
@@ -91,19 +72,11 @@ export async function getRecyclingIdSets(): Promise<{
   };
 }
 
-/**
- * Distinct item types that actually participate in recycling,
- * based on the recycling view.
- *
- * Right now this pulls from component_type (the type of items
- * produced by recycling). If later you add source_item_type
- * to the view, you can fold that in here too.
- */
 export async function getRecyclingItemTypes(): Promise<string[]> {
   const supabase = createServerClient();
 
   const { data, error } = await supabase
-    .from("view_recycling_sources")
+    .from(DB.recycling) // ✅ NO QUOTES
     .select("component_type")
     .not("component_type", "is", null);
 
@@ -112,12 +85,9 @@ export async function getRecyclingItemTypes(): Promise<string[]> {
   }
 
   const types = new Set<string>();
-
   for (const row of data ?? []) {
     const t = row.component_type as string | null;
-    if (t && t.trim()) {
-      types.add(t.trim());
-    }
+    if (t && t.trim()) types.add(t.trim());
   }
 
   return Array.from(types).sort((a, b) => a.localeCompare(b));

@@ -18,8 +18,10 @@ type CachedEntry<T> = {
   version?: string | number;
 };
 
-function getCacheKey(url: string) {
-  return `${CACHE_PREFIX}${url}`;
+function getCacheKey(url: string, version?: string | number) {
+  // Version becomes part of the key, so a version bump guarantees a new fetch.
+  const v = version === undefined ? "nov" : String(version);
+  return `${CACHE_PREFIX}${v}:${url}`;
 }
 
 function readCache<T>(key: string): CachedEntry<T> | null {
@@ -58,24 +60,16 @@ export async function cachedFetchJson<T>(
   const { ttlMs, version, disableCache } = opts;
   const effectiveTtl =
     ttlMs ?? (prefersLongCache() ? LONG_TTL_MS : DEFAULT_TTL_MS);
-  const key = getCacheKey(url);
+  const key = getCacheKey(url, version);
 
   if (!disableCache) {
     const cached = readCache<T>(key);
-    const stillValid =
-      cached &&
-      Date.now() - cached.ts < effectiveTtl &&
-      (version === undefined || cached.version === version);
-
-    if (stillValid && cached) {
-      return cached.data;
-    }
+    const stillValid = cached && Date.now() - cached.ts < effectiveTtl;
+    if (stillValid) return cached.data;
   }
 
   const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok) {
-    throw new Error(`Request failed (${res.status})`);
-  }
+  if (!res.ok) throw new Error(`Request failed (${res.status})`);
   const data = (await res.json()) as T;
 
   if (!disableCache) {
@@ -83,6 +77,7 @@ export async function cachedFetchJson<T>(
   }
   return data;
 }
+
 
 export function setLongCachePreference(enabled: boolean) {
   if (typeof window === "undefined") return;
@@ -104,8 +99,16 @@ export function getLongCachePreference(): boolean {
 export function clearCachedEntry(url: string) {
   if (typeof window === "undefined") return;
   try {
-    localStorage.removeItem(getCacheKey(url));
+    // Remove any cached entries for this URL regardless of version
+    const prefix = `${CACHE_PREFIX}`;
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith(prefix) && k.endsWith(`:${url}`)) {
+        localStorage.removeItem(k);
+      }
+    }
   } catch {
     // ignore
   }
 }
+

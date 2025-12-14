@@ -1,5 +1,6 @@
-// data/usedIn.ts
+// /data/usedIn.ts
 import { createServerClient } from "@/lib/supabaseServer";
+import { DB } from "@/lib/dbRelations";
 
 export type UsedInRow = {
   product_id: string | null;
@@ -11,13 +12,11 @@ export type UsedInRow = {
   quantity: number | null;
 };
 
-export async function getUsedInForItem(
-  itemId: string
-): Promise<UsedInRow[]> {
+export async function getUsedInForItem(itemId: string): Promise<UsedInRow[]> {
   const supabase = createServerClient();
 
   const { data, error } = await supabase
-    .from("view_used_in")
+    .from(DB.usedIn) // ✅ NO QUOTES
     .select(
       `
       component_id,
@@ -30,13 +29,11 @@ export async function getUsedInForItem(
       result_item_value
       `
     )
-    .eq("component_id", itemId) // this item is used AS a component
+    .eq("component_id", itemId)
     .order("result_item_name", { ascending: true });
 
   if (error) {
-    throw new Error(
-      `getUsedInForItem failed for ${itemId}: ${error.message}`
-    );
+    throw new Error(`getUsedInForItem failed for ${itemId}: ${error.message}`);
   }
 
   type UsedInViewRow = {
@@ -49,7 +46,6 @@ export async function getUsedInForItem(
     quantity: number | null;
   };
 
-  // Map DB column names -> shape the UI expects
   const rows = (data ?? []) as UsedInViewRow[];
 
   return rows.map((row) => ({

@@ -12,8 +12,8 @@ export async function GET(_req: NextRequest) {
     return jsonOk(data, 200, {
       "Cache-Control": "no-store",
     });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
     return jsonError(message, 500);
   }
 }

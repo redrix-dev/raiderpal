@@ -1,5 +1,6 @@
-// data/crafting.ts
+// /data/crafting.ts
 import { createServerClient } from "@/lib/supabaseServer";
+import { DB } from "@/lib/dbRelations";
 
 export type CraftingRecipeRow = {
   item_id: string | null;
@@ -12,16 +13,13 @@ export type CraftingRecipeRow = {
   component_value: number | null;
 };
 
-/**
- * Components required to craft a given item.
- */
 export async function getCraftingForItem(
   itemId: string
 ): Promise<CraftingRecipeRow[]> {
   const supabase = createServerClient();
 
   const { data, error } = await supabase
-    .from("view_crafting_recipes") // ✅ correct view
+    .from(DB.crafting) // ✅ NO QUOTES
     .select(
       `
       item_id,
@@ -34,13 +32,11 @@ export async function getCraftingForItem(
       component_value
       `
     )
-    .eq("item_id", itemId) // ✅ this column exists on view_crafting_recipes
+    .eq("item_id", itemId)
     .order("component_name", { ascending: true });
 
   if (error) {
-    throw new Error(
-      `getCraftingForItem failed for ${itemId}: ${error.message}`
-    );
+    throw new Error(`getCraftingForItem failed for ${itemId}: ${error.message}`);
   }
 
   return (data ?? []) as CraftingRecipeRow[];

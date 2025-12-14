@@ -1,4 +1,6 @@
+// /data/repairEconomy.ts
 import { createServerClient } from "@/lib/supabaseServer";
+import { DB } from "@/lib/dbRelations";
 import type { ItemEconomy } from "@/lib/repairCalculator";
 import { coerceNumber, parseCostList } from "@/lib/dataUtils";
 
@@ -24,16 +26,11 @@ type RawRow = {
   recycle_outputs?: unknown;
 };
 
-/**
- * Fetches the consolidated repair/craft/recycle economics for all items.
- * The Supabase view (view_repairable_items) returns cost fields as JSON strings;
- * we normalize them to structured arrays here.
- */
 export async function getRepairEconomy(): Promise<RepairEconomyRow[]> {
   const supabase = createServerClient();
 
   const { data, error } = await supabase
-    .from("view_repairable_items")
+    .from(DB.repairEconomy) // ✅ NO QUOTES
     .select(
       `
       id,
@@ -49,7 +46,7 @@ export async function getRepairEconomy(): Promise<RepairEconomyRow[]> {
       expensive_repair_cost,
       craft_components,
       recycle_outputs
-    `
+      `
     )
     .order("name", { ascending: true });
 
