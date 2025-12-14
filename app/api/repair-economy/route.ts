@@ -8,7 +8,7 @@ export async function GET(_req: NextRequest) {
   try {
     const data = await getRepairEconomy();
     return jsonOk(data, 200, {
-      "Cache-Control": "public, max-age=86400, stale-while-revalidate=2592000",
+      "Cache-Control": "no-store",
     });
   } catch (error) {
   const message = error instanceof Error ? error.message : "Unknown error";

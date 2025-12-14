@@ -9,7 +9,6 @@ import {
 import type { RepairEconomyRow } from "@/data/repairEconomy";
 import { useCachedJson } from "@/hooks/useCachedJson";
 import { useAppVersion } from "@/hooks/useAppVersion";
-import { RarityBadge } from "./ItemCard";
 import { ModulePanel } from "./ModulePanel";
 import { SelectedItemSummary } from "@/components/SelectedItemSummary";
 import { ItemPicker, type PickerItem } from "@/components/ItemPicker";
@@ -35,15 +34,26 @@ export function RepairCalculatorClient({
   const { version: appVersion } = useAppVersion({ initialVersion: dataVersion });
   const cacheVersion = appVersion ?? dataVersion ?? undefined;
 
-  const { data: fetchedItems } = useCachedJson<RepairEconomyRow[]>(
-    "/api/repair-economy",
-    {
-      version: cacheVersion,
-      initialData: initialItems,
-    }
-  );
+  // cache-busting URL (not a DB schema)
+  const economyUrl = `/api/repair-economy?v=repair_fix_1`;
 
-  const items = fetchedItems ?? initialItems;
+  const { data: fetchedItems } = useCachedJson<unknown>(economyUrl, {
+    version: cacheVersion,
+    initialData: initialItems as unknown,
+  });
+
+  function normalizeRepairRows(input: unknown): RepairEconomyRow[] {
+    if (Array.isArray(input)) return input as RepairEconomyRow[];
+
+    if (input && typeof input === "object" && "data" in input) {
+      const d = (input as { data?: unknown }).data;
+      if (Array.isArray(d)) return d as RepairEconomyRow[];
+    }
+
+    return [];
+  }
+
+  const items = normalizeRepairRows(fetchedItems ?? initialItems);
 
   const eligibleItems = useMemo(
     () =>
@@ -61,7 +71,6 @@ export function RepairCalculatorClient({
     eligibleItems.length ? eligibleItems[0].id : null
   );
 
-  // Keep selectedId valid as eligibleItems list changes
   useEffect(() => {
     setSelectedId((prev) => {
       if (eligibleItems.length === 0) return null;
@@ -81,7 +90,6 @@ export function RepairCalculatorClient({
     selected?.max_durability ?? 0
   );
 
-  // Reset durability when selected item changes
   useEffect(() => {
     setDurability(selected?.max_durability ?? 0);
   }, [selected?.max_durability]);
@@ -135,7 +143,6 @@ export function RepairCalculatorClient({
         </p>
 
         <div className="grid gap-6 lg:grid-cols-2 items-stretch">
-          {/* LEFT: controls */}
           <div className="rp-card space-y-6 h-full flex flex-col overflow-visible">
             <div className="space-y-3">
               <label className="text-base text-warm font-semibold">
@@ -168,48 +175,19 @@ export function RepairCalculatorClient({
                 Max durability: {selected?.max_durability ?? 0}
               </div>
             </div>
-
-            {selected && result && (
-              <div className="rounded-lg border border-white/5 bg-black/20 p-4 space-y-2">
-                <div className="text-sm text-warm font-semibold">
-                  Recommended:{" "}
-                  {result.recommendedAction === "REPAIR"
-                    ? "Repair it"
-                    : "Replace it"}
-                </div>
-                {result.repairBand && (
-                  <div className="text-xs text-warm-muted font-medium">
-                    Repair band: {result.repairBand}
-                  </div>
-                )}
-                <span
-                  className={`inline-flex items-center gap-2 rounded-md px-3 py-1 text-sm font-semibold ${
-                    result.recommendedAction === "REPAIR"
-                      ? "bg-emerald-900/30 text-emerald-200 border border-emerald-700/50"
-                      : "bg-amber-900/30 text-amber-100 border border-amber-700/50"
-                  }`}
-                >
-                  {result.recommendedAction === "REPAIR"
-                    ? "Repair"
-                    : "Replace"}
-                </span>
-              </div>
-            )}
           </div>
 
-          {/* RIGHT: breakdown */}
           <div className="rp-card space-y-4 overflow-visible">
             {selected && (
-  <SelectedItemSummary
-    name={selected.name}
-    icon={selected.icon}
-    rarity={selected.rarity ?? undefined}
-    itemType={selected.item_type ?? undefined}
-    maxDurability={selected.max_durability ?? undefined}
-    className="rounded-lg border border-white/5 bg-black/25 p-4"
-  />
-)}
-
+              <SelectedItemSummary
+                name={selected.name}
+                icon={selected.icon}
+                rarity={selected.rarity ?? undefined}
+                itemType={selected.item_type ?? undefined}
+                maxDurability={selected.max_durability ?? undefined}
+                className="rounded-lg border border-white/5 bg-black/25 p-4"
+              />
+            )}
 
             <div className="grid gap-4 md:grid-cols-2">
               <CostCard title="Repair cost" items={repairCosts} />
@@ -220,12 +198,6 @@ export function RepairCalculatorClient({
             </div>
           </div>
         </div>
-
-        {!selected || !result ? (
-          <div className="rounded-lg border border-amber-700/50 bg-amber-900/20 p-4 text-sm text-amber-100">
-            Could not compute yet. Choose an item with repair and craft data.
-          </div>
-        ) : null}
       </div>
     </ModulePanel>
   );
@@ -263,7 +235,6 @@ function useCostList(
         const name = meta?.name ?? fallback?.name ?? componentId;
         const nameLower = name.toLowerCase();
 
-        // Extra safety: hide any lingering blueprints if they ever slip in.
         if (rawType.includes("blueprint") || nameLower.includes("blueprint")) {
           return null;
         }
@@ -298,13 +269,13 @@ function CostCard({ title, items }: { title: string; items: CostRow[] }) {
               className="flex items-center justify-between gap-3 rounded-md border border-white/5 bg-black/30 px-3 py-2"
             >
               <div className="flex items-center gap-3 min-w-0">
-                {item.icon ? (
+                {item.icon && (
                   <img
                     src={item.icon}
                     alt={item.name ?? "Component"}
                     className="h-8 w-8 rounded border border-white/10 bg-black/50 object-contain flex-shrink-0"
                   />
-                ) : null}
+                )}
                 <div className="min-w-0">
                   <div className="truncate text-sm text-warm font-semibold">
                     {item.name}
@@ -318,19 +289,11 @@ function CostCard({ title, items }: { title: string; items: CostRow[] }) {
                   ) : null}
                 </div>
               </div>
-              {item.quantity !== 0 ? (
-                <div
-                  className={`text-sm font-semibold ${
-                    item.quantity < 0 ? "text-emerald-300" : "text-warm"
-                  }`}
-                >
-                  {item.quantity < 0
-                    ? `+${Math.abs(item.quantity)}`
-                    : `x${item.quantity}`}
-                </div>
-              ) : (
-                <div className="text-sm font-semibold text-warm-muted">—</div>
-              )}
+              <div className="text-sm font-semibold text-warm">
+                {item.quantity < 0
+                  ? `+${Math.abs(item.quantity)}`
+                  : `x${item.quantity}`}
+              </div>
             </div>
           ))
         )}
