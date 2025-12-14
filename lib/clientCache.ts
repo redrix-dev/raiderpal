@@ -9,6 +9,7 @@ const LONG_CACHE_KEY = "rp_long_cache_enabled";
 type CacheOptions = {
   ttlMs?: number;
   version?: string | number;
+  disableCache?: boolean;
 };
 
 type CachedEntry<T> = {
@@ -54,19 +55,21 @@ export async function cachedFetchJson<T>(
   url: string,
   opts: CacheOptions = {}
 ): Promise<T> {
-  const { ttlMs, version } = opts;
+  const { ttlMs, version, disableCache } = opts;
   const effectiveTtl =
     ttlMs ?? (prefersLongCache() ? LONG_TTL_MS : DEFAULT_TTL_MS);
   const key = getCacheKey(url);
 
-  const cached = readCache<T>(key);
-  const stillValid =
-    cached &&
-    Date.now() - cached.ts < effectiveTtl &&
-    (version === undefined || cached.version === version);
+  if (!disableCache) {
+    const cached = readCache<T>(key);
+    const stillValid =
+      cached &&
+      Date.now() - cached.ts < effectiveTtl &&
+      (version === undefined || cached.version === version);
 
-  if (stillValid && cached) {
-    return cached.data;
+    if (stillValid && cached) {
+      return cached.data;
+    }
   }
 
   const res = await fetch(url, { cache: "no-store" });
@@ -75,7 +78,9 @@ export async function cachedFetchJson<T>(
   }
   const data = (await res.json()) as T;
 
-  writeCache(key, { ts: Date.now(), data, version });
+  if (!disableCache) {
+    writeCache(key, { ts: Date.now(), data, version });
+  }
   return data;
 }
 

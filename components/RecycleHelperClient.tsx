@@ -136,6 +136,7 @@ export function RecycleHelperClient({
       version: cacheVersion,
       initialData: [],
       enabled: mode === "need" && Boolean(selectedItemId),
+      disableCache: true,
     }
   );
 
@@ -149,6 +150,7 @@ export function RecycleHelperClient({
       version: cacheVersion,
       initialData: [],
       enabled: mode === "have" && Boolean(selectedItemId),
+      disableCache: true,
     }
   );
 

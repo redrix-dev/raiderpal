@@ -93,7 +93,11 @@ export function ItemsBrowseClient({
     loading: craftingLoading,
   } = useCachedJson<CraftingRecipeRow[]>(
     selectedItem ? `/api/items/${selectedItem.id}/crafting` : null,
-    { version: cacheVersion, enabled: Boolean(selectedItem) }
+    {
+      version: cacheVersion,
+      enabled: Boolean(selectedItem),
+      disableCache: true,
+    }
   );
 
   const {
@@ -101,7 +105,11 @@ export function ItemsBrowseClient({
     loading: recyclingLoading,
   } = useCachedJson<RecyclingSourceRow[]>(
     selectedItem ? `/api/items/${selectedItem.id}/recycling` : null,
-    { version: cacheVersion, enabled: Boolean(selectedItem) }
+    {
+      version: cacheVersion,
+      enabled: Boolean(selectedItem),
+      disableCache: true,
+    }
   );
 
   const details = useMemo<PreviewDetails | null>(() => {

@@ -11,6 +11,7 @@ type UseCachedJsonOptions<T> = {
   ttlMs?: number;
   initialData?: T;
   enabled?: boolean;
+  disableCache?: boolean;
 };
 
 type RefetchOptions = {
@@ -25,7 +26,7 @@ export function useCachedJson<T>(
   url: string | null,
   opts: UseCachedJsonOptions<T> = {}
 ) {
-  const { version, ttlMs, initialData, enabled = true } = opts;
+  const { version, ttlMs, initialData, enabled = true, disableCache } = opts;
 
   const [data, setData] = useState<T | null>(initialData ?? null);
   const [loading, setLoading] = useState(initialData == null);
@@ -52,7 +53,11 @@ export function useCachedJson<T>(
         if (options?.bustCache) {
           clearCachedEntry(url);
         }
-        const result = await cachedFetchJson<T>(url, { version, ttlMs });
+        const result = await cachedFetchJson<T>(url, {
+          version,
+          ttlMs,
+          disableCache,
+        });
         setData(result ?? null);
       } catch (err) {
         const message =
