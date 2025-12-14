@@ -14,6 +14,9 @@ type ItemPageProps = {
   params: Promise<{ id: string }>;
 };
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function ItemPage({ params }: ItemPageProps) {
   const { id } = await params;
 

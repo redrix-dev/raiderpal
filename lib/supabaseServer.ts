@@ -1,5 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 
+const noStoreFetch: typeof fetch = (input, init) =>
+  fetch(input, { ...init, cache: "no-store" });
+
 /**
  * Anon client intended for public, read-mostly endpoints governed by RLS.
  */
@@ -10,6 +13,9 @@ export function createServerClient() {
     {
       auth: {
         persistSession: false,
+      },
+      global: {
+        fetch: noStoreFetch,
       },
     }
   );
@@ -26,6 +32,9 @@ export function createServiceClient() {
     {
       auth: {
         persistSession: false,
+      },
+      global: {
+        fetch: noStoreFetch,
       },
     }
   );

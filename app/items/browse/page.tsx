@@ -4,6 +4,9 @@ import { ItemsBrowseClient } from "@/components/ItemsBrowseClient";
 import { getDataVersion } from "@/data/version";
 import { ModulePanel } from "@/components/ModulePanel";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function ItemsBrowsePage() {
   const [items, versionRow] = await Promise.all([
     getAllItems(),

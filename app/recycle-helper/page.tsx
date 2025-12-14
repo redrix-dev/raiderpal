@@ -6,6 +6,9 @@ import { RecycleHelperClient } from "@/components/RecycleHelperClient";
 import { getDataVersion } from "@/data/version";
 import { ToolPanel } from "@/components/ToolPanel";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function RecyclePage() {
   const [items, { needableIds, haveableIds }, versionRow] = await Promise.all([
     getAllItems(),

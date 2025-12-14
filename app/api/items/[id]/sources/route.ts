@@ -4,6 +4,9 @@ import { jsonError, jsonOk, type RouteContext } from "@/lib/http";
 
 type Params = { id: string };
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET(
   _req: NextRequest,
   { params }: RouteContext<Params>
@@ -22,6 +25,6 @@ export async function GET(
   }
 
   return jsonOk(sources, 200, {
-    "Cache-Control": "public, max-age=86400, stale-while-revalidate=2592000",
+    "Cache-Control": "no-store",
   });
 }

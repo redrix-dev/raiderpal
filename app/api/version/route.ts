@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { getDataVersion } from "@/data/version";
 import { jsonOk, jsonError } from "@/lib/http";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET(_req: NextRequest) {
@@ -19,8 +20,7 @@ export async function GET(_req: NextRequest) {
       },
       200,
       {
-        // Check frequently, tiny payload
-        "Cache-Control": "public, max-age=60",
+        "Cache-Control": "no-store",
       }
     );
   } catch (err) {

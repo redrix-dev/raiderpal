@@ -3,6 +3,9 @@
 import ItemsList from "@/components/ItemsList";
 import { getAllItems } from "@/data/items";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function ItemsPage() {
   const items = await getAllItems();
 

@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { getRepairEconomy } from "@/data/repairEconomy";
 import { jsonError, jsonOk } from "@/lib/http";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET(_req: NextRequest) {
@@ -11,8 +12,7 @@ export async function GET(_req: NextRequest) {
       "Cache-Control": "no-store",
     });
   } catch (error) {
-  const message = error instanceof Error ? error.message : "Unknown error";
-  return jsonError(message, 500);
-}
-
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return jsonError(message, 500);
+  }
 }
