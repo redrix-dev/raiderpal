@@ -6,6 +6,7 @@ import type { RecyclingSourceRow } from "@/data/recycling";
 import { RarityBadge } from "@/components/ItemCard";
 import { useRaidReminders } from "@/hooks/useRaidReminders";
 import { useCachedJson } from "@/hooks/useCachedJson";
+import { useAppVersion } from "@/hooks/useAppVersion";
 import { ModulePanel } from "@/components/ModulePanel";
 import { ItemPicker, type PickerItem } from "@/components/ItemPicker";
 import { TwoOptionToggle } from "@/components/TwoOptionToggle";
@@ -41,6 +42,8 @@ export function RecycleHelperClient({
   haveableIds,
   dataVersion,
 }: Props) {
+  const { version: appVersion } = useAppVersion({ initialVersion: dataVersion });
+  const cacheVersion = appVersion ?? dataVersion ?? undefined;
   const [mode, setMode] = useState<Mode>("need");
 
   // Top-level filters/selection
@@ -128,9 +131,9 @@ export function RecycleHelperClient({
     loading: needLoading,
     error: needError,
   } = useCachedJson<DirectYieldSource[]>(
-    selectedItemId ? `/items/${selectedItemId}/sources` : null,
+    selectedItemId ? `/api/items/${selectedItemId}/sources` : null,
     {
-      version: dataVersion ?? undefined,
+      version: cacheVersion,
       initialData: [],
       enabled: mode === "need" && Boolean(selectedItemId),
     }
@@ -141,9 +144,9 @@ export function RecycleHelperClient({
     loading: haveLoading,
     error: haveError,
   } = useCachedJson<RecyclingSourceRow[]>(
-    selectedItemId ? `/items/${selectedItemId}/recycling` : null,
+    selectedItemId ? `/api/items/${selectedItemId}/recycling` : null,
     {
-      version: dataVersion ?? undefined,
+      version: cacheVersion,
       initialData: [],
       enabled: mode === "have" && Boolean(selectedItemId),
     }
