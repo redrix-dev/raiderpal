@@ -8,6 +8,7 @@ import {
 } from "@/lib/repairCalculator";
 import type { RepairEconomyRow } from "@/data/repairEconomy";
 import { useCachedJson } from "@/hooks/useCachedJson";
+import { useAppVersion } from "@/hooks/useAppVersion";
 import { RarityBadge } from "./ItemCard";
 import { ModulePanel } from "./ModulePanel";
 import { SelectedItemSummary } from "@/components/SelectedItemSummary";
@@ -31,10 +32,13 @@ export function RepairCalculatorClient({
   items: initialItems,
   dataVersion,
 }: Props) {
+  const { version: appVersion } = useAppVersion({ initialVersion: dataVersion });
+  const cacheVersion = appVersion ?? dataVersion ?? undefined;
+
   const { data: fetchedItems } = useCachedJson<RepairEconomyRow[]>(
-    "/repair-economy",
+    "/api/repair-economy",
     {
-      version: dataVersion ?? undefined,
+      version: cacheVersion,
       initialData: initialItems,
     }
   );

@@ -3,7 +3,7 @@
 
 const CACHE_PREFIX = "rp_cache_v1:";
 const DEFAULT_TTL_MS = 60 * 60 * 1000; // 1 hour
-const LONG_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+const LONG_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const LONG_CACHE_KEY = "rp_long_cache_enabled";
 
 type CacheOptions = {
