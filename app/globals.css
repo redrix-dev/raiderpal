@@ -3,6 +3,44 @@
 @source "../components/**/*.{ts,tsx}";
 @source "../stories/**/*.{ts,tsx,mdx}";
 
+@theme {
+  --color-brand-cyan: #4fc1e9;
+  --color-brand-amber: #f1aa1c;
+  --color-text-primary: #e3ddd4;
+  --color-text-muted: #8ea0b8;
+  --color-surface-base: #050910;
+  --color-surface-panel: #130918;
+  --color-surface-card: #07040f;
+  --color-border-strong: #130918;
+  --color-border-subtle: rgba(255, 255, 255, 0.06);
+
+  colors: {
+    brand: {
+      cyan: var(--color-brand-cyan);
+      amber: var(--color-brand-amber);
+    };
+    text: {
+      primary: var(--color-text-primary);
+      muted: var(--color-text-muted);
+    };
+    surface: {
+      base: var(--color-surface-base);
+      panel: var(--color-surface-panel);
+      card: var(--color-surface-card);
+    };
+    border: {
+      strong: var(--color-border-strong);
+      subtle: var(--color-border-subtle);
+    };
+  };
+
+  fontFamily: {
+    sans: 'var(--font-barlow, "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif)';
+    condensed:
+      'var(--font-barlow-condensed, "Barlow Condensed", "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif)';
+  };
+}
+
 :root {
   --wallpaper-url: none; /* optional hero wallpaper; set to url(...) if needed */
   --texture-url: url("/textures/ARC_Raiders_Background_Texture.png");
