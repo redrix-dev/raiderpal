@@ -6,6 +6,7 @@ import { ItemCard, RarityBadge } from "@/components/ItemCard";
 import { useCachedJson } from "@/hooks/useCachedJson";
 import { useRaidReminders } from "@/hooks/useRaidReminders";
 import { useAppVersion } from "@/hooks/useAppVersion";
+import { craftingDataSchema, craftingResponseSchema } from "@/lib/apiSchemas";
 import type { CraftingRecipeRow } from "@/data/crafting";
 import type { RecyclingSourceRow } from "@/data/recycling";
 import type { ItemListRow } from "@/data/items";
@@ -97,6 +98,8 @@ export function ItemsBrowseClient({
       version: cacheVersion,
       enabled: Boolean(selectedItem),
       disableCache: true,
+      responseSchema: craftingResponseSchema,
+      dataSchema: craftingDataSchema,
     }
   );
 

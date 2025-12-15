@@ -5,6 +5,8 @@ import {
   cachedFetchJson,
   clearCachedEntry,
 } from "@/lib/clientCache";
+import type { ApiResponse } from "@/lib/http";
+import type { Schema } from "@/lib/validation";
 
 type UseCachedJsonOptions<T> = {
   version?: string | number;
@@ -12,6 +14,8 @@ type UseCachedJsonOptions<T> = {
   initialData?: T;
   enabled?: boolean;
   disableCache?: boolean;
+  responseSchema?: Schema<ApiResponse<T>>;
+  dataSchema?: Schema<T>;
 };
 
 type RefetchOptions = {
@@ -26,7 +30,15 @@ export function useCachedJson<T>(
   url: string | null,
   opts: UseCachedJsonOptions<T> = {}
 ) {
-  const { version, ttlMs, initialData, enabled = true, disableCache } = opts;
+  const {
+    version,
+    ttlMs,
+    initialData,
+    enabled = true,
+    disableCache,
+    responseSchema,
+    dataSchema,
+  } = opts;
 
   const [data, setData] = useState<T | null>(initialData ?? null);
   const [loading, setLoading] = useState(initialData == null);
@@ -57,6 +69,8 @@ export function useCachedJson<T>(
           version,
           ttlMs,
           disableCache,
+          responseSchema,
+          dataSchema,
         });
         setData(result ?? null);
       } catch (err) {

@@ -1,15 +1,21 @@
 // lib/clientCache.ts
 // Simple localStorage-backed JSON fetch cache to reduce repeat hits on API routes.
 
+import { apiResponseSchema } from "@/lib/apiSchemas";
+import { assertResponseShape, type ApiResponse } from "@/lib/http";
+import type { Schema } from "@/lib/validation";
+
 const CACHE_PREFIX = "rp_cache_v1:";
 const DEFAULT_TTL_MS = 60 * 60 * 1000; // 1 hour
 const LONG_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const LONG_CACHE_KEY = "rp_long_cache_enabled";
 
-type CacheOptions = {
+type CacheOptions<T> = {
   ttlMs?: number;
   version?: string | number;
   disableCache?: boolean;
+  responseSchema?: Schema<ApiResponse<T>>;
+  dataSchema?: Schema<T>;
 };
 
 type CachedEntry<T> = {
@@ -53,11 +59,30 @@ function prefersLongCache(): boolean {
   }
 }
 
+function coerceApiResponse<T>(payload: unknown): ApiResponse<T> {
+  if (payload && typeof payload === "object" && "success" in payload) {
+    const { success, data } = payload as { success: unknown; data?: unknown };
+    if (success === true) {
+      return { success: true, data: data as T };
+    }
+    if (success === false) {
+      const err = (payload as { error?: unknown }).error;
+      return {
+        success: false,
+        error: typeof err === "string" ? err : "Request failed",
+      };
+    }
+  }
+  throw new Error("Invalid API response envelope");
+}
+
 export async function cachedFetchJson<T>(
   url: string,
-  opts: CacheOptions = {}
+  opts: CacheOptions<T> = {}
 ): Promise<T> {
-  const { ttlMs, version, disableCache } = opts;
+  const { ttlMs, version, disableCache, responseSchema, dataSchema } = opts;
+  const envelopeSchema =
+    responseSchema || (dataSchema ? apiResponseSchema(dataSchema) : undefined);
   const effectiveTtl =
     ttlMs ?? (prefersLongCache() ? LONG_TTL_MS : DEFAULT_TTL_MS);
   const key = getCacheKey(url, version);
@@ -70,14 +95,25 @@ export async function cachedFetchJson<T>(
 
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error(`Request failed (${res.status})`);
-  const data = (await res.json()) as T;
+  const rawPayload = (await res.json()) as unknown;
+
+  const parsedEnvelope = envelopeSchema
+    ? assertResponseShape(envelopeSchema, rawPayload)
+    : coerceApiResponse<T>(rawPayload);
+
+  if (!parsedEnvelope.success) {
+    throw new Error(parsedEnvelope.error);
+  }
+
+  const parsedData = dataSchema
+    ? assertResponseShape(dataSchema, parsedEnvelope.data)
+    : parsedEnvelope.data;
 
   if (!disableCache) {
-    writeCache(key, { ts: Date.now(), data, version });
+    writeCache(key, { ts: Date.now(), data: parsedData, version });
   }
-  return data;
+  return parsedData;
 }
-
 
 export function setLongCachePreference(enabled: boolean) {
   if (typeof window === "undefined") return;

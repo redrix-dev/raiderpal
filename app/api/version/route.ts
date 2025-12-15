@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { getDataVersion } from "@/data/version";
-import { jsonOk, jsonError } from "@/lib/http";
+import { versionPayloadSchema } from "@/lib/apiSchemas";
+import { assertResponseShape, jsonOk, jsonError } from "@/lib/http";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -14,16 +15,11 @@ export async function GET(_req: NextRequest) {
       return jsonError("Data version not found", 404);
     }
 
-    return jsonOk(
-      {
-        version: meta.version,
-        last_synced_at: meta.last_synced_at,
-      },
-      200,
-      {
-        "Cache-Control": "no-store",
-      }
-    );
+    const validated = assertResponseShape(versionPayloadSchema, meta);
+
+    return jsonOk(validated, 200, {
+      "Cache-Control": "no-store",
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return jsonError(message, 500);

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   getAppDataVersion,
-  type AppVersionMeta,
+  type VersionPayload,
 } from "@/lib/appVersionClient";
 
 type UseAppVersionOptions = {
@@ -12,7 +12,7 @@ type UseAppVersionOptions = {
 
 type UseAppVersionResult = {
   version: number | undefined;
-  meta: AppVersionMeta | null;
+  meta: VersionPayload | null;
   loading: boolean;
   error: string | null;
 };
@@ -25,7 +25,7 @@ export function useAppVersion(
   options: UseAppVersionOptions = {}
 ): UseAppVersionResult {
   const { initialVersion } = options;
-  const [meta, setMeta] = useState<AppVersionMeta | null>(null);
+  const [meta, setMeta] = useState<VersionPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const fallbackVersion = (() => {

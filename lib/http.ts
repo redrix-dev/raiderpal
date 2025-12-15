@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
+import type { Schema } from "@/lib/validation";
 
 export type RouteContext<TParams> = {
   params: Promise<TParams>;
 };
+
+export type ApiSuccess<T> = { success: true; data: T };
+export type ApiError = { success: false; error: string };
+export type ApiResponse<T> = ApiSuccess<T> | ApiError;
 
 const defaultJsonHeaders = Object.freeze({
   "Content-Type": "application/json",
@@ -19,18 +24,25 @@ function mergeHeaders(headers?: HeadersInit) {
 }
 
 export function jsonOk<T>(data: T, status = 200, headers?: HeadersInit) {
-  return NextResponse.json(data, {
+  const body: ApiSuccess<T> = { success: true, data };
+  return NextResponse.json(body, {
     status,
     headers: mergeHeaders(headers),
   });
 }
 
 export function jsonError(message: string, status = 400, headers?: HeadersInit) {
-  return NextResponse.json(
-    { error: message },
-    {
-      status,
-      headers: mergeHeaders(headers),
-    }
-  );
+  const body: ApiError = { success: false, error: message };
+  return NextResponse.json(body, {
+    status,
+    headers: mergeHeaders(headers),
+  });
+}
+
+export function assertResponseShape<T>(schema: Schema<T>, payload: unknown): T {
+  const result = schema.safeParse(payload);
+  if (!result.success) {
+    throw new Error(result.error);
+  }
+  return result.data;
 }
