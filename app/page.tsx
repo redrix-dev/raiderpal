@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { ModulePanel } from "@/components/ModulePanel";
 import { ToolPanel } from "@/components/ToolPanel";
+import { PrimaryButton } from "@/components/PrimaryButton";
 
 // app/page.tsx
 
@@ -23,12 +23,9 @@ export default function HomePage() {
               Search and filter every known item, peek at crafting inputs and
               recycling outputs, and jump to full details.
             </p>
-            <Link
-              href="/items/browse"
-              className="inline-flex items-center justify-center gap-2 rounded-md border border-white/10 bg-black/30 px-4 py-2.5 text-base font-medium text-[#4fc1e9] transition hover:border-[#4fc1e9] hover:bg-black/40 focus:outline-none focus:ring-2 focus:ring-[#4fc1e9] focus:ring-offset-2 focus:ring-offset-slate-950"
-            >
+            <PrimaryButton href="/items/browse" variant="brand">
               Go to Item Browser
-            </Link>
+            </PrimaryButton>
           </div>
         </ModulePanel>
 
@@ -38,12 +35,9 @@ export default function HomePage() {
               Pick an item you need or have and get the best recycling sources or
               outputs, with loot locations and rarity at a glance.
             </p>
-            <Link
-              href="/recycle-helper"
-              className="inline-flex items-center justify-center gap-2 rounded-md border border-white/10 bg-black/30 px-4 py-2.5 text-base font-medium text-[#4fc1e9] transition hover:border-[#4fc1e9] hover:bg-black/40 focus:outline-none focus:ring-2 focus:ring-[#4fc1e9] focus:ring-offset-2 focus:ring-offset-slate-950"
-            >
+            <PrimaryButton href="/recycle-helper" variant="brand">
               Go to Recycle Helper
-            </Link>
+            </PrimaryButton>
           </div>
         </ModulePanel>
 
@@ -53,12 +47,9 @@ export default function HomePage() {
               Compare repairing versus crafting new to choose the most efficient option.
               Balance resource costs, outputs, and time to optimize your runs.
             </p>
-            <Link
-              href="/repair-calculator"
-              className="inline-flex items-center justify-center gap-2 rounded-md border border-white/10 bg-black/30 px-4 py-2.5 text-base font-medium text-[#4fc1e9] transition hover:border-[#4fc1e9] hover:bg-black/40 focus:outline-none focus:ring-2 focus:ring-[#4fc1e9] focus:ring-offset-2 focus:ring-offset-slate-950"
-            >
+            <PrimaryButton href="/repair-calculator" variant="brand">
               Go to Repair/Replace Calculator
-            </Link>
+            </PrimaryButton>
           </div>
         </ModulePanel>
         <ModulePanel title="About Raider Pal" className="h-full" headerClassName="[&_>div]:justify-center [&_h2]:text-center">

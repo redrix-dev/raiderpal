@@ -1,28 +1,25 @@
 import { getCraftingForItem } from "@/data/crafting";
+import { craftingDataSchema, craftingParamsSchema } from "@/lib/apiSchemas";
+import { assertResponseShape, jsonError, jsonOk, type RouteContext } from "@/lib/http";
 import type { NextRequest } from "next/server";
-import { jsonError, jsonOk, type RouteContext } from "@/lib/http";
-
-type Params = { id: string };
 
 export const revalidate = 86400; // refresh daily
 export const runtime = "nodejs";
 
 export async function GET(
   _req: NextRequest,
-  { params }: RouteContext<Params>
+  { params }: RouteContext<{ id: string }>
 ) {
-  const { id } = await params;
-  const normalizedId = typeof id === "string" ? id.trim() : "";
+  const parsedParams = craftingParamsSchema.safeParse(await params);
 
-  if (!normalizedId) {
-    return jsonError("Missing or invalid id", 400);
+  if (!parsedParams.success) {
+    return jsonError(parsedParams.error, 400);
   }
 
-  const data = await getCraftingForItem(normalizedId);
+  const { id } = parsedParams.data;
 
-  if (!data) {
-    return jsonError("Item not found", 404);
-  }
+  const data = await getCraftingForItem(id);
+  const validatedData = assertResponseShape(craftingDataSchema, data);
 
   return jsonOk(data, 200, {
     "Cache-Control": "public, max-age=900, stale-while-revalidate=85500",

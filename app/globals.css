@@ -4,14 +4,18 @@
 @source "../stories/**/*.{ts,tsx,mdx}";
 
 :root {
-  --color-bg: #050910;
-  --color-off-white: #e3ddd4;
-  --color-yellow: #f1aa1c;
-  --color-deep-blue: #130918;
-  --color-muted: #8ea0b8;
-  --wallpaper-url: none; /* optional hero wallpaper; set to url(...) if needed */
-  --texture-url: url("/textures/ARC_Raiders_Background_Texture.png");
-  --wallpaper-overlay: rgba(5, 9, 16, 0);
+  /* Semantic palette used across the app */
+  --color-brand-cyan: #4fc1e9;
+  --color-brand-amber: #f1aa1c;
+  --color-text-primary: #e3ddd4;
+  --color-text-muted: #8ea0b8;
+  --color-surface-base: #050910;
+  --color-surface-panel: #130918;
+  --color-surface-card: #07040f;
+  --color-border-strong: #130918;
+  --color-border-subtle: rgba(255, 255, 255, 0.06);
+
+  /* Font fallbacks mirror the Tailwind theme */
   --font-sans: var(--font-barlow, "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif);
   --font-condensed: var(
     --font-barlow-condensed,
@@ -22,9 +26,10 @@
     "Segoe UI",
     sans-serif
   );
-  --rp-offwhite: #ece2d0;
-  --rp-yellow: #f1aa1c;
-  --rp-deepblue: #130918;
+
+  --wallpaper-url: none; /* optional hero wallpaper; set to url(...) if needed */
+  --texture-url: url("/textures/ARC_Raiders_Background_Texture.png");
+  --wallpaper-overlay: rgba(5, 9, 16, 0);
 }
 
 /* Tailwind v4 theme helpers can confuse CSS validators. If your editor flags
@@ -32,8 +37,8 @@
 
 body {
   position: relative;
-  background: var(--color-bg);
-  color: var(--color-off-white);
+  background: var(--color-surface-base);
+  color: var(--color-text-primary);
   font-family: var(--font-sans);
   min-height: 100vh;
 }
@@ -74,70 +79,72 @@ textarea {
 
 /* Slider styling: cyan thumb/active, warm inactive track */
 input[type="range"] {
-  accent-color: #4fc1e9;
+  accent-color: var(--color-brand-cyan);
 }
 input[type="range"]::-webkit-slider-runnable-track {
   background: linear-gradient(
       to right,
-      rgba(79, 193, 233, 0.6) 0%,
-      rgba(79, 193, 233, 0.6) var(--tw-range-progress, 50%),
-      rgba(227, 221, 212, 0.2) var(--tw-range-progress, 50%),
-      rgba(227, 221, 212, 0.2) 100%
+      color-mix(in srgb, var(--color-brand-cyan) 60%, transparent) 0%,
+      color-mix(in srgb, var(--color-brand-cyan) 60%, transparent) var(--tw-range-progress, 50%),
+      color-mix(in srgb, var(--color-text-primary) 20%, transparent) var(--tw-range-progress, 50%),
+      color-mix(in srgb, var(--color-text-primary) 20%, transparent) 100%
     );
   height: 4px;
   border-radius: 9999px;
 }
 input[type="range"]::-webkit-slider-thumb {
-  background: #4fc1e9;
-  border: 1px solid #4fc1e9;
+  background: var(--color-brand-cyan);
+  border: 1px solid var(--color-brand-cyan);
 }
 input[type="range"]::-moz-range-track {
-  background: rgba(227, 221, 212, 0.2);
+  background: color-mix(in srgb, var(--color-text-primary) 20%, transparent);
   height: 4px;
   border-radius: 9999px;
 }
 input[type="range"]::-moz-range-progress {
-  background: rgba(79, 193, 233, 0.6);
+  background: color-mix(in srgb, var(--color-brand-cyan) 60%, transparent);
   height: 4px;
   border-radius: 9999px;
 }
 input[type="range"]::-moz-range-thumb {
-  background: #4fc1e9;
-  border: 1px solid #4fc1e9;
+  background: var(--color-brand-cyan);
+  border: 1px solid var(--color-brand-cyan);
 }
 
 @layer components {
   /* Main inner panels (tool bodies, info sections) */
   .rp-panel {
     @apply rounded-xl border p-4 sm:p-5;
-    border-color: var(--rp-deepblue);
+    border-color: var(--color-border-strong);
     background-image: linear-gradient(rgba(5, 9, 16, 0.35), rgba(5, 9, 16, 0.35)),
       url("/backgrounds/ARC_Raiders_Module_Background.png");
     background-repeat: repeat-x;
     background-size: auto 140%;
     background-position: center;
-    background-color: rgba(5, 9, 16, 0.6);
+    background-color: color-mix(in srgb, var(--color-surface-panel) 60%, transparent);
+    color: var(--color-text-primary);
   }
 
   /* Secondary cards inside panels (subsections, result blocks) */
   .rp-card {
     @apply rounded-lg border p-4;
-    border-color: rgba(255, 255, 255, 0.06);
-    background-color: rgba(7, 4, 15, 0.92);
+    border-color: var(--color-border-subtle);
+    background-color: color-mix(in srgb, var(--color-surface-card) 92%, transparent);
+    color: var(--color-text-primary);
   }
 
   /* Generic pill/tag (non-rarity) */
   .rp-pill {
     @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium;
-    background-color: rgba(19, 9, 24, 0.9);
-    color: var(--rp-offwhite);
-    border: 1px solid rgba(236, 226, 208, 0.16);
+    background-color: color-mix(in srgb, var(--color-surface-panel) 90%, transparent);
+    color: var(--color-text-primary);
+    border: 1px solid color-mix(in srgb, var(--color-text-primary) 16%, transparent);
   }
 
   /* Accent pill for highlighted states */
   .rp-pill-accent {
     @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold;
-    background-color: var(--rp-yellow);
+    background-color: var(--color-brand-amber);
     color: #1a0704;
   }
 }
@@ -149,17 +156,13 @@ input[type="range"]::-moz-range-thumb {
   background-repeat: repeat-x;
   background-size: auto 140%;
   background-position: center;
-  background-color: rgba(5, 9, 16, 0.6);
-}
-
-.font-condensed {
-  font-family: var(--font-condensed);
+  background-color: color-mix(in srgb, var(--color-surface-panel) 60%, transparent);
 }
 
 .text-warm {
-  color: var(--color-off-white);
+  color: var(--color-text-primary);
 }
 
 .text-warm-muted {
-  color: #e3ddd4;
+  color: var(--color-text-muted);
 }
