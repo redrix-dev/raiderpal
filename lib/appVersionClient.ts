@@ -1,16 +1,14 @@
 "use client";
 
+import { versionResponseSchema, type VersionPayload } from "@/lib/apiSchemas";
 import { cachedFetchJson } from "@/lib/clientCache";
 
-export type AppVersionMeta = {
-  version: number;
-  last_synced_at: string | null;
-};
+export type { VersionPayload };
 
 const VERSION_TTL_MS = 60_000;
 const MEMO_WINDOW_MS = 60_000;
 
-let memoized: Promise<AppVersionMeta> | null = null;
+let memoized: Promise<VersionPayload> | null = null;
 let memoizedAt = 0;
 
 /**
@@ -18,15 +16,16 @@ let memoizedAt = 0;
  * Results are memoized briefly in-memory and cached in localStorage
  * to avoid redundant network calls during a session.
  */
-export async function getAppDataVersion(): Promise<AppVersionMeta> {
+export async function getAppDataVersion(): Promise<VersionPayload> {
   const now = Date.now();
   if (memoized && now - memoizedAt < MEMO_WINDOW_MS) {
     return memoized;
   }
 
   memoizedAt = now;
-  memoized = cachedFetchJson<AppVersionMeta>("/api/version", {
+  memoized = cachedFetchJson<VersionPayload>("/api/version", {
     ttlMs: VERSION_TTL_MS,
+    responseSchema: versionResponseSchema,
   });
 
   try {
