@@ -3,8 +3,7 @@ import { craftingDataSchema, craftingParamsSchema } from "@/lib/apiSchemas";
 import { assertResponseShape, jsonError, jsonOk, type RouteContext } from "@/lib/http";
 import type { NextRequest } from "next/server";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 86400; // refresh daily
 export const runtime = "nodejs";
 
 export async function GET(
@@ -22,7 +21,7 @@ export async function GET(
   const data = await getCraftingForItem(id);
   const validatedData = assertResponseShape(craftingDataSchema, data);
 
-  return jsonOk(validatedData, 200, {
-    "Cache-Control": "no-store",
+  return jsonOk(data, 200, {
+    "Cache-Control": "public, max-age=900, stale-while-revalidate=85500",
   });
 }
