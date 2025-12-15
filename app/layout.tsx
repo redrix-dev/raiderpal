@@ -34,7 +34,7 @@ export default function RootLayout({
       lang="en"
       className={`${barlow.variable} ${barlowCondensed.variable} h-full`}
     >
-      <body className="relative min-h-full bg-[var(--color-bg)] text-[var(--color-off-white)]">
+      <body className="relative min-h-full bg-surface-base text-text-primary font-sans">
         <div className="relative min-h-screen flex flex-col" style={{ zIndex: 2 }}>
           {/* Header */}
           <header
@@ -63,7 +63,7 @@ export default function RootLayout({
 
               <HeaderControls />
             </div>
-            <div className="h-1 w-full bg-[var(--color-yellow)]" />
+            <div className="h-1 w-full bg-brand-amber" />
           </header>
 
           {/* Main */}

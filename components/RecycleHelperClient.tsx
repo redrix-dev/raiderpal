@@ -11,6 +11,7 @@ import { ModulePanel } from "@/components/ModulePanel";
 import { ItemPicker, type PickerItem } from "@/components/ItemPicker";
 import { TwoOptionToggle } from "@/components/TwoOptionToggle";
 import { SelectedItemSummary } from "@/components/SelectedItemSummary";
+import { Card } from "./ui/Card";
 
 type HelperItem = {
   id: string;
@@ -314,7 +315,7 @@ export function RecycleHelperClient({
 
       {/* Picker modules */}
       <div className="grid gap-4">
-        <div className="rp-card">
+        <Card>
           <div className="grid gap-3 md:grid-cols-[1.5fr_1fr] md:items-end">
             <div className="flex-1">
               <label className="block text-sm font-medium text-warm mb-1">
@@ -360,9 +361,9 @@ export function RecycleHelperClient({
               />
             </div>
           </div>
-        </div>
+        </Card>
 
-        <div className="rp-card">
+        <Card>
           <div className="grid gap-3 md:grid-cols-[1.5fr_1fr] md:items-end">
             <div className="flex-1">
               <label className="block text-sm font-medium text-warm mb-1">
@@ -420,18 +421,18 @@ export function RecycleHelperClient({
               )}
             </div>
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* Selected item summary */}
       {selectedItem && (
-  <SelectedItemSummary
-    name={selectedItem.name}
-    icon={selectedItem.icon}
-    rarity={selectedItem.rarity ?? undefined}
-    itemType={selectedItem.item_type ?? undefined}
-  />
-)}
+        <SelectedItemSummary
+          name={selectedItem.name}
+          icon={selectedItem.icon}
+          rarity={selectedItem.rarity ?? undefined}
+          itemType={selectedItem.item_type ?? undefined}
+        />
+      )}
 
 
       {/* Status */}
@@ -446,27 +447,27 @@ export function RecycleHelperClient({
 
       {/* Results table */}
       {selectedItemId && !loading && !error && (
-  <div className="space-y-2">
-    <div className="flex items-center justify-between gap-3">
-      <div className="text-xs text-warm-muted">
-        Select rows and add them to Raid Reminders.
-      </div>
-      <button
-        type="button"
-        onClick={handleAddSelected}
-        disabled={!hasSelection}
-        className={`rounded-md px-3 py-2 text-sm font-medium border ${
-          hasSelection
-            ? "border-[#4fc1e9]/60 bg-[#4fc1e9]/15 text-[#4fc1e9] hover:border-[#4fc1e9]"
-            : "cursor-not-allowed border-slate-800 bg-slate-900 text-warm-muted"
-        }`}
-      >
-        Add to Raid Reminders
-      </button>
-    </div>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-xs text-warm-muted">
+              Select rows and add them to Raid Reminders.
+            </div>
+            <button
+              type="button"
+              onClick={handleAddSelected}
+              disabled={!hasSelection}
+              className={`rounded-md px-3 py-2 text-sm font-medium border ${
+                hasSelection
+                  ? "border-[#4fc1e9]/60 bg-[#4fc1e9]/15 text-[#4fc1e9] hover:border-[#4fc1e9]"
+                  : "cursor-not-allowed border-slate-800 bg-slate-900 text-warm-muted"
+              }`}
+            >
+              Add to Raid Reminders
+            </button>
+          </div>
 
-    {/* MOBILE: card layout */}
-    <div className="space-y-2 md:hidden">
+          {/* MOBILE: card layout */}
+          <div className="space-y-2 md:hidden">
       {mode === "need" &&
         (displayNeed.length > 0 ? (
           displayNeed.map((row) => {

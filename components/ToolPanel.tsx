@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Panel } from "./ui/Panel";
 
 type ToolPanelProps = {
   children: ReactNode;
@@ -7,12 +8,8 @@ type ToolPanelProps = {
 
 export function ToolPanel({ children, className }: ToolPanelProps) {
   return (
-    <div
-      className={`rp-panel space-y-4 shadow-[0_0_40px_rgba(0,0,0,0.6)]${
-        className ? ` ${className}` : ""
-      }`}
-    >
-      {children}
-    </div>
+    <Panel className={className}>
+      <div className="space-y-4">{children}</div>
+    </Panel>
   );
 }

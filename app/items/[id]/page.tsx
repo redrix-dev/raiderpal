@@ -9,6 +9,8 @@ import { getBestSourcesForItem } from "@/data/yields";
 import { ItemDetailsTabs } from "@/components/ItemDetailsTabs";
 import { ItemHero } from "@/components/ItemHero";
 import { ItemStatsPanel } from "@/components/ItemStatsPanel";
+import { Panel } from "@/components/ui/Panel";
+import { Card } from "@/components/ui/Card";
 
 type ItemPageProps = {
   params: Promise<{ id: string }>;
@@ -33,42 +35,40 @@ export default async function ItemPage({ params }: ItemPageProps) {
   }
 
   return (
-    <div className="text-warm">
-      <div className="rounded-xl border border-[#130918] bg-panel-texture p-3 lg:p-4 space-y-4 min-h-[70vh] lg:min-h-[75vh] xl:min-h-[79vh]">
-        {/* Top section: icon, name, rarity, description, stats */}
-        <div className="grid gap-5 md:grid-cols-2 md:gap-6 items-stretch">
-          {/* Left: icon + name + description */}
-          <div className="h-full rounded-xl border border-[#130918] bg-[#130918]/75 p-3 lg:p-4 overflow-hidden">
-            <ItemHero
-              icon={item.icon}
-              name={item.name}
-              description={item.description}
-              itemType={item.item_type}
-              rarity={item.rarity}
-            />
-          </div>
-
-          {/* Right: compact stats panel */}
-          <div className="h-full rounded-xl border border-[#130918] bg-[#130918]/75 p-3 lg:p-4 overflow-hidden">
-            <ItemStatsPanel
-              value={item.value}
-              itemType={item.item_type}
-              workbench={item.workbench}
-              lootArea={item.loot_area}
-            />
-          </div>
-        </div>
-
-        {/* Bottom: tabbed details */}
-        <div className="rounded-xl border border-[#130918] bg-[#130918]/75 p-3 lg:p-4 overflow-hidden">
-          <ItemDetailsTabs
-            crafting={crafting ?? []}
-            recycling={recycling ?? []}
-            bestSources={bestSources ?? []}
-            usedIn={usedIn ?? []}
+    <Panel className="space-y-4 min-h-[70vh] lg:min-h-[75vh] xl:min-h-[79vh]">
+      {/* Top section: icon, name, rarity, description, stats */}
+      <div className="grid gap-5 md:grid-cols-2 md:gap-6 items-stretch">
+        {/* Left: icon + name + description */}
+        <Card className="h-full overflow-hidden p-3 lg:p-4">
+          <ItemHero
+            icon={item.icon}
+            name={item.name}
+            description={item.description}
+            itemType={item.item_type}
+            rarity={item.rarity}
           />
-        </div>
+        </Card>
+
+        {/* Right: compact stats panel */}
+        <Card className="h-full overflow-hidden p-3 lg:p-4">
+          <ItemStatsPanel
+            value={item.value}
+            itemType={item.item_type}
+            workbench={item.workbench}
+            lootArea={item.loot_area}
+          />
+        </Card>
       </div>
-    </div>
+
+      {/* Bottom: tabbed details */}
+      <Card className="overflow-hidden p-3 lg:p-4">
+        <ItemDetailsTabs
+          crafting={crafting ?? []}
+          recycling={recycling ?? []}
+          bestSources={bestSources ?? []}
+          usedIn={usedIn ?? []}
+        />
+      </Card>
+    </Panel>
   );
 }
