@@ -4,8 +4,7 @@ import { jsonError, jsonOk, type RouteContext } from "@/lib/http";
 
 type Params = { id: string };
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 86400; // refresh daily
 export const runtime = "nodejs";
 
 export async function GET(
@@ -26,6 +25,6 @@ export async function GET(
   }
 
   return jsonOk(sources, 200, {
-    "Cache-Control": "no-store",
+    "Cache-Control": "public, max-age=900, stale-while-revalidate=85500",
   });
 }
