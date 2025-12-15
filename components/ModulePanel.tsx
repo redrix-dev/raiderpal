@@ -1,5 +1,6 @@
 // components/ModulePanel.tsx
 import type { ReactNode } from "react";
+import { Panel } from "./ui/Panel";
 
 export type ModulePanelRow = {
   key: string;
@@ -35,11 +36,9 @@ export function ModulePanel({
   headerRight,
 }: ModulePanelProps) {
   return (
-    <div
-      className={
-        "h-full w-full rounded-xl border border-white/15 bg-panel-texture shadow-[0_0_40px_rgba(0,0,0,0.6)] overflow-hidden text-base text-warm " +
-        className
-      }
+    <Panel
+      padding="none"
+      className={`h-full w-full overflow-hidden text-base ${className}`}
     >
       <div
         className={
@@ -103,6 +102,6 @@ export function ModulePanel({
             })
           : children}
       </div>
-    </div>
+    </Panel>
   );
 }

@@ -12,6 +12,7 @@ import { useAppVersion } from "@/hooks/useAppVersion";
 import { ModulePanel } from "./ModulePanel";
 import { SelectedItemSummary } from "@/components/SelectedItemSummary";
 import { ItemPicker, type PickerItem } from "@/components/ItemPicker";
+import { Card } from "./ui/Card";
 
 type Props = {
   items: RepairEconomyRow[];
@@ -143,7 +144,7 @@ export function RepairCalculatorClient({
         </p>
 
         <div className="grid gap-6 lg:grid-cols-2 items-stretch">
-          <div className="rp-card space-y-6 h-full flex flex-col overflow-visible">
+          <Card className="space-y-6 h-full flex flex-col overflow-visible">
             <div className="space-y-3">
               <label className="text-base text-warm font-semibold">
                 Select item
@@ -202,9 +203,9 @@ export function RepairCalculatorClient({
                 </span>
               </div>
             )}
-          </div>
+          </Card>
 
-          <div className="rp-card space-y-4 overflow-visible">
+          <Card className="space-y-4 overflow-visible">
             {selected && (
               <SelectedItemSummary
                 name={selected.name}
@@ -223,7 +224,7 @@ export function RepairCalculatorClient({
                 items={craftCosts}
               />
             </div>
-          </div>
+          </Card>
         </div>
 
         {!selected || !result ? (
