@@ -19,9 +19,7 @@ export async function GET(_req: NextRequest) {
         last_synced_at: meta.last_synced_at,
       },
       200,
-      {
-        "Cache-Control": "public, max-age=300, stale-while-revalidate=3300",
-      }
+      { "Cache-Control": "public, max-age=300, stale-while-revalidate=3300" }
     );
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
