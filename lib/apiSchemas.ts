@@ -30,14 +30,14 @@ const craftingRecipeSchema = z.object({
 });
 
 export const craftingDataSchema = z.array(craftingRecipeSchema);
-export const craftingResponseSchema = apiSuccessSchema(craftingDataSchema);
+export const craftingResponseSchema = apiResponseSchema(craftingDataSchema);
 
 export const versionPayloadSchema = z.object({
   version: z.number(),
   last_synced_at: z.string().nullable(),
 });
 
-export const versionResponseSchema = apiSuccessSchema(versionPayloadSchema);
+export const versionResponseSchema = apiResponseSchema(versionPayloadSchema);
 
 export type CraftingParams = Infer<typeof craftingParamsSchema>;
 export type CraftingRecipe = Infer<typeof craftingRecipeSchema>;

@@ -82,7 +82,7 @@ export function useCachedJson<T>(
         setLoading(false);
       }
     },
-    [url, enabled, version, ttlMs, disableCache]
+    [url, enabled, version, ttlMs, disableCache, responseSchema, dataSchema]
   );
 
   useEffect(() => {
