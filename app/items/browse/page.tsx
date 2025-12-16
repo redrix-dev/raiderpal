@@ -1,7 +1,6 @@
 // app/items/browse/page.tsx
-import { getAllItems } from "@/data/items";
 import { ItemsBrowseClient } from "@/components/ItemsBrowseClient";
-import { getDataVersion } from "@/data/version";
+import { getDataVersion, listCanonicalItems } from "@/lib/data";
 import { ModulePanel } from "@/components/ModulePanel";
 import { Panel } from "@/components/ui/Panel";
 
@@ -10,7 +9,7 @@ export const revalidate = 0;
 
 export default async function ItemsBrowsePage() {
   const [items, versionRow] = await Promise.all([
-    getAllItems(),
+    listCanonicalItems(),
     getDataVersion(),
   ]);
 

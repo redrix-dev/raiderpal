@@ -1,4 +1,4 @@
-import { getBestSourcesForItem } from "@/data/yields";
+import { getBestSourcesForItem } from "@/lib/data";
 import type { NextRequest } from "next/server";
 import { jsonError, jsonOk, type RouteContext } from "@/lib/http";
 
@@ -18,13 +18,14 @@ export async function GET(
     return jsonError("Missing or invalid id", 400);
   }
 
-  const sources = await getBestSourcesForItem(normalizedId);
+  try {
+    const sources = await getBestSourcesForItem(normalizedId);
 
-  if (!sources) {
-    return jsonError("Item not found", 404);
+    return jsonOk(sources, 200, {
+      "Cache-Control": "public, max-age=900, stale-while-revalidate=85500",
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return jsonError(message, 500);
   }
-
-  return jsonOk(sources, 200, {
-    "Cache-Control": "public, max-age=900, stale-while-revalidate=85500",
-  });
 }

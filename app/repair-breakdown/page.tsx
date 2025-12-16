@@ -1,5 +1,4 @@
-import { getRepairEconomy } from "@/data/repairEconomy";
-import { getDataVersion } from "@/data/version";
+import { listRepairableItems } from "@/lib/data";
 import { RepairBreakdownClient } from "@/components/RepairBreakdownClient";
 import { ToolPanel } from "@/components/ToolPanel";
 
@@ -7,13 +6,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function RepairBreakdownPage() {
-  const [items, versionRow] = await Promise.all([
-    getRepairEconomy(),
-    getDataVersion(),
-  ]);
-
-  const dataVersion =
-    versionRow?.version != null ? String(versionRow.version) : undefined;
+  const items = await listRepairableItems();
 
   return (
     <ToolPanel>
@@ -22,7 +15,7 @@ export default async function RepairBreakdownPage() {
           No repair data found yet. Add items to the economy view to use this calculator.
         </div>
       ) : (
-        <RepairBreakdownClient items={items} dataVersion={dataVersion} />
+        <RepairBreakdownClient items={items} />
       )}
     </ToolPanel>
   );

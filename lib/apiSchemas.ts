@@ -18,15 +18,22 @@ export const craftingParamsSchema = z.object({
   id: z.string().trim().min(1, "Missing or invalid id"),
 });
 
+const itemSummarySchema = z.object({
+  id: z.string(),
+  name: z.string().nullable(),
+  rarity: z.string().nullable(),
+  item_type: z.string().nullable(),
+  icon: z.string().nullable(),
+  value: z.number().nullable(),
+  workbench: z.string().nullable(),
+  loot_area: z.string().nullable(),
+});
+
 const craftingRecipeSchema = z.object({
-  item_id: z.string().nullable(),
-  quantity: z.number().nullable(),
-  component_id: z.string().nullable(),
-  component_name: z.string().nullable(),
-  component_icon: z.string().nullable(),
-  component_rarity: z.string().nullable(),
-  component_type: z.string().nullable(),
-  component_value: z.number().nullable(),
+  item_id: z.string(),
+  component_item_id: z.string(),
+  quantity: z.number(),
+  component: itemSummarySchema.nullable(),
 });
 
 export const craftingDataSchema = z.array(craftingRecipeSchema);

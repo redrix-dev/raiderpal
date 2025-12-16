@@ -33,6 +33,11 @@ export default defineConfig([
               message:
                 "supabaseServer is server-only; call it from data/* or server routes, not client components/hooks.",
             },
+            {
+              name: "@/lib/data/db/server",
+              message:
+                "Supabase server client is server-only; use data repositories or server routes instead of importing directly in client components.",
+            },
           ],
         },
       ],

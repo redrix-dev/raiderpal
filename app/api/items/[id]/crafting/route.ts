@@ -1,4 +1,4 @@
-import { getCraftingForItem } from "@/data/crafting";
+import { getCraftingForItem } from "@/lib/data";
 import { craftingDataSchema, craftingParamsSchema } from "@/lib/apiSchemas";
 import { assertResponseShape, jsonError, jsonOk, type RouteContext } from "@/lib/http";
 import type { NextRequest } from "next/server";
@@ -18,10 +18,15 @@ export async function GET(
 
   const { id } = parsedParams.data;
 
-  const data = await getCraftingForItem(id);
-  const validatedData = assertResponseShape(craftingDataSchema, data);
+  try {
+    const data = await getCraftingForItem(id);
+    const validatedData = assertResponseShape(craftingDataSchema, data);
 
-  return jsonOk(data, 200, {
-    "Cache-Control": "public, max-age=900, stale-while-revalidate=85500",
-  });
+    return jsonOk(validatedData, 200, {
+      "Cache-Control": "public, max-age=900, stale-while-revalidate=85500",
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return jsonError(message, 500);
+  }
 }

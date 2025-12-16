@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { getDataVersion } from "@/data/version";
+import { getDataVersion } from "@/lib/data";
 import { versionPayloadSchema } from "@/lib/apiSchemas";
 import { assertResponseShape, jsonOk, jsonError } from "@/lib/http";
 
