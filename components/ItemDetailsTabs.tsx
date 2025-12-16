@@ -6,7 +6,7 @@ import type {
   CraftingComponentRow,
   RecyclingOutputRow,
   UsedInRow,
-} from "@/lib/data";
+} from "@/lib/data/client";
 
 type ItemDetailsTabsProps = {
   crafting: CraftingComponentRow[]; // rows from getCraftingForItem

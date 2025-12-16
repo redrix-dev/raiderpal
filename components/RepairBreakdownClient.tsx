@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   type RepairableItem,
   computeRepairSummary,
-} from "@/lib/data";
+} from "@/lib/data/client";
 import { ModulePanel } from "./ModulePanel";
 import { ItemPicker, type PickerItem } from "./ItemPicker";
 import { SelectedItemSummary } from "./SelectedItemSummary";

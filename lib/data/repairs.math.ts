@@ -38,3 +38,22 @@ export function computeRepairCost({
 
   return totals;
 }
+
+export function computeRepairSummary({
+  profile,
+  recipe,
+  currentDurability,
+}: {
+  profile: { max_durability: number; step_durability: number };
+  recipe: RepairRecipeRow[];
+  currentDurability: number;
+}) {
+  const { cycles, missing } = computeRepairCycles({
+    maxDurability: profile.max_durability,
+    stepDurability: profile.step_durability,
+    currentDurability,
+  });
+
+  const totals = computeRepairCost({ recipeRows: recipe, cycles });
+  return { cycles, missing, totals };
+}

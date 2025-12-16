@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { CanonicalItemSummary } from "@/lib/data";
+import type { CanonicalItemSummary } from "@/lib/data/client";
 
 type ItemsListProps = {
   initialItems: CanonicalItemSummary[];

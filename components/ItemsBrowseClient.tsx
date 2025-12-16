@@ -11,7 +11,7 @@ import type {
   CanonicalItemSummary,
   CraftingComponentRow,
   RecyclingOutputRow,
-} from "@/lib/data";
+} from "@/lib/data/client";
 
 export type BrowseItem = CanonicalItemSummary & { workbench?: string | null };
 

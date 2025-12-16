@@ -1,7 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { CanonicalItemSummary, RecyclingOutputRow } from "@/lib/data";
+import type {
+  CanonicalItemSummary,
+  RecyclingOutputRow,
+} from "@/lib/data/client";
 import { RarityBadge } from "@/components/ItemCard";
 import { useRaidReminders } from "@/hooks/useRaidReminders";
 import { useCachedJson } from "@/hooks/useCachedJson";
