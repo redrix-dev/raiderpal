@@ -1,5 +1,10 @@
 # RaiderPal Database Architecture (Authoritative Reference)
 
+## Related Docs
+- App-side architecture: docs/AppArchitecture.md
+- Refactor notes: REFactorNotes.md
+- Data contracts: docs/contracts.md
+
 This document is the **source of truth** for how the RaiderPal database is designed, why it exists in its current form, and how it must be interacted with. New contributors, new chat sessions, and future-you should be able to read *only this file* and work safely without breaking invariants.
 
 ---
@@ -16,11 +21,11 @@ Some game data (notably **repair mechanics**) is **not exposed by the API**. Att
 ### 2) Layered Data Pipeline (Do Not Bypass)
 
 rp_items_ingest (API payloads)
-↓
+->
 rp_items_patches (manual corrections / overrides)
-↓
+->
 rp_items_canonical (authoritative, minimal)
-↓
+->
 read-only views (app consumption contracts)
 
 
@@ -68,21 +73,33 @@ Prefer the **RPC batch upsert** pattern that only updates when the payload chang
 ### Why views exist
 - Keep frontend types stable
 - Prevent pages from depending on raw payload shape
-- Keep “feature data” (crafting/recycling/repairs) consistent and queryable
+- Keep "feature data" (crafting/recycling/repairs) consistent and queryable
 
 ### Existing app-facing views
 - `rp_view_metadata`: item browser / display fields (id, name, type, rarity, icon, etc.)
 - `rp_view_crafting_normalized`: crafting components (normalized rows)
-- `rp_view_recycling_outputs`: recycling outputs (normalized rows)
+- `rp_view_recycle_outputs`: recycling outputs (normalized rows)
+- `rp_view_repair_recipes`: repair recipes (normalized rows)
+
+Canonical view contracts (columns):
+- `rp_view_metadata`: id, name, description, item_type, rarity, icon, value, workbench, loot_area
+- `rp_view_crafting_normalized`: item_id, component_id, total_quantity
+- `rp_view_recycle_outputs`: item_id, component_id, quantity
+- `rp_view_repair_recipes`: item_id, component_id, quantity_per_cycle
 
 ### App stitching is intentional
 The app may call multiple views and stitch results in code:
 - `ItemDetails` from `rp_view_metadata`
 - Crafting from `rp_view_crafting_normalized`
-- Recycling from `rp_view_recycling_outputs`
+- Recycling from `rp_view_recycle_outputs`
 - Repairs from `rp_view_repair_recipes`
 
-This avoids join explosions (crafting × recycling × repair) and keeps each feature query simple.
+This avoids join explosions (crafting x recycling x repair) and keeps each feature query simple.
+
+### Metadata enrichment (app-side)
+The app attaches metadata via a `metaById` map sourced from `rp_view_metadata`. Usage rows keep
+only ids + quantities; the UI reads `component` or `source` metadata instead of legacy
+`component_*` fields.
 
 ---
 
@@ -93,7 +110,7 @@ This avoids join explosions (crafting × recycling × repair) and keeps each fea
 - It is **stable but manually discovered**
 - It must be editable without cascading side effects
 
-Repairs therefore use an explicit two-table model (no JSON blobs, no “smart inference”).
+Repairs therefore use an explicit two-table model (no JSON blobs, no "smart inference").
 
 ---
 
@@ -103,13 +120,13 @@ Repairs therefore use an explicit two-table model (no JSON blobs, no “smart in
 **One row per repairable item.** Declares *how* repairs work.
 
 Key columns:
-- `item_id` (PK, FK → `rp_items_canonical.id`)
+- `item_id` (PK, FK -> `rp_items_canonical.id`)
 - `max_durability`
 - `step_durability` (default 50; durability restored per repair cycle)
 - `notes`
 
 Meaning:
-> “This item is repairable, and this is how durability behaves.”
+> "This item is repairable, and this is how durability behaves."
 
 ---
 
@@ -118,12 +135,12 @@ Meaning:
 
 Key columns:
 - `id` (row PK, uuid default `gen_random_uuid()`; app must not use)
-- `item_id` (FK → `rp_repair_profiles.item_id`)
-- `component_item_id` (FK → `rp_items_canonical.id`)
+- `item_id` (FK -> `rp_repair_profiles.item_id`)
+- `component_id` (FK -> `rp_items_canonical.id`)
 - `quantity_per_cycle`
 
 Meaning:
-> “For one repair cycle, this item consumes these components.”
+> "For one repair cycle, this item consumes these components."
 
 ---
 
@@ -158,17 +175,17 @@ If repair behavior ever differs by durability band, model it explicitly (new col
 Even though `rp_repair_recipes` is normalized and safe, the app should not depend on internal row IDs.
 
 **Contract view:**
-- `rp_view_repair_recipes` (item_id, component_item_id, quantity_per_cycle)
+- `rp_view_repair_recipes` (item_id, component_id, quantity_per_cycle)
 
-This keeps the app consistent with the “views are contracts” approach used for metadata/crafting/recycling.
+This keeps the app consistent with the "views are contracts" approach used for metadata/crafting/recycling.
 
 ---
 
 ## Referential Integrity Rules (Must Hold)
 
-- `rp_repair_profiles.item_id` → `rp_items_canonical.id`
-- `rp_repair_recipes.item_id` → `rp_repair_profiles.item_id`
-- `rp_repair_recipes.component_item_id` → `rp_items_canonical.id`
+- `rp_repair_profiles.item_id` -> `rp_items_canonical.id`
+- `rp_repair_recipes.item_id` -> `rp_repair_profiles.item_id`
+- `rp_repair_recipes.component_id` -> `rp_items_canonical.id`
 
 Deletion rules:
 - Canonical item deletion: RESTRICT
@@ -210,6 +227,10 @@ Examples:
 - Repair data is manual and explicit
 - JSON blobs are forbidden for canonical feature systems
 - Derived values are never stored
-- If something feels “smart,” it is probably wrong
+- If something feels "smart," it is probably wrong
+
+## Error Handling Philosophy (App Consumption)
+- Fail loud in dev when a view contract is broken or a query fails.
+- In prod, API routes return `{ success: false, error: { code, message } }` instead of silent fallbacks.
 
 This document overrides intuition. Follow it even when tempted not to.

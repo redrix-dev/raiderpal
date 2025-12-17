@@ -101,7 +101,7 @@ where id = '<item-id>';
 create or replace view public.rp_view_repair_recipes as
 select
   item_id,
-  component_item_id,
+  component_id,
   quantity_per_cycle
 from public.rp_repair_recipes;
 
@@ -126,7 +126,7 @@ order by item_type, rarity, name;
 -- Detect invalid quantities or missing components
 --------------------------------------------------
 select
-  sum((component_item_id is null or component_item_id = '')::int) as bad_component_ids,
+  sum((component_id is null or component_id = '')::int) as bad_component_ids,
   sum((quantity_per_cycle is null or quantity_per_cycle <= 0)::int) as bad_qty
 from public.rp_repair_recipes;
 
@@ -143,7 +143,7 @@ set max_durability = excluded.max_durability,
 
 -- 2) Add recipe rows
 -- If `rp_repair_recipes.id` has a DEFAULT (uuid) you should omit it on insert.
-insert into public.rp_repair_recipes (item_id, component_item_id, quantity_per_cycle)
+insert into public.rp_repair_recipes (item_id, component_id, quantity_per_cycle)
 values
   ('<item-id>', '<component-id>', 2);
 
@@ -161,11 +161,11 @@ where item_id = '<item-id>';
 --------------------------------------------------
 select
   r.item_id,
-  r.component_item_id,
+  r.component_id,
   r.quantity_per_cycle
 from public.rp_repair_recipes r
 where r.item_id = '<item-id>'
-order by r.component_item_id;
+order by r.component_id;
 
 --------------------------------------------------
 -- Q_REPAIR_ITEMS_USING_COMPONENT
@@ -177,7 +177,7 @@ select
   r.quantity_per_cycle
 from public.rp_repair_recipes r
 join public.rp_items_canonical i on i.id = r.item_id
-where r.component_item_id = '<component-id>'
+where r.component_id = '<component-id>'
 order by name;
 
 --------------------------------------------------

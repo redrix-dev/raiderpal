@@ -67,9 +67,31 @@ function coerceApiResponse<T>(payload: unknown): ApiResponse<T> {
     }
     if (success === false) {
       const err = (payload as { error?: unknown }).error;
+      if (
+        err &&
+        typeof err === "object" &&
+        "code" in err &&
+        "message" in err
+      ) {
+        const code = (err as { code?: unknown }).code;
+        const message = (err as { message?: unknown }).message;
+        return {
+          success: false,
+          error: {
+            code: typeof code === "string" ? code : "error",
+            message: typeof message === "string" ? message : "Request failed",
+          },
+        };
+      }
+      if (typeof err === "string") {
+        return {
+          success: false,
+          error: { code: "error", message: err },
+        };
+      }
       return {
         success: false,
-        error: typeof err === "string" ? err : "Request failed",
+        error: { code: "error", message: "Request failed" },
       };
     }
   }
@@ -102,12 +124,14 @@ export async function cachedFetchJson<T>(
     : coerceApiResponse<T>(rawPayload);
 
   if (!parsedEnvelope.success) {
-    throw new Error(parsedEnvelope.error);
+    throw new Error(parsedEnvelope.error.message);
   }
 
-  const parsedData = dataSchema
-    ? assertResponseShape(dataSchema, parsedEnvelope.data)
-    : parsedEnvelope.data;
+  const shouldValidateData = Boolean(dataSchema) && !envelopeSchema;
+  const parsedData =
+    shouldValidateData && dataSchema
+      ? assertResponseShape(dataSchema, parsedEnvelope.data)
+      : parsedEnvelope.data;
 
   if (!disableCache) {
     writeCache(key, { ts: Date.now(), data: parsedData, version });
@@ -147,4 +171,3 @@ export function clearCachedEntry(url: string) {
     // ignore
   }
 }
-

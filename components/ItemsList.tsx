@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import type { ItemListRow } from "@/data/items";
+import type { CanonicalItemSummary } from "@/lib/data/client";
 
 type ItemsListProps = {
-  initialItems: ItemListRow[];
+  initialItems: CanonicalItemSummary[];
 };
 
 export default function ItemsList({ initialItems }: ItemsListProps) {
-  const [items] = useState<ItemListRow[]>(initialItems);
+  const [items] = useState<CanonicalItemSummary[]>(initialItems);
   const [query, setQuery] = useState("");
 
   const filtered = items.filter((item) => {

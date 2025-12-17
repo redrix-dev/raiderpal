@@ -1,7 +1,3 @@
-import { useMemo } from "react";
-import type { RepairEconomyRow } from "@/data/repairEconomy";
-import type { ComponentCost } from "@/lib/repairCalculator";
-
 export type CostRow = {
   id: string;
   name?: string | null;
@@ -10,73 +6,6 @@ export type CostRow = {
   icon?: string | null;
   isCredit?: boolean;
 };
-
-export function toComponentMap(
-  list: ComponentCost[] | null | undefined
-): Record<string, number> {
-  return (list ?? []).reduce((acc, component) => {
-    const id = component.component_item_id?.trim();
-    if (!id) return acc;
-
-    const qty = Number(component.quantity);
-    if (!Number.isFinite(qty)) return acc;
-
-    acc[id] = (acc[id] ?? 0) + qty;
-    return acc;
-  }, {} as Record<string, number>);
-}
-
-export function useCostRows(
-  costMap: Record<string, number> | null | undefined,
-  metaSources: ComponentCost[] | null | undefined,
-  items: RepairEconomyRow[]
-) {
-  return useMemo<CostRow[]>(() => {
-    if (!costMap) return [];
-
-    const normalize = (id: string | null | undefined) =>
-      (id ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
-
-    const metaById = new Map<string, ComponentCost>();
-    (metaSources ?? []).forEach((component) => {
-      if (component.component_item_id) {
-        metaById.set(normalize(component.component_item_id), component);
-      }
-    });
-
-    const itemById = new Map<string, RepairEconomyRow>(
-      items.map((item) => [normalize(item.id), item])
-    );
-
-    return Object.entries(costMap)
-      .flatMap<CostRow | null>(([componentId, quantity]) => {
-        const key = normalize(componentId);
-        const meta = metaById.get(key);
-        const fallback = itemById.get(key);
-
-        const rawType = (meta?.item_type ?? fallback?.item_type ?? "").toLowerCase();
-        const name = meta?.name ?? fallback?.name ?? componentId;
-        const nameLower = name.toLowerCase();
-
-        if (rawType.includes("blueprint") || nameLower.includes("blueprint")) {
-          return null;
-        }
-
-        return {
-          id: componentId,
-          quantity,
-          name,
-          rarity: meta?.rarity ?? fallback?.rarity,
-          icon: meta?.icon ?? fallback?.icon,
-          isCredit:
-            (meta?.item_type ?? fallback?.item_type)?.toLowerCase() ===
-              "credit" || componentId === "CREDIT",
-        };
-      })
-      .filter((row): row is CostRow => row !== null)
-      .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
-  }, [costMap, metaSources, items]);
-}
 
 export function CostCard({ title, items }: { title: string; items: CostRow[] }) {
   return (

@@ -2,15 +2,17 @@
 "use client";
 
 import { useState } from "react";
-import type { CraftingRecipeRow } from "@/data/crafting";
-import type { RecyclingSourceRow } from "@/data/recycling";
-import type { DirectYieldSource } from "@/data/yields";
-import type { UsedInRow } from "@/data/usedIn";
+import type {
+  CraftingComponentRow,
+  RecyclingOutputRow,
+  RecyclingSourceRow,
+  UsedInRow,
+} from "@/lib/data/client";
 
 type ItemDetailsTabsProps = {
-  crafting: CraftingRecipeRow[]; // rows from getCraftingForItem
-  recycling: RecyclingSourceRow[]; // rows from getRecyclingForItem
-  bestSources: DirectYieldSource[]; // rows from getBestSourcesForItem
+  crafting: CraftingComponentRow[]; // rows from getCraftingForItem
+  recycling: RecyclingOutputRow[]; // rows from getRecyclingForItem
+  bestSources: RecyclingSourceRow[]; // rows from getBestSourcesForItem
   usedIn: UsedInRow[]; // rows from getUsedInForItem
 };
 
@@ -63,13 +65,13 @@ export function ItemDetailsTabs({
           <TabList
             emptyText="No crafting recipe."
             rows={crafting.filter(
-              (c) => (c.component_type ?? "").toLowerCase() !== "blueprint"
+              (c) => (c.component?.item_type ?? "").toLowerCase() !== "blueprint"
             )}
             mapRow={(c) => ({
               key: c.component_id ?? "unknown",
               href: `/items/${c.component_id}`,
-              name: c.component_name ?? "Unknown component",
-              icon: c.component_icon,
+              name: c.component?.name ?? "Unknown component",
+              icon: c.component?.icon,
               quantity: c.quantity ?? undefined,
             })}
           />
@@ -82,8 +84,8 @@ export function ItemDetailsTabs({
             mapRow={(r) => ({
               key: r.component_id ?? "unknown",
               href: `/items/${r.component_id}`,
-              name: r.component_name ?? "Unknown component",
-              icon: r.component_icon,
+              name: r.component?.name ?? "Unknown component",
+              icon: r.component?.icon,
               quantity: r.quantity ?? undefined,
             })}
           />
@@ -94,10 +96,10 @@ export function ItemDetailsTabs({
             emptyText="No direct recycle sources."
             rows={bestSources}
             mapRow={(s) => ({
-              key: s.sourceItemId,
-              href: `/items/${s.sourceItemId}`,
-              name: s.sourceName,
-              icon: s.sourceIcon,
+              key: s.source_item_id ?? "source",
+              href: `/items/${s.source_item_id}`,
+              name: s.source?.name ?? "Unknown source",
+              icon: s.source?.icon,
               quantity: s.quantity,
               quantitySuffix: "per recycle",
             })}
@@ -109,10 +111,10 @@ export function ItemDetailsTabs({
             emptyText="Not used in any recipes."
             rows={usedIn}
             mapRow={(u) => ({
-              key: u.product_id ?? "unknown",
-              href: `/items/${u.product_id}`,
-              name: u.product_name ?? "Unknown item",
-              icon: u.product_icon,
+              key: u.product_item_id ?? "unknown",
+              href: `/items/${u.product_item_id}`,
+              name: u.product?.name ?? "Unknown item",
+              icon: u.product?.icon,
               quantity: u.quantity ?? undefined,
             })}
           />

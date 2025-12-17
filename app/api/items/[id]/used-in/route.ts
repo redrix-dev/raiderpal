@@ -1,30 +1,37 @@
-import { getUsedInForItem } from "@/data/usedIn";
 import type { NextRequest } from "next/server";
-import { jsonError, jsonOk, type RouteContext } from "@/lib/http";
-
-type Params = { id: string };
+import { getUsedInForItem } from "@/lib/data";
+import { itemParamsSchema, usedInDataSchema } from "@/lib/apiSchemas";
+import {
+  assertResponseShape,
+  jsonError,
+  jsonOk,
+  jsonErrorFromException,
+  type RouteContext,
+} from "@/lib/http";
 
 export const revalidate = 86400; // refresh daily
 export const runtime = "nodejs";
 
 export async function GET(
   _req: NextRequest,
-  { params }: RouteContext<Params>
+  { params }: RouteContext<{ id: string }>
 ) {
-  const { id } = await params;
-  const normalizedId = typeof id === "string" ? id.trim() : "";
+  const parsedParams = itemParamsSchema.safeParse(await params);
 
-  if (!normalizedId) {
-    return jsonError("Missing or invalid id", 400);
+  if (!parsedParams.success) {
+    return jsonError("invalid_params", String(parsedParams.error), 400);
   }
 
-  const data = await getUsedInForItem(normalizedId);
+  const { id } = parsedParams.data;
 
-  if (!data) {
-    return jsonError("Item not found", 404);
+  try {
+    const data = await getUsedInForItem(id);
+    const validated = assertResponseShape(usedInDataSchema, data);
+
+    return jsonOk(validated, 200, {
+      "Cache-Control": "public, max-age=900, stale-while-revalidate=85500",
+    });
+  } catch (err) {
+    return jsonErrorFromException(err);
   }
-
-  return jsonOk(data, 200, {
-    "Cache-Control": "public, max-age=900, stale-while-revalidate=85500",
-  });
 }
