@@ -1,12 +1,9 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { NextRequest } from "next/server";
-import { REVALIDATE } from "@/lib/constants";
 import { jsonError, jsonOk } from "@/lib/http";
 
 const REVALIDATE_TOKEN = process.env.REVALIDATE_TOKEN;
-const REVALIDATE_NEVER = REVALIDATE.NEVER;
-
-export const revalidate = REVALIDATE_NEVER;
+export const revalidate = 0;
 export const runtime = "nodejs";
 
 type RevalidatePayload = {

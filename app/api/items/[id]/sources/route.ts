@@ -1,6 +1,5 @@
 import type { NextRequest } from "next/server";
 import { itemParamsSchema, sourcesDataSchema } from "@/lib/apiSchemas";
-import { REVALIDATE } from "@/lib/constants";
 import { getBestSourcesForItem } from "@/lib/data";
 import {
   assertResponseShape,
@@ -11,9 +10,7 @@ import {
   type RouteContext,
 } from "@/lib/http";
 
-const REVALIDATE_DAILY = REVALIDATE.DAILY;
-
-export const revalidate = REVALIDATE_DAILY; // refresh daily
+export const revalidate = 86400; // refresh daily
 export const runtime = "nodejs";
 
 export async function GET(

@@ -13,16 +13,14 @@ import { ItemHero } from "@/components/ItemHero";
 import { ItemStatsPanel } from "@/components/ItemStatsPanel";
 import { Panel } from "@/components/ui/Panel";
 import { Card } from "@/components/ui/Card";
-import { REVALIDATE } from "@/lib/constants";
 
 type ItemPageProps = {
   params: Promise<{ id: string }>;
 };
 
 export const dynamic = "force-dynamic";
-const REVALIDATE_NEVER = REVALIDATE.NEVER;
 
-export const revalidate = REVALIDATE_NEVER;
+export const revalidate = 0;
 
 export default async function ItemPage({ params }: ItemPageProps) {
   const { id } = await params;

@@ -1,12 +1,9 @@
 import type { NextRequest } from "next/server";
 import { repairEconomyDataSchema } from "@/lib/apiSchemas";
-import { REVALIDATE } from "@/lib/constants";
 import { listRepairableItems } from "@/lib/data";
 import { assertResponseShape, jsonErrorFromException, jsonOk } from "@/lib/http";
 
-const REVALIDATE_HOURLY = REVALIDATE.HOURLY;
-
-export const revalidate = REVALIDATE_HOURLY; // refresh hourly to align with data syncs
+export const revalidate = 3600; // refresh hourly to align with data syncs
 export const runtime = "nodejs";
 
 export async function GET(_req: NextRequest) {

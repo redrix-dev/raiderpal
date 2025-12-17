@@ -1,5 +1,4 @@
 import { craftingDataSchema, itemParamsSchema } from "@/lib/apiSchemas";
-import { REVALIDATE } from "@/lib/constants";
 import { getCraftingForItem } from "@/lib/data";
 import {
   assertResponseShape,
@@ -11,9 +10,7 @@ import {
 } from "@/lib/http";
 import type { NextRequest } from "next/server";
 
-const REVALIDATE_DAILY = REVALIDATE.DAILY;
-
-export const revalidate = REVALIDATE_DAILY; // refresh daily
+export const revalidate = 86400; // refresh daily
 export const runtime = "nodejs";
 
 export async function GET(
