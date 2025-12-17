@@ -6,35 +6,40 @@ import type {
   RepairRecipeWithComponent,
   RepairSanityCheck,
   RepairableItem,
+  CraftingComponentRow,
+  RecyclingOutputRow,
 } from "./db/types";
 import { getItemsByIds } from "./items.repo";
 
 export async function getRepairProfile(
   itemId: string
 ): Promise<RepairProfile | null> {
-  const row = await queryViewMaybeSingle(VIEW_CONTRACTS.repairProfiles, (q) =>
-    q.eq("item_id", itemId)
-  );
+  const [row, legacyRow] = await Promise.all([
+    queryViewMaybeSingle(VIEW_CONTRACTS.repairProfiles, (q) =>
+      q.eq("id", itemId)
+    ),
+    queryViewMaybeSingle(VIEW_CONTRACTS.legacyRepairProfiles, (q) =>
+      q.eq("item_id", itemId)
+    ),
+  ]);
 
-  if (!row) return null;
+  const normalized = normalizeProfileRow(row ?? legacyRow);
+  if (!normalized) return null;
 
-  return {
-    item_id: row.item_id,
-    max_durability: row.max_durability,
-    step_durability: row.step_durability,
-    notes: row.notes ?? null,
-  };
+  return normalized;
 }
 
 export async function getRepairRecipeRows(
   itemId: string
 ): Promise<RepairRecipeRow[]> {
   const rows = await queryView(VIEW_CONTRACTS.repairRecipes, (q) =>
-    q.eq("item_id", itemId).order("component_id", { ascending: true })
+    q.eq("id", itemId).order("component_id", { ascending: true })
   );
 
   return rows.map((row) => ({
-    item_id: row.item_id,
+    item_id: (row as { id?: string; item_id?: string }).id ??
+      (row as { item_id?: string }).item_id ??
+      "",
     component_id: row.component_id,
     quantity_per_cycle: row.quantity_per_cycle,
   }));
@@ -55,22 +60,13 @@ export async function getRepairRecipeWithComponents(
 }
 
 export async function listRepairableItems(): Promise<RepairableItem[]> {
-  const profileRows = await queryView(VIEW_CONTRACTS.repairProfiles, (q) =>
-    q.order("item_id", { ascending: true })
-  );
+  const profileRows = await fetchRepairProfiles();
 
-  const profiles: RepairProfile[] = profileRows.map((row) => ({
-    item_id: row.item_id,
-    max_durability: row.max_durability,
-    step_durability: row.step_durability,
-    notes: row.notes ?? null,
-  }));
-
-  const itemIds = profiles.map((p) => p.item_id);
+  const itemIds = profileRows.map((p) => p.item_id);
   const items = await getItemsByIds(itemIds);
   const itemById = new Map(items.map((i) => [i.id, i]));
 
-  const recipes = await getAllRepairRecipes();
+  const recipes = await getAllRepairRecipes(itemIds);
   const recipesByItem = recipes.reduce<Record<string, RepairRecipeWithComponent[]>>(
     (acc, row) => {
       acc[row.item_id] = acc[row.item_id] ?? [];
@@ -80,7 +76,11 @@ export async function listRepairableItems(): Promise<RepairableItem[]> {
     {}
   );
 
-  return profiles
+  const { craftingByItem, recyclingByItem } = await getCraftingAndRecyclingByItem(
+    itemIds
+  );
+
+  return profileRows
     .map((profile) => {
       const item = itemById.get(profile.item_id);
       if (!item) return null;
@@ -88,24 +88,122 @@ export async function listRepairableItems(): Promise<RepairableItem[]> {
         item,
         profile,
         recipe: recipesByItem[profile.item_id] ?? [],
+        crafting: craftingByItem[profile.item_id] ?? [],
+        recycling: recyclingByItem[profile.item_id] ?? [],
       };
     })
     .filter((r): r is RepairableItem => Boolean(r));
 }
 
-async function getAllRepairRecipes(): Promise<RepairRecipeWithComponent[]> {
-  const rows = await queryView(VIEW_CONTRACTS.repairRecipes);
+async function getAllRepairRecipes(itemIds: string[]): Promise<RepairRecipeWithComponent[]> {
+  const rows = await queryView(VIEW_CONTRACTS.repairRecipes, (q) =>
+    itemIds.length ? q.in("id", itemIds) : q
+  );
 
   const componentIds = Array.from(new Set(rows.map((row) => row.component_id).filter(Boolean)));
   const componentMeta = await getItemsByIds(componentIds);
   const metaById = new Map(componentMeta.map((m) => [m.id, m]));
 
   return rows.map((row) => ({
-    item_id: row.item_id,
+    item_id: (row as { id?: string; item_id?: string }).id ??
+      (row as { item_id?: string }).item_id ??
+      "",
     component_id: row.component_id,
     quantity_per_cycle: row.quantity_per_cycle,
     component: metaById.get(row.component_id ?? "") ?? null,
   }));
+}
+
+async function fetchRepairProfiles(): Promise<RepairProfile[]> {
+  const rows = await queryView(VIEW_CONTRACTS.repairProfiles, (q) =>
+    q.order("id", { ascending: true })
+  );
+
+  const normalized = rows
+    .map((row) => normalizeProfileRow(row))
+    .filter((row): row is RepairProfile => Boolean(row));
+
+  if (normalized.length > 0) {
+    return normalized;
+  }
+
+  const legacyRows = await queryView(
+    VIEW_CONTRACTS.legacyRepairProfiles,
+    (q) => q.order("item_id", { ascending: true })
+  );
+
+  return legacyRows
+    .map((row) => normalizeProfileRow(row))
+    .filter((row): row is RepairProfile => Boolean(row));
+}
+
+function normalizeProfileRow(
+  row: { id?: string; item_id?: string; max_durability: number; step_durability: number; notes?: string | null } | null
+): RepairProfile | null {
+  if (!row) return null;
+
+  const item_id = row.id ?? row.item_id;
+  if (!item_id) return null;
+
+  return {
+    item_id,
+    max_durability: row.max_durability,
+    step_durability: row.step_durability,
+    notes: row.notes ?? null,
+  };
+}
+
+async function getCraftingAndRecyclingByItem(itemIds: string[]) {
+  if (!itemIds.length) {
+    return { craftingByItem: {}, recyclingByItem: {} };
+  }
+
+  const [craftingRows, recyclingRows] = await Promise.all([
+    queryView(VIEW_CONTRACTS.crafting, (q) =>
+      q.in("item_id", itemIds).order("component_id", { ascending: true })
+    ),
+    queryView(VIEW_CONTRACTS.recycling, (q) =>
+      q.in("item_id", itemIds).order("component_id", { ascending: true })
+    ),
+  ]);
+
+  const componentIds = Array.from(
+    new Set(
+      [...craftingRows, ...recyclingRows].map((row) => row.component_id).filter(Boolean)
+    )
+  );
+  const componentMeta = await getItemsByIds(componentIds);
+  const metaById = new Map(componentMeta.map((m) => [m.id, m]));
+
+  const craftingByItem = craftingRows.reduce<Record<string, CraftingComponentRow[]>>(
+    (acc, row) => {
+      acc[row.item_id] = acc[row.item_id] ?? [];
+      acc[row.item_id].push({
+        item_id: row.item_id,
+        component_id: row.component_id,
+        quantity: row.total_quantity,
+        component: metaById.get(row.component_id) ?? null,
+      });
+      return acc;
+    },
+    {}
+  );
+
+  const recyclingByItem = recyclingRows.reduce<Record<string, RecyclingOutputRow[]>>(
+    (acc, row) => {
+      acc[row.item_id] = acc[row.item_id] ?? [];
+      acc[row.item_id].push({
+        component_id: row.component_id,
+        quantity: row.quantity,
+        item_id: row.item_id,
+        component: metaById.get(row.component_id) ?? null,
+      });
+      return acc;
+    },
+    {}
+  );
+
+  return { craftingByItem, recyclingByItem };
 }
 
 export async function listRepairProfilesMissingRecipes() {
@@ -113,9 +211,9 @@ export async function listRepairProfilesMissingRecipes() {
 
   const recipeRows = await queryView(VIEW_CONTRACTS.repairRecipes);
 
-  const recipeSet = new Set(recipeRows.map((r) => r.item_id));
+  const recipeSet = new Set(recipeRows.map((r) => r.id));
   const missingIds = profileRows
-    .map((r) => r.item_id as string)
+    .map((r) => r.id as string)
     .filter((id) => !recipeSet.has(id));
 
   const meta = await getItemsByIds(missingIds);
@@ -148,17 +246,17 @@ export async function listItemsUsingComponent(
   componentId: string
 ): Promise<RepairRecipeWithComponent[]> {
   const rows = await queryView(VIEW_CONTRACTS.repairRecipes, (q) =>
-    q.eq("component_id", componentId).order("item_id", { ascending: true })
+    q.eq("component_id", componentId).order("id", { ascending: true })
   );
 
-  const itemIds = Array.from(new Set(rows.map((row) => row.item_id).filter(Boolean)));
+  const itemIds = Array.from(new Set(rows.map((row) => row.id).filter(Boolean)));
   const items = await getItemsByIds(itemIds);
   const itemById = new Map(items.map((i) => [i.id, i]));
 
   return rows.map((row) => ({
-    item_id: row.item_id,
+    item_id: row.id,
     component_id: row.component_id,
     quantity_per_cycle: row.quantity_per_cycle,
-    component: itemById.get(row.item_id ?? "") ?? null,
+    component: itemById.get(row.id ?? "") ?? null,
   }));
 }

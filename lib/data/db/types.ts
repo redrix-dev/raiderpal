@@ -36,6 +36,8 @@ export type RepairableItem = {
   item: CanonicalItemSummary;
   profile: RepairProfile;
   recipe: RepairRecipeWithComponent[];
+  crafting: CraftingComponentRow[];
+  recycling: RecyclingOutputRow[];
 };
 
 export type CraftingComponentRow = {

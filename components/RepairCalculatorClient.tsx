@@ -87,6 +87,54 @@ export function RepairCalculatorClient({ items }: Props) {
       .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
   }, [selected]);
 
+  const craftingRows = useMemo<CostRow[]>(() => {
+    if (!selected) return [];
+    return selected.crafting
+      .map((row) => ({
+        id: row.component_id,
+        name: row.component?.name ?? row.component_id,
+        icon: row.component?.icon ?? null,
+        rarity: row.component?.rarity ?? null,
+        quantity: row.quantity,
+      }))
+      .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+  }, [selected]);
+
+  const recyclingRows = useMemo<CostRow[]>(() => {
+    if (!selected) return [];
+    return selected.recycling
+      .map((row) => ({
+        id: row.component_id,
+        name: row.component?.name ?? row.component_id,
+        icon: row.component?.icon ?? null,
+        rarity: row.component?.rarity ?? null,
+        quantity: row.quantity,
+      }))
+      .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+  }, [selected]);
+
+  const netCraftRows = useMemo<CostRow[]>(() => {
+    if (!selected) return [];
+    const recyclingMap = new Map(
+      selected.recycling.map((row) => [row.component_id, row.quantity])
+    );
+
+    return selected.crafting
+      .map((row) => {
+        const recycledQty = recyclingMap.get(row.component_id) ?? 0;
+        const quantity = Math.max(0, row.quantity - recycledQty);
+        return {
+          id: row.component_id,
+          name: row.component?.name ?? row.component_id,
+          icon: row.component?.icon ?? null,
+          rarity: row.component?.rarity ?? null,
+          quantity,
+        } satisfies CostRow;
+      })
+      .filter((row) => row.quantity > 0)
+      .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+  }, [selected]);
+
   const totalCostRows = useMemo<CostRow[]>(() => {
     if (!summary || !selected) return [];
     const meta = new Map(
@@ -142,6 +190,7 @@ export function RepairCalculatorClient({ items }: Props) {
                 type="range"
                 min={0}
                 max={selected?.profile.max_durability ?? 0}
+                step={selected?.profile.step_durability ?? 1}
                 value={durability}
                 onChange={(e) => setDurability(Number(e.target.value))}
                 className="w-full accent-[#4fc1e9]"
@@ -179,6 +228,15 @@ export function RepairCalculatorClient({ items }: Props) {
             <div className="grid gap-4 md:grid-cols-2">
               <CostCard title="Cost per repair cycle" items={perCycleRows} />
               <CostCard title="Cost to reach full" items={totalCostRows} />
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              <CostCard title="Crafting cost" items={craftingRows} />
+              <CostCard title="Recycling return" items={recyclingRows} />
+              <CostCard
+                title="Net new to craft after recycling"
+                items={netCraftRows}
+              />
             </div>
           </Card>
         </div>
