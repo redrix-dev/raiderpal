@@ -1,11 +1,13 @@
 // app/items/[id]/page.tsx
 
 import { notFound } from "next/navigation";
-import { getItemById } from "@/data/items";
-import { getCraftingForItem } from "@/data/crafting";
-import { getRecyclingForItem } from "@/data/recycling";
-import { getUsedInForItem } from "@/data/usedIn";
-import { getBestSourcesForItem } from "@/data/yields";
+import {
+  getBestSourcesForItem,
+  getCanonicalItemById,
+  getCraftingForItem,
+  getRecyclingForItem,
+  getUsedInForItem,
+} from "@/lib/data";
 import { ItemDetailsTabs } from "@/components/ItemDetailsTabs";
 import { ItemHero } from "@/components/ItemHero";
 import { ItemStatsPanel } from "@/components/ItemStatsPanel";
@@ -17,13 +19,15 @@ type ItemPageProps = {
 };
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
+import { REVALIDATE } from "@/lib/constants";
+
+export const revalidate = REVALIDATE.DAILY;
 
 export default async function ItemPage({ params }: ItemPageProps) {
   const { id } = await params;
 
   const [item, crafting, recycling, usedIn, bestSources] = await Promise.all([
-    getItemById(id),
+    getCanonicalItemById(id),
     getCraftingForItem(id),
     getRecyclingForItem(id),
     getUsedInForItem(id),

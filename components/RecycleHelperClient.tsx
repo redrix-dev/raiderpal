@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { DirectYieldSource } from "@/data/yields";
-import type { RecyclingSourceRow } from "@/data/recycling";
+import type {
+  CanonicalItemSummary,
+  RecyclingOutputRow,
+} from "@/lib/data/client";
 import { RarityBadge } from "@/components/ItemCard";
 import { useRaidReminders } from "@/hooks/useRaidReminders";
 import { useCachedJson } from "@/hooks/useCachedJson";
@@ -13,13 +15,7 @@ import { TwoOptionToggle } from "@/components/TwoOptionToggle";
 import { SelectedItemSummary } from "@/components/SelectedItemSummary";
 import { Card } from "./ui/Card";
 
-type HelperItem = {
-  id: string;
-  name: string | null;
-  icon?: string | null;
-  rarity?: string | null;
-  item_type?: string | null;
-};
+type HelperItem = CanonicalItemSummary;
 
 type Props = {
   initialItems: HelperItem[];
@@ -32,10 +28,30 @@ type Mode = "need" | "have";
 type SortKey = "quantityDesc" | "quantityAsc" | "name" | "rarity";
 type SelectionMap = Set<string>;
 type BooleanOption = boolean;
+type NeedResult = {
+  sourceItemId: string;
+  sourceName: string | null;
+  sourceIcon: string | null;
+  sourceRarity: string | null;
+  sourceType: string | null;
+  quantity: number;
+};
+type HaveResult = RecyclingOutputRow;
 
 // Item types we never want to show in this helper at all
 const EXCLUDED_ITEM_TYPES = new Set<string>(["Blueprint", "Key"]);
 const EXCLUDED_NEED_TYPES = new Set<string>(["Weapon"]);
+
+function mapNeedRow(row: RecyclingOutputRow): NeedResult {
+  return {
+    sourceItemId: row.source_item_id ?? "",
+    sourceName: row.component?.name ?? row.source_item_id ?? null,
+    sourceIcon: row.component?.icon ?? null,
+    sourceRarity: row.component?.rarity ?? null,
+    sourceType: row.component?.item_type ?? null,
+    quantity: row.quantity ?? 0,
+  };
+}
 
 export function RecycleHelperClient({
   initialItems,
@@ -131,7 +147,7 @@ export function RecycleHelperClient({
     data: needData,
     loading: needLoading,
     error: needError,
-  } = useCachedJson<DirectYieldSource[]>(
+  } = useCachedJson<RecyclingOutputRow[]>(
     selectedItemId ? `/api/items/${selectedItemId}/sources` : null,
     {
       version: cacheVersion,
@@ -145,7 +161,7 @@ export function RecycleHelperClient({
     data: haveData,
     loading: haveLoading,
     error: haveError,
-  } = useCachedJson<RecyclingSourceRow[]>(
+  } = useCachedJson<RecyclingOutputRow[]>(
     selectedItemId ? `/api/items/${selectedItemId}/recycling` : null,
     {
       version: cacheVersion,
@@ -155,8 +171,14 @@ export function RecycleHelperClient({
     }
   );
 
-  const needResults = useMemo(() => needData ?? [], [needData]);
-  const haveResults = useMemo(() => haveData ?? [], [haveData]);
+  const needResults = useMemo<NeedResult[]>(
+    () => (needData ?? []).map(mapNeedRow),
+    [needData]
+  );
+  const haveResults = useMemo<HaveResult[]>(
+    () => haveData ?? [],
+    [haveData]
+  );
 
   const loading = selectedItemId
     ? mode === "need"

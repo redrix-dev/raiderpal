@@ -7,11 +7,13 @@ import { useCachedJson } from "@/hooks/useCachedJson";
 import { useRaidReminders } from "@/hooks/useRaidReminders";
 import { useAppVersion } from "@/hooks/useAppVersion";
 import { craftingDataSchema, craftingResponseSchema } from "@/lib/apiSchemas";
-import type { CraftingRecipeRow } from "@/data/crafting";
-import type { RecyclingSourceRow } from "@/data/recycling";
-import type { ItemListRow } from "@/data/items";
+import type {
+  CanonicalItemSummary,
+  CraftingComponentRow,
+  RecyclingOutputRow,
+} from "@/lib/data/client";
 
-export type BrowseItem = ItemListRow & { workbench?: string | null };
+export type BrowseItem = CanonicalItemSummary & { workbench?: string | null };
 
 type ItemsBrowseClientProps = {
   initialItems: BrowseItem[];
@@ -19,8 +21,8 @@ type ItemsBrowseClientProps = {
 };
 
 type PreviewDetails = {
-  crafting: CraftingRecipeRow[];
-  recycling: RecyclingSourceRow[];
+  crafting: CraftingComponentRow[];
+  recycling: RecyclingOutputRow[];
 };
 
 const rarityOrder = ["Legendary", "Epic", "Rare", "Uncommon", "Common"];
@@ -92,7 +94,7 @@ export function ItemsBrowseClient({
   const {
     data: craftingData,
     loading: craftingLoading,
-  } = useCachedJson<CraftingRecipeRow[]>(
+  } = useCachedJson<CraftingComponentRow[]>(
     selectedItem ? `/api/items/${selectedItem.id}/crafting` : null,
     {
       version: cacheVersion,
@@ -106,7 +108,7 @@ export function ItemsBrowseClient({
   const {
     data: recyclingData,
     loading: recyclingLoading,
-  } = useCachedJson<RecyclingSourceRow[]>(
+  } = useCachedJson<RecyclingOutputRow[]>(
     selectedItem ? `/api/items/${selectedItem.id}/recycling` : null,
     {
       version: cacheVersion,
@@ -379,17 +381,20 @@ export function ItemsBrowseClient({
                     </div>
                   ) : (
                     <ul className="space-y-1">
-                      {details.crafting.map((c, idx) => (
-                        <li
-                          key={`${c.component_id ?? "component"}-${idx}`}
-                          className="flex items-center justify-between text-xs text-warm font-medium"
-                        >
-                          <span>{c.component_name ?? "Unknown component"}</span>
-                          <span className="text-warm-muted">
-                            ×{c.quantity ?? "-"}
-                          </span>
-                        </li>
-                      ))}
+                      {details.crafting.map((c, idx) => {
+                        const componentId = c.component_item_id ?? c.component?.id;
+                        return (
+                          <li
+                            key={`${componentId ?? "component"}-${idx}`}
+                            className="flex items-center justify-between text-xs text-warm font-medium"
+                          >
+                            <span>{c.component?.name ?? "Unknown component"}</span>
+                            <span className="text-warm-muted">
+                              ×{c.quantity ?? "-"}
+                            </span>
+                          </li>
+                        );
+                      })}
                     </ul>
                   )}
                 </div>
@@ -405,17 +410,21 @@ export function ItemsBrowseClient({
                     </div>
                   ) : (
                     <ul className="space-y-1">
-                      {details.recycling.map((r, idx) => (
-                        <li
-                          key={`${r.component_id ?? "component"}-${idx}`}
-                          className="flex items-center justify-between text-xs text-warm font-medium"
-                        >
-                          <span>{r.component_name ?? "Unknown component"}</span>
-                          <span className="text-warm-muted">
-                            ×{r.quantity ?? "-"}
-                          </span>
-                        </li>
-                      ))}
+                      {details.recycling.map((r, idx) => {
+                        const componentId =
+                          r.component_item_id ?? r.component?.id ?? `component-${idx}`;
+                        return (
+                          <li
+                            key={`${componentId}-${idx}`}
+                            className="flex items-center justify-between text-xs text-warm font-medium"
+                          >
+                            <span>{r.component?.name ?? "Unknown component"}</span>
+                            <span className="text-warm-muted">
+                              ×{r.quantity ?? "-"}
+                            </span>
+                          </li>
+                        );
+                      })}
                     </ul>
                   )}
                 </div>

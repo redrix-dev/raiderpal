@@ -29,9 +29,9 @@ export default defineConfig([
         {
           paths: [
             {
-              name: "@/lib/supabaseServer",
+              name: "@/lib/supabase",
               message:
-                "supabaseServer is server-only; call it from data/* or server routes, not client components/hooks.",
+                "Supabase server clients are server-only; call them from data/* or server routes, not client components/hooks.",
             },
           ],
         },

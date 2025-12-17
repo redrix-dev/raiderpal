@@ -48,10 +48,23 @@ function subtractMaps(
   return out;
 }
 
-export function recommendAction(
-  item: ItemEconomy,
-  currentDurability: number
-) {
+/**
+ * Determines whether to repair or replace an item based on current durability.
+ *
+ * Decision logic:
+ * - If durability >= cheap_threshold: use cheap repair cost → recommend REPAIR
+ * - If durability < cheap_threshold: use expensive repair cost → recommend REPLACE
+ *
+ * True craft cost calculation:
+ * 1. Start with craft_components - recycle_outputs
+ * 2. Remove placeholder items (previous-tier weapons, blueprints)
+ * 3. Return only actual material costs
+ *
+ * @param item - Item economy data including repair costs and thresholds
+ * @param currentDurability - Current durability value (0 to max_durability)
+ * @returns Recommendation object with action, band, and costs
+ */
+export function recommendAction(item: ItemEconomy, currentDurability: number) {
   if (item.max_durability == null || item.cheap_threshold == null) {
     return { recommendedAction: "UNKNOWN" as const };
   }
@@ -61,7 +74,6 @@ export function recommendAction(
   const craft = toMap(item.craft_components);
   const recycle = toMap(item.recycle_outputs);
   const durability = Math.max(0, Math.min(currentDurability, item.max_durability));
-  
 
   const trueCraftCost = subtractMaps(craft, recycle);
 
@@ -69,9 +81,9 @@ export function recommendAction(
   const repairCost = useCheap ? cheap : expensive;
 
   return {
-    recommendedAction: useCheap ? "REPAIR" as const : "REPLACE" as const,
-    repairBand: useCheap ? "cheap" as const : "expensive" as const,
+    recommendedAction: useCheap ? ("REPAIR" as const) : ("REPLACE" as const),
+    repairBand: useCheap ? ("cheap" as const) : ("expensive" as const),
     repairCost,
-    trueCraftCost
+    trueCraftCost,
   };
 }

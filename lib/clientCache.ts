@@ -2,12 +2,11 @@
 // Simple localStorage-backed JSON fetch cache to reduce repeat hits on API routes.
 
 import { apiResponseSchema } from "@/lib/apiSchemas";
+import { CACHE } from "@/lib/constants";
 import { assertResponseShape, type ApiResponse } from "@/lib/http";
 import type { Schema } from "@/lib/validation";
 
 const CACHE_PREFIX = "rp_cache_v1:";
-const DEFAULT_TTL_MS = 60 * 60 * 1000; // 1 hour
-const LONG_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const LONG_CACHE_KEY = "rp_long_cache_enabled";
 
 type CacheOptions<T> = {
@@ -84,7 +83,7 @@ export async function cachedFetchJson<T>(
   const envelopeSchema =
     responseSchema || (dataSchema ? apiResponseSchema(dataSchema) : undefined);
   const effectiveTtl =
-    ttlMs ?? (prefersLongCache() ? LONG_TTL_MS : DEFAULT_TTL_MS);
+    ttlMs ?? (prefersLongCache() ? CACHE.LONG_TTL_MS : CACHE.DEFAULT_TTL_MS);
   const key = getCacheKey(url, version);
 
   if (!disableCache) {
@@ -132,19 +131,60 @@ export function getLongCachePreference(): boolean {
   return prefersLongCache();
 }
 
-export function clearCachedEntry(url: string) {
+export function clearCachedEntry(url: string, version?: string | number) {
   if (typeof window === "undefined") return;
   try {
-    // Remove any cached entries for this URL regardless of version
+    if (version !== undefined) {
+      const key = getCacheKey(url, version);
+      localStorage.removeItem(key);
+    }
+
+    const novKey = getCacheKey(url, undefined);
+    localStorage.removeItem(novKey);
+
     const prefix = `${CACHE_PREFIX}`;
     for (let i = localStorage.length - 1; i >= 0; i--) {
       const k = localStorage.key(i);
-      if (k && k.startsWith(prefix) && k.endsWith(`:${url}`)) {
+      if (k && k.includes(url)) {
         localStorage.removeItem(k);
       }
     }
   } catch {
     // ignore
+  }
+}
+
+export function getCacheStats() {
+  if (typeof window === "undefined") return null;
+
+  let totalEntries = 0;
+  let totalSize = 0;
+  let oldestEntry = Infinity;
+  let newestEntry = 0;
+
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith(CACHE_PREFIX)) {
+        totalEntries++;
+        const raw = localStorage.getItem(key);
+        if (raw) {
+          totalSize += raw.length;
+          const entry = JSON.parse(raw) as CachedEntry<unknown>;
+          oldestEntry = Math.min(oldestEntry, entry.ts);
+          newestEntry = Math.max(newestEntry, entry.ts);
+        }
+      }
+    }
+
+    return {
+      totalEntries,
+      totalSizeKB: Math.round(totalSize / 1024),
+      oldestEntryAgo: Date.now() - oldestEntry,
+      newestEntryAgo: Date.now() - newestEntry,
+    };
+  } catch {
+    return null;
   }
 }
 

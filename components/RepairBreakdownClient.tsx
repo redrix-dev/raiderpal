@@ -1,136 +1,119 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { recommendAction, type ItemEconomy } from "@/lib/repairCalculator";
-import type { RepairEconomyRow } from "@/data/repairEconomy";
-import { useCachedJson } from "@/hooks/useCachedJson";
-import { useAppVersion } from "@/hooks/useAppVersion";
+import {
+  type RepairableItem,
+  computeRepairSummary,
+} from "@/lib/data/client";
 import { ModulePanel } from "./ModulePanel";
 import { ItemPicker, type PickerItem } from "./ItemPicker";
 import { SelectedItemSummary } from "./SelectedItemSummary";
 import { Card } from "./ui/Card";
-import { CostCard, useCostRows, toComponentMap } from "./costs";
+import { CostCard, type CostRow } from "./costs";
 
 type Props = {
-  items: RepairEconomyRow[];
-  dataVersion?: string | number | null;
+  items: RepairableItem[];
 };
 
-export function RepairBreakdownClient({ items: initialItems, dataVersion }: Props) {
-  const { version: appVersion } = useAppVersion({ initialVersion: dataVersion });
-  const cacheVersion = appVersion ?? dataVersion ?? undefined;
-
-  const economyUrl = `/api/repair-economy?v=repair_fix_1`;
-
-  const { data: fetchedItems } = useCachedJson<unknown>(economyUrl, {
-    version: cacheVersion,
-    initialData: initialItems as unknown,
-  });
-
-  const items = normalizeRepairRows(fetchedItems ?? initialItems);
-
-  const eligibleItems = useMemo(
+export function RepairBreakdownClient({ items }: Props) {
+  const sortedItems = useMemo(
     () =>
-      items
-        .filter(
-          (i) =>
-            (i.cheap_repair_cost?.length ?? 0) > 0 ||
-            (i.expensive_repair_cost?.length ?? 0) > 0
-        )
-        .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? "")),
+      [...items].sort((a, b) =>
+        (a.item.name ?? "").localeCompare(b.item.name ?? "")
+      ),
     [items]
   );
 
   const [selectedId, setSelectedId] = useState<string | null>(
-    eligibleItems.length ? eligibleItems[0].id : null
+    sortedItems[0]?.item.id ?? null
   );
 
   useEffect(() => {
     setSelectedId((prev) => {
-      if (eligibleItems.length === 0) return null;
-      if (!prev || !eligibleItems.some((item) => item.id === prev)) {
-        return eligibleItems[0].id;
+      const nextDefault = sortedItems[0]?.item.id ?? null;
+      if (!prev || !sortedItems.some((i) => i.item.id === prev)) {
+        return nextDefault;
       }
       return prev;
     });
-  }, [eligibleItems]);
+  }, [sortedItems]);
 
   const selected = useMemo(
-    () => eligibleItems.find((i) => i.id === selectedId) ?? null,
-    [eligibleItems, selectedId]
+    () => sortedItems.find((i) => i.item.id === selectedId) ?? null,
+    [selectedId, sortedItems]
   );
 
   const [durability, setDurability] = useState<number>(
-    selected?.max_durability ?? 0
+    selected?.profile.max_durability ?? 0
   );
 
   useEffect(() => {
-    setDurability(selected?.max_durability ?? 0);
-  }, [selected?.max_durability]);
+    setDurability(selected?.profile.max_durability ?? 0);
+  }, [selected?.profile.max_durability]);
 
   const pickerItems = useMemo<PickerItem[]>(
     () =>
-      eligibleItems.map((item) => ({
-        id: item.id,
-        name: item.name,
-        icon: item.icon,
-        rarity: item.rarity ?? undefined,
-        subtitle: item.max_durability
-          ? `Max durability: ${item.max_durability}`
+      sortedItems.map((entry) => ({
+        id: entry.item.id,
+        name: entry.item.name,
+        icon: entry.item.icon,
+        rarity: entry.item.rarity ?? undefined,
+        subtitle: entry.profile.max_durability
+          ? `Max durability: ${entry.profile.max_durability}`
           : null,
       })),
-    [eligibleItems]
+    [sortedItems]
   );
 
-  const result = useMemo(() => {
+  const summary = useMemo(() => {
     if (!selected) return null;
-    return recommendAction(selected as ItemEconomy, durability);
-  }, [selected, durability]);
+    return computeRepairSummary({
+      profile: selected.profile,
+      recipe: selected.recipe,
+      currentDurability: durability,
+    });
+  }, [durability, selected]);
 
-  const repairMeta = useMemo(
-    () =>
-      result?.repairBand === "cheap"
-        ? selected?.cheap_repair_cost ?? []
-        : selected?.expensive_repair_cost ?? [],
-    [result?.repairBand, selected?.cheap_repair_cost, selected?.expensive_repair_cost]
-  );
+  const perCycleRows = useMemo<CostRow[]>(() => {
+    if (!selected) return [];
+    return selected.recipe
+      .map((row) => ({
+        id: row.component_item_id,
+        name: row.component?.name ?? row.component_item_id,
+        icon: row.component?.icon ?? null,
+        rarity: row.component?.rarity ?? null,
+        quantity: row.quantity_per_cycle,
+      }))
+      .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+  }, [selected]);
 
-  const repairCosts = useCostRows(result?.repairCost, repairMeta, items);
+  const totalRows = useMemo<CostRow[]>(() => {
+    if (!summary || !selected) return [];
+    const meta = new Map(
+      selected.recipe.map((r) => [r.component_item_id, r.component])
+    );
+    return Object.entries(summary.totals)
+      .map(([id, quantity]) => {
+        const component = meta.get(id);
+        return {
+          id,
+          name: component?.name ?? id,
+          icon: component?.icon ?? null,
+          rarity: component?.rarity ?? null,
+          quantity,
+        } satisfies CostRow;
+      })
+      .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+  }, [selected, summary]);
 
-  const fullRepairCosts = useCostRows(
-    createFullRepairCost(result?.repairCost, result?.repairBand),
-    repairMeta,
-    items
-  );
-
-  const craftCosts = useCostRows(
-    toComponentMap(selected?.craft_components),
-    selected?.craft_components,
-    items
-  );
-
-  const recycleYield = useCostRows(
-    toComponentMap(selected?.recycle_outputs),
-    selected?.recycle_outputs,
-    items
-  );
-
-  const trueCraftCosts = useCostRows(
-    result?.trueCraftCost,
-    [
-      ...(selected?.craft_components ?? []),
-      ...(selected?.recycle_outputs ?? []),
-    ],
-    items
-  );
+  const cycles = summary?.cycles ?? 0;
 
   return (
-    <ModulePanel title="Repair & Recycle Breakdown">
+    <ModulePanel title="Repair & Recipe Breakdown">
       <div className="space-y-6">
         <p className="text-base text-warm">
-          Explore the full math behind repairing or rebuilding an item. Pick an
-          item, slide its durability, and see the exact components that drive
-          each step.
+          Inspect the manual repair recipe for each item, including per-cycle
+          costs and the total components needed to reach max durability.
         </p>
 
         <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr] items-start">
@@ -157,36 +140,27 @@ export function RepairBreakdownClient({ items: initialItems, dataVersion }: Prop
               <input
                 type="range"
                 min={0}
-                max={selected?.max_durability ?? 0}
+                max={selected?.profile.max_durability ?? 0}
                 value={durability}
                 onChange={(e) => setDurability(Number(e.target.value))}
                 className="w-full accent-[#4fc1e9]"
               />
               <div className="text-xs text-warm-muted">
-                Max durability: {selected?.max_durability ?? 0}
+                Max durability: {selected?.profile.max_durability ?? 0}
               </div>
             </div>
 
-            {selected && result && (
+            {selected && summary && (
               <div className="rounded-lg border border-white/5 bg-black/20 p-4 space-y-3">
                 <div className="flex items-center justify-between text-sm font-semibold text-warm">
-                  <span>Recommended action</span>
-                  <span
-                    className={`rounded-md px-3 py-1 text-xs font-bold uppercase tracking-wide ${
-                      result.recommendedAction === "REPAIR"
-                        ? "bg-emerald-900/30 text-emerald-200 border border-emerald-700/50"
-                        : "bg-amber-900/30 text-amber-100 border border-amber-700/50"
-                    }`}
-                  >
-                    {result.recommendedAction === "REPAIR" ? "Repair" : "Replace"}
+                  <span>Repair cycles to full</span>
+                  <span className="rounded-md bg-[#4fc1e9]/10 px-3 py-1 text-xs text-[#4fc1e9]">
+                    {cycles}
                   </span>
                 </div>
-                {result.repairBand && (
-                  <div className="text-xs text-warm-muted">
-                    Using the {result.repairBand} repair table for this
-                    durability level.
-                  </div>
-                )}
+                <div className="text-xs text-warm-muted">
+                  Step durability: {selected.profile.step_durability}
+                </div>
               </div>
             )}
           </Card>
@@ -194,81 +168,82 @@ export function RepairBreakdownClient({ items: initialItems, dataVersion }: Prop
           <Card className="space-y-4 overflow-visible">
             {selected && (
               <SelectedItemSummary
-                name={selected.name}
-                icon={selected.icon}
-                rarity={selected.rarity ?? undefined}
-                itemType={selected.item_type ?? undefined}
-                maxDurability={selected.max_durability ?? undefined}
+                name={selected.item.name}
+                icon={selected.item.icon}
+                rarity={selected.item.rarity ?? undefined}
+                itemType={selected.item.item_type ?? undefined}
+                maxDurability={selected.profile.max_durability ?? undefined}
                 className="rounded-lg border border-white/5 bg-black/25 p-4"
               />
             )}
 
-            <div className="grid gap-3 sm:grid-cols-2">
-              <InfoLine label="Durability set to" value={`${durability}/${selected?.max_durability ?? 0}`} />
-              <InfoLine
-                label="Repair passes to full"
-                value={result?.repairBand === "expensive" ? "2" : "1"}
-              />
-            </div>
-
-            <div className="rounded-lg border border-white/5 bg-black/25 p-3 text-xs text-warm-muted">
-              Full repair assumes expensive repairs may need two passes, while
-              cheap repairs bring the item to max in one.
+            <div className="grid gap-4 md:grid-cols-2">
+              <CostCard title="Per-cycle recipe" items={perCycleRows} />
+              <CostCard title="Total to full" items={totalRows} />
             </div>
           </Card>
         </div>
 
-        {!selected || !result ? (
-          <div className="rounded-lg border border-amber-700/50 bg-amber-900/20 p-4 text-sm text-amber-100">
-            Could not compute yet. Choose an item with repair and craft data.
-          </div>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            <CostCard title="Repair cost" items={repairCosts} />
-            <CostCard title="Repair cost (to full)" items={fullRepairCosts} />
-            <CostCard title="Recycle yield" items={recycleYield} />
-            <CostCard title="Craft cost (current item)" items={craftCosts} />
-            <CostCard
-              title="True craft cost (craft - recycle)"
-              items={trueCraftCosts}
-            />
-          </div>
+        {selected && (
+          <Card className="space-y-3 overflow-hidden">
+            <div className="text-base font-semibold text-warm px-4 pt-4">
+              Recipe breakdown
+            </div>
+            <div className="overflow-x-auto px-2 pb-4">
+              <table className="min-w-full text-sm text-warm">
+                <thead className="text-xs uppercase text-warm-muted">
+                  <tr>
+                    <th className="px-3 py-2 text-left">Component</th>
+                    <th className="px-3 py-2 text-right">Per cycle</th>
+                    <th className="px-3 py-2 text-right">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selected.recipe.map((row) => {
+                    const total = (summary?.totals ?? {})[row.component_item_id] ?? 0;
+                    return (
+                      <tr key={row.component_item_id} className="border-t border-white/5">
+                        <td className="px-3 py-2">
+                          <div className="flex items-center gap-2">
+                            {row.component?.icon && (
+                              <img
+                                src={row.component.icon}
+                                alt={row.component.name ?? row.component_item_id}
+                                className="h-8 w-8 rounded border border-white/10 bg-black/50 object-contain"
+                              />
+                            )}
+                            <div>
+                              <div className="font-semibold">
+                                {row.component?.name ?? row.component_item_id}
+                              </div>
+                              {row.component?.rarity && (
+                                <div className="text-[11px] text-warm-muted">
+                                  {row.component.rarity}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 text-right">
+                          ×{row.quantity_per_cycle}
+                        </td>
+                        <td className="px-3 py-2 text-right">×{total}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </Card>
         )}
+
+        {!selected || !summary ? (
+          <div className="rounded-lg border border-amber-700/50 bg-amber-900/20 p-4 text-sm text-amber-100">
+            Could not compute yet. Choose an item with a repair profile and
+            recipe.
+          </div>
+        ) : null}
       </div>
     </ModulePanel>
-  );
-}
-
-function normalizeRepairRows(input: unknown): RepairEconomyRow[] {
-  if (Array.isArray(input)) return input as RepairEconomyRow[];
-
-  if (input && typeof input === "object" && "data" in input) {
-    const d = (input as { data?: unknown }).data;
-    if (Array.isArray(d)) return d as RepairEconomyRow[];
-  }
-
-  return [];
-}
-
-function createFullRepairCost(
-  repairCost: Record<string, number> | null | undefined,
-  repairBand: string | null | undefined
-) {
-  if (!repairCost) return null;
-  const multiplier = repairBand === "expensive" ? 2 : 1;
-
-  return Object.fromEntries(
-    Object.entries(repairCost).map(([id, qty]) => [id, qty * multiplier])
-  );
-}
-
-function InfoLine({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="rounded-md border border-white/5 bg-black/30 px-3 py-2">
-      <div className="text-[11px] uppercase tracking-[0.05em] text-warm-muted">
-        {label}
-      </div>
-      <div className="text-sm font-semibold text-warm">{value}</div>
-    </div>
   );
 }
