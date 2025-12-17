@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
-import { listRepairableItems } from "@/lib/data";
 import { repairEconomyDataSchema } from "@/lib/apiSchemas";
+import { listRepairableItems } from "@/lib/data";
 import { assertResponseShape, jsonErrorFromException, jsonOk } from "@/lib/http";
 
 export const revalidate = 3600; // refresh hourly to align with data syncs

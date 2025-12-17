@@ -4,6 +4,7 @@ import ItemsList from "@/components/ItemsList";
 import { listCanonicalItems } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
+
 export const revalidate = 0;
 
 export default async function ItemsPage() {

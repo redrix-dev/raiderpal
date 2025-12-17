@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
-import { getDataVersion } from "@/lib/data";
 import { versionPayloadSchema } from "@/lib/apiSchemas";
+import { getDataVersion } from "@/lib/data";
 import { assertResponseShape, jsonOk, jsonError, jsonErrorFromException } from "@/lib/http";
 
 export const revalidate = 3600; // refresh every hour

@@ -1,5 +1,17 @@
 import type { RepairRecipeRow } from "./db/types";
 
+/**
+ * Calculates how many repair cycles are needed to restore an item.
+ *
+ * @param maxDurability - Maximum durability value for the item
+ * @param stepDurability - Durability restored per repair cycle (default 50)
+ * @param currentDurability - Current durability (clamped to 0-max)
+ * @returns Object with missing durability and number of cycles needed
+ *
+ * @example
+ * computeRepairCycles({ maxDurability: 100, stepDurability: 50, currentDurability: 30 })
+ * // => { missing: 70, cycles: 2 }
+ */
 export function computeRepairCycles({
   maxDurability,
   stepDurability,

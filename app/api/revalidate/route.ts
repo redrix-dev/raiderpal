@@ -3,7 +3,6 @@ import { NextRequest } from "next/server";
 import { jsonError, jsonOk } from "@/lib/http";
 
 const REVALIDATE_TOKEN = process.env.REVALIDATE_TOKEN;
-
 export const revalidate = 0;
 export const runtime = "nodejs";
 
