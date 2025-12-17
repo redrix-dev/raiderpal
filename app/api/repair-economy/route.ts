@@ -4,7 +4,9 @@ import { REVALIDATE } from "@/lib/constants";
 import { listRepairableItems } from "@/lib/data";
 import { assertResponseShape, jsonErrorFromException, jsonOk } from "@/lib/http";
 
-export const revalidate = REVALIDATE.HOURLY; // refresh hourly to align with data syncs
+const REVALIDATE_HOURLY = REVALIDATE.HOURLY;
+
+export const revalidate = REVALIDATE_HOURLY; // refresh hourly to align with data syncs
 export const runtime = "nodejs";
 
 export async function GET(_req: NextRequest) {

@@ -20,7 +20,9 @@ type ItemPageProps = {
 };
 
 export const dynamic = "force-dynamic";
-export const revalidate = REVALIDATE.NEVER;
+const REVALIDATE_NEVER = REVALIDATE.NEVER;
+
+export const revalidate = REVALIDATE_NEVER;
 
 export default async function ItemPage({ params }: ItemPageProps) {
   const { id } = await params;

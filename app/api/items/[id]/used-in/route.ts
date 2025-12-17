@@ -11,7 +11,9 @@ import {
   type RouteContext,
 } from "@/lib/http";
 
-export const revalidate = REVALIDATE.DAILY; // refresh daily
+const REVALIDATE_DAILY = REVALIDATE.DAILY;
+
+export const revalidate = REVALIDATE_DAILY; // refresh daily
 export const runtime = "nodejs";
 
 export async function GET(

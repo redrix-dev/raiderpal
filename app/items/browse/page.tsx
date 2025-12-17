@@ -5,8 +5,10 @@ import { getDataVersion, listCanonicalItems } from "@/lib/data";
 import { ModulePanel } from "@/components/ModulePanel";
 import { Panel } from "@/components/ui/Panel";
 
+const REVALIDATE_NEVER = REVALIDATE.NEVER;
+
 export const dynamic = "force-dynamic";
-export const revalidate = REVALIDATE.NEVER;
+export const revalidate = REVALIDATE_NEVER;
 
 export default async function ItemsBrowsePage() {
   const [items, versionRow] = await Promise.all([

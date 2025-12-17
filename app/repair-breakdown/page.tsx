@@ -4,7 +4,9 @@ import { RepairBreakdownClient } from "@/components/RepairBreakdownClient";
 import { ToolPanel } from "@/components/ToolPanel";
 
 export const dynamic = "force-dynamic";
-export const revalidate = REVALIDATE.NEVER;
+const REVALIDATE_NEVER = REVALIDATE.NEVER;
+
+export const revalidate = REVALIDATE_NEVER;
 
 export default async function RepairBreakdownPage() {
   const items = await listRepairableItems();

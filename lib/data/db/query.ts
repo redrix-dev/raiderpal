@@ -3,6 +3,7 @@ import { createAnonClient } from "@/lib/supabase";
 import type { Schema } from "@/lib/validation";
 import type { ViewContract } from "./contracts";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type FilterBuilder = PostgrestFilterBuilder<any, any, any, any>;
 type QueryBuilder = (query: FilterBuilder) => FilterBuilder;
 
@@ -65,7 +66,7 @@ export async function queryView<T>(
   build?: QueryBuilder
 ): Promise<T[]> {
   const supabase = createAnonClient();
-  let query = supabase.from(contract.relation).select(contract.select);
+  let query = supabase.from(contract.relation).select(contract.select) as FilterBuilder;
 
   if (build) {
     query = build(query);
@@ -93,7 +94,7 @@ export async function queryViewMaybeSingle<T>(
   build?: QueryBuilder
 ): Promise<T | null> {
   const supabase = createAnonClient();
-  let query = supabase.from(contract.relation).select(contract.select);
+  let query = supabase.from(contract.relation).select(contract.select) as FilterBuilder;
 
   if (build) {
     query = build(query);

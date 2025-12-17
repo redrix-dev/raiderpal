@@ -11,7 +11,9 @@ import {
 } from "@/lib/http";
 import type { NextRequest } from "next/server";
 
-export const revalidate = REVALIDATE.DAILY; // refresh daily
+const REVALIDATE_DAILY = REVALIDATE.DAILY;
+
+export const revalidate = REVALIDATE_DAILY; // refresh daily
 export const runtime = "nodejs";
 
 export async function GET(

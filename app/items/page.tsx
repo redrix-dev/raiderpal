@@ -5,7 +5,9 @@ import { REVALIDATE } from "@/lib/constants";
 import { listCanonicalItems } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
-export const revalidate = REVALIDATE.NEVER;
+const REVALIDATE_NEVER = REVALIDATE.NEVER;
+
+export const revalidate = REVALIDATE_NEVER;
 
 export default async function ItemsPage() {
   const items = await listCanonicalItems();
