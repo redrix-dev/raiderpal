@@ -27,6 +27,10 @@ function mergeHeaders(headers?: HeadersInit) {
   return merged;
 }
 
+export function formatValidationError(error: string): string {
+  return error.replace(/\[|\]/g, "").trim();
+}
+
 function readErrorInfo(err: unknown): ErrorInfo {
   if (!err || typeof err !== "object") {
     return {};

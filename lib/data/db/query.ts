@@ -1,6 +1,6 @@
 import type { PostgrestError, PostgrestFilterBuilder } from "@supabase/postgrest-js";
+import { createAnonClient } from "@/lib/supabase";
 import type { Schema } from "@/lib/validation";
-import { createSupabaseServerClient } from "./server";
 import type { ViewContract } from "./contracts";
 
 type FilterBuilder = PostgrestFilterBuilder<any, any, any, any>;
@@ -34,7 +34,7 @@ function parseRows<T>(
     const result = schema.safeParse(rows[i]);
     if (!result.success) {
       throw new DataQueryError(
-        `Invalid row ${i} for relation '${relation}' (select: ${select}): ${result.error}`,
+        `Invalid row ${i} for relation '${relation}' (select: ${select}): ${String(result.error)}`,
         "db_contract"
       );
     }
@@ -53,7 +53,7 @@ function parseSingle<T>(
   const result = schema.safeParse(row);
   if (!result.success) {
     throw new DataQueryError(
-      `Invalid row for relation '${relation}' (select: ${select}): ${result.error}`,
+      `Invalid row for relation '${relation}' (select: ${select}): ${String(result.error)}`,
       "db_contract"
     );
   }
@@ -64,7 +64,7 @@ export async function queryView<T>(
   contract: ViewContract<T>,
   build?: QueryBuilder
 ): Promise<T[]> {
-  const supabase = createSupabaseServerClient();
+  const supabase = createAnonClient();
   let query = supabase.from(contract.relation).select(contract.select);
 
   if (build) {
@@ -92,7 +92,7 @@ export async function queryViewMaybeSingle<T>(
   contract: ViewContract<T>,
   build?: QueryBuilder
 ): Promise<T | null> {
-  const supabase = createSupabaseServerClient();
+  const supabase = createAnonClient();
   let query = supabase.from(contract.relation).select(contract.select);
 
   if (build) {

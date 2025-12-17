@@ -1,10 +1,11 @@
 // app/items/page.tsx
 
 import ItemsList from "@/components/ItemsList";
+import { REVALIDATE } from "@/lib/constants";
 import { listCanonicalItems } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = REVALIDATE.NEVER;
 
 export default async function ItemsPage() {
   const items = await listCanonicalItems();

@@ -1,7 +1,9 @@
-import { getCraftingForItem } from "@/lib/data";
 import { craftingDataSchema, itemParamsSchema } from "@/lib/apiSchemas";
+import { REVALIDATE } from "@/lib/constants";
+import { getCraftingForItem } from "@/lib/data";
 import {
   assertResponseShape,
+  formatValidationError,
   jsonError,
   jsonOk,
   jsonErrorFromException,
@@ -9,7 +11,7 @@ import {
 } from "@/lib/http";
 import type { NextRequest } from "next/server";
 
-export const revalidate = 86400; // refresh daily
+export const revalidate = REVALIDATE.DAILY; // refresh daily
 export const runtime = "nodejs";
 
 export async function GET(
@@ -19,7 +21,11 @@ export async function GET(
   const parsedParams = itemParamsSchema.safeParse(await params);
 
   if (!parsedParams.success) {
-    return jsonError("invalid_params", String(parsedParams.error), 400);
+    return jsonError(
+      "invalid_params",
+      formatValidationError(String(parsedParams.error)),
+      400
+    );
   }
 
   const { id } = parsedParams.data;

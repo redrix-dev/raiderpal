@@ -1,9 +1,10 @@
+import { REVALIDATE } from "@/lib/constants";
 import { listRepairableItems } from "@/lib/data";
 import { RepairBreakdownClient } from "@/components/RepairBreakdownClient";
 import { ToolPanel } from "@/components/ToolPanel";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = REVALIDATE.NEVER;
 
 export default async function RepairBreakdownPage() {
   const items = await listRepairableItems();
