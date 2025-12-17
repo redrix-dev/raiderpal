@@ -1,7 +1,8 @@
-import { getCraftingForItem } from "@/lib/data";
 import { craftingDataSchema, itemParamsSchema } from "@/lib/apiSchemas";
+import { getCraftingForItem } from "@/lib/data";
 import {
   assertResponseShape,
+  formatValidationError,
   jsonError,
   jsonOk,
   jsonErrorFromException,
@@ -19,7 +20,11 @@ export async function GET(
   const parsedParams = itemParamsSchema.safeParse(await params);
 
   if (!parsedParams.success) {
-    return jsonError("invalid_params", String(parsedParams.error), 400);
+    return jsonError(
+      "invalid_params",
+      formatValidationError(String(parsedParams.error)),
+      400
+    );
   }
 
   const { id } = parsedParams.data;

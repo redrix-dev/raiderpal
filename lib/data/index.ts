@@ -1,7 +1,36 @@
-export * from "./db/types";
-export * from "./db/server";
-export { VIEW_CONTRACTS, type ViewContractName } from "./db/contracts";
-export * from "./items.repo";
-export * from "./repairs.repo";
-export * from "./repairs.math";
-export * from "./version.repo";
+export {
+  // Items
+  getCanonicalItemById,
+  listCanonicalItems,
+  searchCanonicalItems,
+  getCraftingForItem,
+  getRecyclingForItem,
+  getBestSourcesForItem,
+  getUsedInForItem,
+  getRecyclingIdSets,
+} from "./items.repo";
+
+export {
+  // Repairs
+  listRepairableItems,
+  getRepairProfile,
+  getRepairRecipeWithComponents,
+} from "./repairs.repo";
+
+export {
+  // Version
+  getDataVersion,
+} from "./version.repo";
+
+export type {
+  // Types
+  CanonicalItem,
+  CanonicalItemSummary,
+  CraftingComponentRow,
+  RecyclingOutputRow,
+  RepairableItem,
+} from "./db/types";
+
+// Internal (use with caution)
+export { VIEW_CONTRACTS } from "./db/contracts";
+export { queryView, queryViewMaybeSingle } from "./db/query";
