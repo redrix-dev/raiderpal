@@ -43,14 +43,24 @@ export const VIEW_CONTRACTS = {
   },
   repairRecipes: {
     relation: "rp_view_repair_recipes",
-    select: "item_id, component_id, quantity_per_cycle",
+    select: "id, component_id, quantity_per_cycle",
     schema: z.object({
-      item_id: z.string(),
+      id: z.string(),
       component_id: z.string(),
       quantity_per_cycle: z.number(),
     }),
   },
   repairProfiles: {
+    relation: "rp_view_repair_profiles",
+    select: "id, max_durability, step_durability, notes",
+    schema: z.object({
+      id: z.string(),
+      max_durability: z.number(),
+      step_durability: z.number(),
+      notes: z.string().nullable(),
+    }),
+  },
+  legacyRepairProfiles: {
     relation: "rp_repair_profiles",
     select: "item_id, max_durability, step_durability, notes",
     schema: z.object({

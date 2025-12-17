@@ -90,6 +90,8 @@ const repairableItemSchema = z.object({
   item: itemSummarySchema,
   profile: repairProfileSchema,
   recipe: z.array(repairRecipeWithComponentSchema),
+  crafting: z.array(craftingRecipeSchema),
+  recycling: z.array(recyclingOutputSchema),
 });
 
 export const craftingDataSchema: Schema<CraftingComponentRow[]> = z.array(craftingRecipeSchema);
