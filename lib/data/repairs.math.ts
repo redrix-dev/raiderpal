@@ -27,7 +27,7 @@ export function computeRepairCost({
   cycles: number;
 }) {
   const totals = recipeRows.reduce<Record<string, number>>((acc, row) => {
-    const id = row.component_item_id;
+    const id = row.component_id;
     const perCycle = Number(row.quantity_per_cycle ?? 0);
     const qty = perCycle * Math.max(0, cycles);
     if (!id || qty <= 0) return acc;

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import type {
   CanonicalItemSummary,
   RecyclingOutputRow,
+  RecyclingSourceRow,
 } from "@/lib/data/client";
 import { RarityBadge } from "@/components/ItemCard";
 import { useRaidReminders } from "@/hooks/useRaidReminders";
@@ -37,18 +38,19 @@ type NeedResult = {
   quantity: number;
 };
 type HaveResult = RecyclingOutputRow;
+type DirectYieldSource = NeedResult;
 
 // Item types we never want to show in this helper at all
 const EXCLUDED_ITEM_TYPES = new Set<string>(["Blueprint", "Key"]);
 const EXCLUDED_NEED_TYPES = new Set<string>(["Weapon"]);
 
-function mapNeedRow(row: RecyclingOutputRow): NeedResult {
+function mapNeedRow(row: RecyclingSourceRow): NeedResult {
   return {
     sourceItemId: row.source_item_id ?? "",
-    sourceName: row.component?.name ?? row.source_item_id ?? null,
-    sourceIcon: row.component?.icon ?? null,
-    sourceRarity: row.component?.rarity ?? null,
-    sourceType: row.component?.item_type ?? null,
+    sourceName: row.source?.name ?? row.source_item_id ?? null,
+    sourceIcon: row.source?.icon ?? null,
+    sourceRarity: row.source?.rarity ?? null,
+    sourceType: row.source?.item_type ?? null,
     quantity: row.quantity ?? 0,
   };
 }
@@ -147,7 +149,7 @@ export function RecycleHelperClient({
     data: needData,
     loading: needLoading,
     error: needError,
-  } = useCachedJson<RecyclingOutputRow[]>(
+  } = useCachedJson<RecyclingSourceRow[]>(
     selectedItemId ? `/api/items/${selectedItemId}/sources` : null,
     {
       version: cacheVersion,
@@ -206,7 +208,8 @@ export function RecycleHelperClient({
       });
     } else {
       haveResults.forEach((r) => {
-        if (r.component_type) set.add(r.component_type);
+        const type = r.component?.item_type;
+        if (type) set.add(type);
       });
     }
 
@@ -243,11 +246,11 @@ export function RecycleHelperClient({
     return out;
   }
 
-  function sortAndFilterHave(rows: RecyclingSourceRow[]): RecyclingSourceRow[] {
+  function sortAndFilterHave(rows: RecyclingOutputRow[]): RecyclingOutputRow[] {
     let out = [...rows];
 
     if (resultTypeFilter !== "all") {
-      out = out.filter((r) => r.component_type === resultTypeFilter);
+      out = out.filter((r) => r.component?.item_type === resultTypeFilter);
     }
 
     out.sort((a, b) => {
@@ -257,12 +260,12 @@ export function RecycleHelperClient({
         case "quantityAsc":
           return (a.quantity ?? 0) - (b.quantity ?? 0);
         case "name":
-          return (a.component_name ?? "").localeCompare(
-            b.component_name ?? ""
+          return (a.component?.name ?? "").localeCompare(
+            b.component?.name ?? ""
           );
         case "rarity":
-          return (a.component_rarity ?? "").localeCompare(
-            b.component_rarity ?? ""
+          return (a.component?.rarity ?? "").localeCompare(
+            b.component?.rarity ?? ""
           );
         default:
           return 0;
@@ -300,10 +303,10 @@ export function RecycleHelperClient({
             .filter((row) => row.component_id && selectedRows.has(row.component_id))
             .map((row) => ({
               id: row.component_id as string,
-              name: row.component_name ?? "Unknown item",
-              icon: row.component_icon,
-              rarity: row.component_rarity,
-              lootLocation: row.component_type,
+              name: row.component?.name ?? "Unknown item",
+              icon: row.component?.icon ?? null,
+              rarity: row.component?.rarity ?? null,
+              lootLocation: row.component?.item_type ?? null,
             }));
 
     if (payload.length > 0) {
@@ -517,7 +520,7 @@ export function RecycleHelperClient({
                 {row.sourceIcon && (
                   <img
                     src={row.sourceIcon}
-                    alt={row.sourceName}
+                    alt={row.sourceName ?? ""}
                     className="h-10 w-10 rounded border border-slate-700 bg-slate-950 object-contain flex-shrink-0"
                   />
                 )}
@@ -531,7 +534,7 @@ export function RecycleHelperClient({
                     {row.sourceName}
                   </a>
                   <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-warm-muted">
-                    <span>{row.sourceType ?? "–"}</span>
+                    <span>{row.sourceType ?? "Unknown"}</span>
                     <RarityBadge rarity={row.sourceRarity ?? undefined} />
                     {alreadyAdded && (
                       <span className="text-emerald-300">(added)</span>
@@ -580,32 +583,32 @@ export function RecycleHelperClient({
                 </div>
 
                 {/* icon */}
-                {row.component_icon && (
+                {row.component?.icon && (
                   <img
-                    src={row.component_icon}
-                    alt={row.component_name ?? ""}
+                    src={row.component.icon}
+                    alt={row.component?.name ?? ""}
                     className="h-10 w-10 rounded border border-slate-700 bg-slate-950 object-contain flex-shrink-0"
                   />
                 )}
 
                 {/* main text */}
                 <div className="flex-1 min-w-0">
-                  {row.component_id ? (
-                    <a
-                      href={`/items/${row.component_id}`}
-                      className="block text-sm text-warm font-semibold truncate hover:underline"
-                    >
-                      {row.component_name ?? row.component_id}
-                    </a>
-                  ) : (
-                    <span className="block text-sm text-warm font-semibold truncate">
-                      {row.component_name ?? "Unknown item"}
-                    </span>
-                  )}
+                    {row.component_id ? (
+                      <a
+                        href={`/items/${row.component_id}`}
+                        className="block text-sm text-warm font-semibold truncate hover:underline"
+                      >
+                        {row.component?.name ?? row.component_id}
+                      </a>
+                    ) : (
+                      <span className="block text-sm text-warm font-semibold truncate">
+                        {row.component?.name ?? "Unknown item"}
+                      </span>
+                    )}
                   <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-warm-muted">
-                    <span>{row.component_type ?? "–"}</span>
+                    <span>{row.component?.item_type ?? "Unknown"}</span>
                     <RarityBadge
-                      rarity={row.component_rarity ?? undefined}
+                      rarity={row.component?.rarity ?? undefined}
                     />
                     {alreadyAdded && (
                       <span className="text-emerald-300">(added)</span>
@@ -670,7 +673,7 @@ export function RecycleHelperClient({
                         {row.sourceIcon && (
                           <img
                             src={row.sourceIcon}
-                            alt={row.sourceName}
+                            alt={row.sourceName ?? ""}
                             className="h-8 w-8 rounded border border-slate-700 bg-slate-950 object-contain"
                           />
                         )}
@@ -687,7 +690,7 @@ export function RecycleHelperClient({
                         )}
                       </td>
                       <td className="px-3 py-2 text-xs text-warm">
-                        {row.sourceType ?? "–"}
+                        {row.sourceType ?? "Unknown"}
                       </td>
                       <td className="px-3 py-2 text-xs text-warm">
                         <RarityBadge
@@ -733,10 +736,10 @@ export function RecycleHelperClient({
                         />
                       </td>
                       <td className="px-3 py-2 flex items-center gap-2">
-                        {row.component_icon && (
+                        {row.component?.icon && (
                           <img
-                            src={row.component_icon}
-                            alt={row.component_name ?? ""}
+                            src={row.component.icon}
+                            alt={row.component?.name ?? ""}
                             className="h-8 w-8 rounded border border-slate-700 bg-slate-950 object-contain"
                           />
                         )}
@@ -745,11 +748,11 @@ export function RecycleHelperClient({
                             href={`/items/${row.component_id}`}
                             className="hover:underline truncate"
                           >
-                            {row.component_name ?? row.component_id}
+                            {row.component?.name ?? row.component_id}
                           </a>
                         ) : (
                           <span className="truncate">
-                            {row.component_name ?? "Unknown item"}
+                            {row.component?.name ?? "Unknown item"}
                           </span>
                         )}
                         {alreadyAdded && (
@@ -759,11 +762,11 @@ export function RecycleHelperClient({
                         )}
                       </td>
                       <td className="px-3 py-2 text-xs text-warm">
-                        {row.component_type ?? "–"}
+                        {row.component?.item_type ?? "Unknown"}
                       </td>
                       <td className="px-3 py-2 text-xs text-warm">
                         <RarityBadge
-                          rarity={row.component_rarity ?? undefined}
+                          rarity={row.component?.rarity ?? undefined}
                         />
                       </td>
                       <td className="px-3 py-2 text-right">

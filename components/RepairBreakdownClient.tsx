@@ -78,8 +78,8 @@ export function RepairBreakdownClient({ items }: Props) {
     if (!selected) return [];
     return selected.recipe
       .map((row) => ({
-        id: row.component_item_id,
-        name: row.component?.name ?? row.component_item_id,
+        id: row.component_id,
+        name: row.component?.name ?? row.component_id,
         icon: row.component?.icon ?? null,
         rarity: row.component?.rarity ?? null,
         quantity: row.quantity_per_cycle,
@@ -90,7 +90,7 @@ export function RepairBreakdownClient({ items }: Props) {
   const totalRows = useMemo<CostRow[]>(() => {
     if (!summary || !selected) return [];
     const meta = new Map(
-      selected.recipe.map((r) => [r.component_item_id, r.component])
+      selected.recipe.map((r) => [r.component_id, r.component])
     );
     return Object.entries(summary.totals)
       .map(([id, quantity]) => {
@@ -200,21 +200,21 @@ export function RepairBreakdownClient({ items }: Props) {
                 </thead>
                 <tbody>
                   {selected.recipe.map((row) => {
-                    const total = (summary?.totals ?? {})[row.component_item_id] ?? 0;
+                    const total = (summary?.totals ?? {})[row.component_id] ?? 0;
                     return (
-                      <tr key={row.component_item_id} className="border-t border-white/5">
+                      <tr key={row.component_id} className="border-t border-white/5">
                         <td className="px-3 py-2">
                           <div className="flex items-center gap-2">
                             {row.component?.icon && (
                               <img
                                 src={row.component.icon}
-                                alt={row.component.name ?? row.component_item_id}
+                                alt={row.component.name ?? row.component_id}
                                 className="h-8 w-8 rounded border border-white/10 bg-black/50 object-contain"
                               />
                             )}
                             <div>
                               <div className="font-semibold">
-                                {row.component?.name ?? row.component_item_id}
+                                {row.component?.name ?? row.component_id}
                               </div>
                               {row.component?.rarity && (
                                 <div className="text-[11px] text-warm-muted">

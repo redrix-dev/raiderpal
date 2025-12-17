@@ -5,13 +5,14 @@ import { useState } from "react";
 import type {
   CraftingComponentRow,
   RecyclingOutputRow,
+  RecyclingSourceRow,
   UsedInRow,
 } from "@/lib/data/client";
 
 type ItemDetailsTabsProps = {
   crafting: CraftingComponentRow[]; // rows from getCraftingForItem
   recycling: RecyclingOutputRow[]; // rows from getRecyclingForItem
-  bestSources: RecyclingOutputRow[]; // rows from getBestSourcesForItem
+  bestSources: RecyclingSourceRow[]; // rows from getBestSourcesForItem
   usedIn: UsedInRow[]; // rows from getUsedInForItem
 };
 
@@ -64,11 +65,11 @@ export function ItemDetailsTabs({
           <TabList
             emptyText="No crafting recipe."
             rows={crafting.filter(
-              (c) => (c.component_type ?? "").toLowerCase() !== "blueprint"
+              (c) => (c.component?.item_type ?? "").toLowerCase() !== "blueprint"
             )}
             mapRow={(c) => ({
-              key: c.component_item_id ?? "unknown",
-              href: `/items/${c.component_item_id}`,
+              key: c.component_id ?? "unknown",
+              href: `/items/${c.component_id}`,
               name: c.component?.name ?? "Unknown component",
               icon: c.component?.icon,
               quantity: c.quantity ?? undefined,
@@ -81,8 +82,8 @@ export function ItemDetailsTabs({
             emptyText="No recycling outputs."
             rows={recycling}
             mapRow={(r) => ({
-              key: r.component_item_id ?? "unknown",
-              href: `/items/${r.component_item_id}`,
+              key: r.component_id ?? "unknown",
+              href: `/items/${r.component_id}`,
               name: r.component?.name ?? "Unknown component",
               icon: r.component?.icon,
               quantity: r.quantity ?? undefined,
@@ -97,8 +98,8 @@ export function ItemDetailsTabs({
             mapRow={(s) => ({
               key: s.source_item_id ?? "source",
               href: `/items/${s.source_item_id}`,
-              name: s.component?.name ?? "Unknown source",
-              icon: s.component?.icon,
+              name: s.source?.name ?? "Unknown source",
+              icon: s.source?.icon,
               quantity: s.quantity,
               quantitySuffix: "per recycle",
             })}

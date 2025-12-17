@@ -78,8 +78,8 @@ export function RepairCalculatorClient({ items }: Props) {
     if (!selected) return [];
     return selected.recipe
       .map((row) => ({
-        id: row.component_item_id,
-        name: row.component?.name ?? row.component_item_id,
+        id: row.component_id,
+        name: row.component?.name ?? row.component_id,
         icon: row.component?.icon ?? null,
         rarity: row.component?.rarity ?? null,
         quantity: row.quantity_per_cycle,
@@ -90,7 +90,7 @@ export function RepairCalculatorClient({ items }: Props) {
   const totalCostRows = useMemo<CostRow[]>(() => {
     if (!summary || !selected) return [];
     const meta = new Map(
-      selected.recipe.map((r) => [r.component_item_id, r.component])
+      selected.recipe.map((r) => [r.component_id, r.component])
     );
     return Object.entries(summary.totals)
       .map(([componentId, quantity]) => {

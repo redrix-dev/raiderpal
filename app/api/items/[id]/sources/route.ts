@@ -1,31 +1,37 @@
-import { getBestSourcesForItem } from "@/lib/data";
 import type { NextRequest } from "next/server";
-import { jsonError, jsonOk, type RouteContext } from "@/lib/http";
-
-type Params = { id: string };
+import { getBestSourcesForItem } from "@/lib/data";
+import { itemParamsSchema, sourcesDataSchema } from "@/lib/apiSchemas";
+import {
+  assertResponseShape,
+  jsonError,
+  jsonOk,
+  jsonErrorFromException,
+  type RouteContext,
+} from "@/lib/http";
 
 export const revalidate = 86400; // refresh daily
 export const runtime = "nodejs";
 
 export async function GET(
   _req: NextRequest,
-  { params }: RouteContext<Params>
+  { params }: RouteContext<{ id: string }>
 ) {
-  const { id } = await params;
-  const normalizedId = typeof id === "string" ? id.trim() : "";
+  const parsedParams = itemParamsSchema.safeParse(await params);
 
-  if (!normalizedId) {
-    return jsonError("Missing or invalid id", 400);
+  if (!parsedParams.success) {
+    return jsonError("invalid_params", String(parsedParams.error), 400);
   }
 
-  try {
-    const sources = await getBestSourcesForItem(normalizedId);
+  const { id } = parsedParams.data;
 
-    return jsonOk(sources, 200, {
+  try {
+    const sources = await getBestSourcesForItem(id);
+    const validated = assertResponseShape(sourcesDataSchema, sources);
+
+    return jsonOk(validated, 200, {
       "Cache-Control": "public, max-age=900, stale-while-revalidate=85500",
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-    return jsonError(message, 500);
+    return jsonErrorFromException(err);
   }
 }

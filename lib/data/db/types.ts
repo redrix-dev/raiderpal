@@ -13,7 +13,7 @@ export type CanonicalItem = {
 export type CanonicalItemSummary = Pick<
   CanonicalItem,
   "id" | "name" | "rarity" | "icon" | "item_type" | "value" | "loot_area"
-> & { description?: string | null; workbench?: string | null };
+> & { description: string | null; workbench: string | null };
 
 export type RepairProfile = {
   item_id: string;
@@ -24,41 +24,45 @@ export type RepairProfile = {
 
 export type RepairRecipeRow = {
   item_id: string;
-  component_item_id: string;
+  component_id: string;
   quantity_per_cycle: number;
 };
 
 export type RepairRecipeWithComponent = RepairRecipeRow & {
-  component?: CanonicalItemSummary | null;
+  component: CanonicalItemSummary | null;
+};
+
+export type RepairableItem = {
+  item: CanonicalItemSummary;
+  profile: RepairProfile;
+  recipe: RepairRecipeWithComponent[];
 };
 
 export type CraftingComponentRow = {
   item_id: string;
-  component_item_id: string;
+  component_id: string;
   quantity: number;
-  component?: CanonicalItemSummary | null;
-  component_type?: string | null;
-  component_name?: string | null;
-  component_icon?: string | null;
-  component_rarity?: string | null;
-  component_id?: string | null;
+  component: CanonicalItemSummary | null;
 };
 
 export type RecyclingOutputRow = {
-  source_item_id: string;
-  component_item_id: string;
+  component_id: string;
   quantity: number;
-  component?: CanonicalItemSummary | null;
-  component_type?: string | null;
-  component_name?: string | null;
-  component_icon?: string | null;
-  component_rarity?: string | null;
+  item_id: string;
+  component: CanonicalItemSummary | null;
+};
+
+export type RecyclingSourceRow = {
+  source_item_id: string;
+  component_id: string;
+  quantity: number;
+  source: CanonicalItemSummary | null;
 };
 
 export type UsedInRow = {
   product_item_id: string;
   quantity: number;
-  product?: CanonicalItemSummary | null;
+  product: CanonicalItemSummary | null;
 };
 
 export type RepairSanityCheck = {

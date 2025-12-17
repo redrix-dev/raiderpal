@@ -1,47 +1,58 @@
-import { createSupabaseServerClient } from "./db/server";
+import { VIEW_CONTRACTS, type MetadataRow } from "./db/contracts";
+import { queryView, queryViewMaybeSingle } from "./db/query";
 import type {
   CanonicalItem,
   CanonicalItemSummary,
   CraftingComponentRow,
   RecyclingOutputRow,
+  RecyclingSourceRow,
   UsedInRow,
 } from "./db/types";
 
-const METADATA_VIEW = "rp_view_metadata";
-const CRAFTING_VIEW = "rp_view_crafting_normalized";
-const RECYCLING_VIEW = "rp_view_recycling_outputs";
-
-function mapMetadata(row: Record<string, any>): CanonicalItemSummary {
+function mapMetadata(row: MetadataRow): CanonicalItemSummary {
   return {
-    id: String(row.id),
-    name: row.name ?? row.id ?? null,
+    id: row.id,
+    name: row.name ?? row.id,
     description: row.description ?? null,
     item_type: row.item_type ?? null,
     rarity: row.rarity ?? null,
     icon: row.icon ?? null,
-    value: typeof row.value === "number" ? row.value : row.value ?? null,
+    value: row.value ?? null,
     workbench: row.workbench ?? null,
     loot_area: row.loot_area ?? null,
   };
 }
 
+function mapMetadataRows(rows: MetadataRow[]): CanonicalItemSummary[] {
+  return rows.map(mapMetadata);
+}
+
+function dedupeIds(ids: string[]): string[] {
+  return Array.from(new Set(ids.filter(Boolean)));
+}
+
+function buildMetaById(rows: CanonicalItemSummary[]) {
+  return new Map(rows.map((row) => [row.id, row]));
+}
+
+async function fetchMetadataByIds(ids: string[]): Promise<CanonicalItemSummary[]> {
+  if (ids.length === 0) return [];
+
+  const rows = await queryView(VIEW_CONTRACTS.metadata, (q) =>
+    q.in("id", dedupeIds(ids))
+  );
+
+  return mapMetadataRows(rows);
+}
+
 export async function getCanonicalItemById(
   id: string
 ): Promise<CanonicalItem | null> {
-  const supabase = createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from(METADATA_VIEW)
-    .select(
-      "id, name, description, item_type, rarity, icon, value, workbench, loot_area"
-    )
-    .eq("id", id)
-    .maybeSingle();
+  const row = await queryViewMaybeSingle(VIEW_CONTRACTS.metadata, (q) =>
+    q.eq("id", id)
+  );
 
-  if (error) {
-    throw new Error(`getCanonicalItemById failed for ${id}: ${error.message}`);
-  }
-
-  return data ? (mapMetadata(data) as CanonicalItem) : null;
+  return row ? (mapMetadata(row) as CanonicalItem) : null;
 }
 
 export type ListItemFilters = {
@@ -55,39 +66,31 @@ export type ListItemFilters = {
 export async function listCanonicalItems(
   filters: ListItemFilters = {}
 ): Promise<CanonicalItemSummary[]> {
-  const supabase = createSupabaseServerClient();
-  let query = supabase
-    .from(METADATA_VIEW)
-    .select("id, name, item_type, rarity, icon, value, workbench, loot_area")
-    .order("name", { ascending: true });
+  const rows = await queryView(VIEW_CONTRACTS.metadata, (q) => {
+    let next = q.order("name", { ascending: true });
 
-  if (filters.search) {
-    const q = `%${filters.search.trim()}%`;
-    query = query.or(
-      `name.ilike.${q},item_type.ilike.${q},loot_area.ilike.${q}`
-    );
-  }
+    if (filters.search) {
+      const query = `%${filters.search.trim()}%`;
+      next = next.or(`name.ilike.${query},item_type.ilike.${query},loot_area.ilike.${query}`);
+    }
 
-  if (filters.rarity) {
-    query = query.eq("rarity", filters.rarity);
-  }
+    if (filters.rarity) {
+      next = next.eq("rarity", filters.rarity);
+    }
 
-  if (filters.itemType) {
-    query = query.eq("item_type", filters.itemType);
-  }
+    if (filters.itemType) {
+      next = next.eq("item_type", filters.itemType);
+    }
 
-  if (typeof filters.limit === "number") {
-    const from = filters.offset ?? 0;
-    query = query.range(from, from + filters.limit - 1);
-  }
+    if (typeof filters.limit === "number") {
+      const from = filters.offset ?? 0;
+      next = next.range(from, from + filters.limit - 1);
+    }
 
-  const { data, error } = await query;
+    return next;
+  });
 
-  if (error) {
-    throw new Error(`listCanonicalItems failed: ${error.message}`);
-  }
-
-  return (data ?? []).map(mapMetadata);
+  return mapMetadataRows(rows);
 }
 
 export async function searchCanonicalItems(
@@ -100,130 +103,57 @@ export async function getItemsByIds(
   ids: string[]
 ): Promise<CanonicalItemSummary[]> {
   if (!ids.length) return [];
-
-  const supabase = createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from(METADATA_VIEW)
-    .select("id, name, item_type, rarity, icon, value, workbench, loot_area")
-    .in("id", ids);
-
-  if (error) {
-    throw new Error(`getItemsByIds failed: ${error.message}`);
-  }
-
-  return (data ?? []).map(mapMetadata);
+  return fetchMetadataByIds(dedupeIds(ids));
 }
 
 export async function getCraftingForItem(
   itemId: string
 ): Promise<CraftingComponentRow[]> {
-  const supabase = createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from(CRAFTING_VIEW)
-    .select("item_id, component_item_id, quantity")
-    .eq("item_id", itemId)
-    .order("component_item_id", { ascending: true });
-
-  if (error) {
-    throw new Error(`getCraftingForItem failed for ${itemId}: ${error.message}`);
-  }
-
-  const componentIds = Array.from(
-    new Set((data ?? []).map((row) => row.component_item_id).filter(Boolean))
+  const rows = await queryView(VIEW_CONTRACTS.crafting, (q) =>
+    q.eq("item_id", itemId).order("component_id", { ascending: true })
   );
-  const components = await getItemsByIds(componentIds);
-  const metaById = new Map(components.map((c) => [c.id, c]));
 
-  return (data ?? []).map((row) => {
-    const component = metaById.get(row.component_item_id ?? "");
-    return {
-      item_id: row.item_id,
-      component_item_id: row.component_item_id,
-      quantity: Number(row.quantity ?? 0),
-      component,
-      component_name:
-        component?.name ??
-        (row as { component_name?: string | null })?.component_name ??
-        null,
-      component_icon: component?.icon ?? null,
-      component_rarity:
-        component?.rarity ??
-        (row as { component_rarity?: string | null })?.component_rarity ??
-        null,
-      component_type:
-        (row as { component_type?: string | null })?.component_type ??
-        component?.item_type ??
-        null,
-    };
-  });
+  const components = await fetchMetadataByIds(dedupeIds(rows.map((row) => row.component_id)));
+  const metaById = buildMetaById(components);
+
+  return rows.map((row) => ({
+    item_id: row.item_id,
+    component_id: row.component_id,
+    quantity: row.total_quantity,
+    component: metaById.get(row.component_id) ?? null,
+  }));
 }
 
 export async function getRecyclingForItem(
   itemId: string
 ): Promise<RecyclingOutputRow[]> {
-  const supabase = createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from(RECYCLING_VIEW)
-    .select("source_item_id, component_item_id, quantity")
-    .eq("source_item_id", itemId)
-    .order("component_item_id", { ascending: true });
-
-  if (error) {
-    throw new Error(`getRecyclingForItem failed for ${itemId}: ${error.message}`);
-  }
-
-  const componentIds = Array.from(
-    new Set((data ?? []).map((row) => row.component_item_id).filter(Boolean))
+  const rows = await queryView(VIEW_CONTRACTS.recycling, (q) =>
+    q.eq("item_id", itemId).order("component_id", { ascending: true })
   );
-  const components = await getItemsByIds(componentIds);
-  const metaById = new Map(components.map((c) => [c.id, c]));
 
-  return (data ?? []).map((row) => {
-    const component = metaById.get(row.component_item_id ?? "");
-    return {
-      source_item_id: row.source_item_id,
-      component_item_id: row.component_item_id,
-      component_id: row.component_item_id,
-      quantity: Number(row.quantity ?? 0),
-      component,
-      component_name:
-        component?.name ??
-        (row as { component_name?: string | null })?.component_name ??
-        null,
-      component_icon: component?.icon ?? null,
-      component_rarity:
-        component?.rarity ??
-        (row as { component_rarity?: string | null })?.component_rarity ??
-        null,
-      component_type:
-        (row as { component_type?: string | null })?.component_type ??
-        component?.item_type ??
-        null,
-    };
-  });
+  const components = await fetchMetadataByIds(dedupeIds(rows.map((row) => row.component_id)));
+  const metaById = buildMetaById(components);
+
+  return rows.map((row) => ({
+    item_id: row.item_id,
+    component_id: row.component_id,
+    quantity: row.quantity,
+    component: metaById.get(row.component_id) ?? null,
+  }));
 }
 
 export async function getRecyclingIdSets(): Promise<{
   needableIds: string[];
   haveableIds: string[];
 }> {
-  const supabase = createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from(RECYCLING_VIEW)
-    .select("source_item_id, component_item_id");
-
-  if (error) {
-    throw new Error(`getRecyclingIdSets failed: ${error.message}`);
-  }
+  const rows = await queryView(VIEW_CONTRACTS.recycling);
 
   const needableIds = new Set<string>();
   const haveableIds = new Set<string>();
 
-  for (const row of data ?? []) {
-    const sourceId = row.source_item_id as string | null;
-    const componentId = row.component_item_id as string | null;
-    if (componentId) needableIds.add(componentId);
-    if (sourceId) haveableIds.add(sourceId);
+  for (const row of rows) {
+    if (row.component_id) needableIds.add(row.component_id);
+    if (row.item_id) haveableIds.add(row.item_id);
   }
 
   return {
@@ -234,66 +164,35 @@ export async function getRecyclingIdSets(): Promise<{
 
 export async function getBestSourcesForItem(
   componentId: string
-): Promise<RecyclingOutputRow[]> {
-  const supabase = createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from(RECYCLING_VIEW)
-    .select("source_item_id, component_item_id, quantity")
-    .eq("component_item_id", componentId)
-    .order("quantity", { ascending: false });
-
-  if (error) {
-    throw new Error(
-      `getBestSourcesForItem failed for ${componentId}: ${error.message}`
-    );
-  }
-
-  const sourceIds = Array.from(
-    new Set((data ?? []).map((row) => row.source_item_id).filter(Boolean))
+): Promise<RecyclingSourceRow[]> {
+  const rows = await queryView(VIEW_CONTRACTS.recycling, (q) =>
+    q.eq("component_id", componentId).order("quantity", { ascending: false })
   );
-  const sources = await getItemsByIds(sourceIds);
-  const metaById = new Map(sources.map((c) => [c.id, c]));
 
-  return (data ?? []).map((row) => ({
-    source_item_id: row.source_item_id,
-    component_item_id: row.component_item_id,
-    component_id: row.component_item_id,
-    quantity: Number(row.quantity ?? 0),
-    component: metaById.get(row.source_item_id ?? ""),
-    component_name:
-      metaById.get(row.source_item_id ?? "")?.name ??
-      (row as { source_name?: string | null })?.source_name ??
-      null,
-    component_icon: metaById.get(row.source_item_id ?? "")?.icon ?? null,
-    component_rarity: metaById.get(row.source_item_id ?? "")?.rarity ?? null,
-    component_type:
-      (row as { component_type?: string | null })?.component_type ??
-      metaById.get(row.source_item_id ?? "")?.item_type ??
-      null,
+  const sourceIds = dedupeIds(rows.map((row) => row.item_id));
+  const sources = await fetchMetadataByIds(sourceIds);
+  const metaById = buildMetaById(sources);
+
+  return rows.map((row) => ({
+    source_item_id: row.item_id,
+    component_id: row.component_id,
+    quantity: row.quantity,
+    source: metaById.get(row.item_id) ?? null,
   }));
 }
 
 export async function getUsedInForItem(itemId: string): Promise<UsedInRow[]> {
-  const supabase = createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from(CRAFTING_VIEW)
-    .select("item_id, component_item_id, quantity")
-    .eq("component_item_id", itemId)
-    .order("item_id", { ascending: true });
-
-  if (error) {
-    throw new Error(`getUsedInForItem failed for ${itemId}: ${error.message}`);
-  }
-
-  const productIds = Array.from(
-    new Set((data ?? []).map((row) => row.item_id).filter(Boolean))
+  const rows = await queryView(VIEW_CONTRACTS.crafting, (q) =>
+    q.eq("component_id", itemId).order("item_id", { ascending: true })
   );
-  const products = await getItemsByIds(productIds);
-  const metaById = new Map(products.map((c) => [c.id, c]));
 
-  return (data ?? []).map((row) => ({
+  const productIds = dedupeIds(rows.map((row) => row.item_id));
+  const products = await fetchMetadataByIds(productIds);
+  const metaById = buildMetaById(products);
+
+  return rows.map((row) => ({
     product_item_id: row.item_id,
-    quantity: Number(row.quantity ?? 0),
-    product: metaById.get(row.item_id ?? ""),
+    quantity: row.total_quantity,
+    product: metaById.get(row.item_id) ?? null,
   }));
 }

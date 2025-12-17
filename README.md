@@ -25,7 +25,7 @@ The UI is built in Next.js and deployed automatically through Vercel.
 
 **Data flow:**
 
-`MetaForge CDN → Supabase Edge Function → Supabase DB → Next.js (Vercel)`
+`MetaForge CDN -> Supabase Edge Function -> Supabase DB -> Next.js (Vercel)`
 
 No authentication, tracking, or client-side data collection.
 
@@ -33,12 +33,19 @@ No authentication, tracking, or client-side data collection.
 
 ## Tech Stack
 
-- **Next.js (App Router)** – frontend + API routes  
-- **React** – UI components  
-- **Tailwind CSS** – styling  
-- **Supabase** – Postgres, Edge Functions  
-- **Vercel** – hosting, CI/CD, preview deployments  
-- **TypeScript** – type safety  
+- **Next.js (App Router)** - frontend + API routes  
+- **React** - UI components  
+- **Tailwind CSS** - styling  
+- **Supabase** - Postgres, Edge Functions  
+- **Vercel** - hosting, CI/CD, preview deployments  
+- **TypeScript** - type safety  
+
+## Docs
+
+- App-side architecture: docs/AppArchitecture.md
+- Database architecture (authoritative): docs/raiderpal_db_architecture.md
+- Refactor notes: REFactorNotes.md
+- Data contracts: docs/contracts.md
 
 ---
 

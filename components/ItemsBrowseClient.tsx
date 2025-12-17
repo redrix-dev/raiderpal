@@ -6,7 +6,12 @@ import { ItemCard, RarityBadge } from "@/components/ItemCard";
 import { useCachedJson } from "@/hooks/useCachedJson";
 import { useRaidReminders } from "@/hooks/useRaidReminders";
 import { useAppVersion } from "@/hooks/useAppVersion";
-import { craftingDataSchema, craftingResponseSchema } from "@/lib/apiSchemas";
+import {
+  craftingDataSchema,
+  craftingResponseSchema,
+  recyclingDataSchema,
+  recyclingResponseSchema,
+} from "@/lib/apiSchemas";
 import type {
   CanonicalItemSummary,
   CraftingComponentRow,
@@ -114,6 +119,8 @@ export function ItemsBrowseClient({
       version: cacheVersion,
       enabled: Boolean(selectedItem),
       disableCache: true,
+      responseSchema: recyclingResponseSchema,
+      dataSchema: recyclingDataSchema,
     }
   );
 
@@ -382,7 +389,7 @@ export function ItemsBrowseClient({
                   ) : (
                     <ul className="space-y-1">
                       {details.crafting.map((c, idx) => {
-                        const componentId = c.component_item_id ?? c.component?.id;
+                        const componentId = c.component_id ?? c.component?.id;
                         return (
                           <li
                             key={`${componentId ?? "component"}-${idx}`}
@@ -412,7 +419,7 @@ export function ItemsBrowseClient({
                     <ul className="space-y-1">
                       {details.recycling.map((r, idx) => {
                         const componentId =
-                          r.component_item_id ?? r.component?.id ?? `component-${idx}`;
+                          r.component_id ?? r.component?.id ?? `component-${idx}`;
                         return (
                           <li
                             key={`${componentId}-${idx}`}

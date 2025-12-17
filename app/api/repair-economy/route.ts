@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { listRepairableItems } from "@/lib/data";
-import { jsonError, jsonOk } from "@/lib/http";
+import { repairEconomyDataSchema } from "@/lib/apiSchemas";
+import { assertResponseShape, jsonErrorFromException, jsonOk } from "@/lib/http";
 
 export const revalidate = 3600; // refresh hourly to align with data syncs
 export const runtime = "nodejs";
@@ -8,11 +9,11 @@ export const runtime = "nodejs";
 export async function GET(_req: NextRequest) {
   try {
     const data = await listRepairableItems();
-    return jsonOk(data, 200, {
+    const validated = assertResponseShape(repairEconomyDataSchema, data);
+    return jsonOk(validated, 200, {
       "Cache-Control": "public, max-age=300, stale-while-revalidate=3300",
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-    return jsonError(message, 500);
+    return jsonErrorFromException(err);
   }
 }

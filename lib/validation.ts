@@ -121,7 +121,7 @@ class ArraySchema<T> extends BaseSchema<T[]> {
   }
 }
 
-type Shape = Record<string, Schema<any>>;
+type Shape = Record<string, Schema<unknown>>;
 
 type InferShape<S extends Shape> = {
   [K in keyof S]: S[K] extends Schema<infer U> ? U : never;
@@ -153,7 +153,7 @@ class ObjectSchema<S extends Shape> extends BaseSchema<InferShape<S>> {
   }
 }
 
-class UnionSchema<S extends readonly Schema<any>[]> extends BaseSchema<
+class UnionSchema<S extends readonly Schema<unknown>[]> extends BaseSchema<
   S[number] extends Schema<infer U> ? U : never
 > {
   constructor(private readonly schemas: S) {
@@ -161,11 +161,12 @@ class UnionSchema<S extends readonly Schema<any>[]> extends BaseSchema<
   }
 
   safeParse(input: unknown): SafeParseResult<S[number] extends Schema<infer U> ? U : never> {
+    type UnionOutput = S[number] extends Schema<infer U> ? U : never;
     const errors: string[] = [];
 
     for (const schema of this.schemas) {
       const res = schema.safeParse(input);
-      if (res.success) return res;
+      if (res.success) return res as SafeParseSuccess<UnionOutput>;
       errors.push(res.error);
     }
 
@@ -178,11 +179,11 @@ export const z = {
   number: () => new NumberSchema(),
   literal: <T extends string | number | boolean>(value: T) =>
     new LiteralSchema(value),
-  array: <TSchema extends Schema<any>>(schema: TSchema) => new ArraySchema(schema),
+  array: <T>(schema: Schema<T>) => new ArraySchema<T>(schema),
   object: <S extends Shape>(shape: S) => new ObjectSchema(shape),
-  union: <S extends readonly Schema<any>[]>(schemas: S) => new UnionSchema(schemas),
+  union: <S extends readonly Schema<unknown>[]>(schemas: S) => new UnionSchema(schemas),
 };
 
-export type Infer<TSchema extends Schema<any>> = TSchema extends Schema<infer U>
+export type Infer<TSchema extends Schema<unknown>> = TSchema extends Schema<infer U>
   ? U
   : never;
