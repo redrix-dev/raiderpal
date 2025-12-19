@@ -1,4 +1,11 @@
-// components/ItemsBrowseClient.tsx
+/**
+ * @fileoverview Client component for browsing and searching items
+ *
+ * Interactive item browser with search, filtering, pagination, and preview modals.
+ * Displays item cards in a grid with rarity filtering and text search capabilities.
+ * Includes modal dialogs showing crafting recipes and recycling outputs.
+ */
+
 "use client";
 
 import Image from "next/image";
@@ -20,21 +27,51 @@ import type {
   RecyclingOutputRow,
 } from "@/lib/data/client";
 
+/**
+ * Extended item type for browse display with optional workbench info
+ */
 export type BrowseItem = CanonicalItemSummary & { workbench?: string | null };
 
+/**
+ * Props for the ItemsBrowseClient component
+ */
 type ItemsBrowseClientProps = {
+  /** Initial items to display before any filtering */
   initialItems: BrowseItem[];
+  /** Data version for cache invalidation */
   dataVersion?: number | string | null;
 };
 
+/**
+ * Preview details shown in the modal dialog
+ */
 type PreviewDetails = {
+  /** Crafting components required to build the item */
   crafting: CraftingComponentRow[];
+  /** Recycling outputs when breaking down the item */
   recycling: RecyclingOutputRow[];
 };
 
-const rarityOrder = ["Legendary", "Epic", "Rare", "Uncommon", "Common"];
+/**
+ * Rarity filter options
+ */
 type RarityFilter = "all" | NonNullable<BrowseItem["rarity"]>;
 
+const rarityOrder = ["Legendary", "Epic", "Rare", "Uncommon", "Common"];
+
+/**
+ * Client component for interactive item browsing
+ *
+ * Features:
+ * - Text search across item names, types, and loot areas
+ * - Rarity-based filtering
+ * - Paginated grid display
+ * - Modal previews with crafting/recycling details
+ * - Raid reminder integration
+ *
+ * @param props - Component props
+ * @returns React component
+ */
 export function ItemsBrowseClient({
   initialItems,
   dataVersion,
@@ -53,6 +90,9 @@ export function ItemsBrowseClient({
   const pageSize = 20;
   const visiblePageCount = 5;
 
+  /**
+   * Available rarity options derived from initial items
+   */
   const rarityOptions = useMemo(() => {
     const set = new Set<string>();
     for (const item of initialItems) {
@@ -67,6 +107,9 @@ export function ItemsBrowseClient({
     return values;
   }, [initialItems]);
 
+  /**
+   * Items filtered by search query and rarity
+   */
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
 
@@ -99,6 +142,9 @@ export function ItemsBrowseClient({
     (_, i) => pageWindowStart + i
   );
 
+  /**
+   * Fetches crafting data for the selected item
+   */
   const {
     data: craftingData,
     loading: craftingLoading,
@@ -113,6 +159,9 @@ export function ItemsBrowseClient({
     }
   );
 
+  /**
+   * Fetches recycling data for the selected item
+   */
   const {
     data: recyclingData,
     loading: recyclingLoading,
@@ -127,6 +176,9 @@ export function ItemsBrowseClient({
     }
   );
 
+  /**
+   * Combined preview details for the modal
+   */
   const details = useMemo<PreviewDetails | null>(() => {
     if (!selectedItem) return null;
     return {
@@ -137,6 +189,10 @@ export function ItemsBrowseClient({
 
   const loadingDetails = craftingLoading || recyclingLoading;
 
+  /**
+   * Opens the item preview modal
+   * @param item - Item to preview
+   */
   function handleOpenPreview(item: BrowseItem) {
     if (typeof document !== "undefined") {
       lastFocusedRef.current = document.activeElement as HTMLElement | null;
@@ -144,6 +200,9 @@ export function ItemsBrowseClient({
     setSelectedItem(item);
   }
 
+  /**
+   * Closes the item preview modal
+   */
   function handleClosePreview() {
     setSelectedItem(null);
   }

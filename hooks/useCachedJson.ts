@@ -1,3 +1,11 @@
+/**
+ * @fileoverview React hook for cached JSON fetching
+ *
+ * Provides a React-friendly interface to the client cache system with loading states,
+ * error handling, and cache management. Automatically handles data fetching on mount
+ * and provides refetch capabilities.
+ */
+
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -8,23 +16,43 @@ import {
 import type { ApiResponse } from "@/lib/http";
 import type { Schema } from "@/lib/validation";
 
+/**
+ * Options for configuring the cached JSON hook
+ */
 type UseCachedJsonOptions<T> = {
+  /** Version identifier for cache invalidation */
   version?: string | number;
+  /** Time-to-live in milliseconds */
   ttlMs?: number;
+  /** Initial data to display before fetch completes */
   initialData?: T;
+  /** Whether to enable the hook (default: true) */
   enabled?: boolean;
+  /** Skip caching entirely */
   disableCache?: boolean;
+  /** Schema to validate the full API response */
   responseSchema?: Schema<ApiResponse<T>>;
+  /** Schema to validate just the data portion */
   dataSchema?: Schema<T>;
 };
 
+/**
+ * Options for refetching data
+ */
 type RefetchOptions = {
+  /** Clear cache before refetching */
   bustCache?: boolean;
 };
 
 /**
- * Thin wrapper around cachedFetchJson that tracks loading/error state
- * and allows optional cache busting.
+ * React hook for fetching and caching JSON data
+ *
+ * Manages loading states, error handling, and cache invalidation for API calls.
+ * Automatically fetches on mount and provides manual refetch capabilities.
+ *
+ * @param url - API endpoint URL to fetch from (null disables the hook)
+ * @param opts - Configuration options for fetching and caching
+ * @returns Object with data, loading state, error, and refetch function
  */
 export function useCachedJson<T>(
   url: string | null,
@@ -49,6 +77,10 @@ export function useCachedJson<T>(
     dataRef.current = data;
   }, [data]);
 
+  /**
+   * Fetches JSON data with optional cache busting
+   * @param options - Refetch configuration options
+   */
   const fetchJson = useCallback(
     async (options?: RefetchOptions) => {
       if (!url || !enabled) {

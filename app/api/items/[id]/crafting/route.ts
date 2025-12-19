@@ -1,3 +1,12 @@
+/**
+ * @fileoverview API route for fetching crafting recipes for items
+ *
+ * GET /api/items/[id]/crafting
+ *
+ * Returns the crafting components required to build a specific item.
+ * Includes component metadata and quantities for UI display.
+ */
+
 import { craftingDataSchema, itemParamsSchema } from "@/lib/apiSchemas";
 import { getCanonicalItemById, getCraftingForItem } from "@/lib/data";
 import {
@@ -10,9 +19,23 @@ import {
 } from "@/lib/http";
 import type { NextRequest } from "next/server";
 
+/**
+ * Revalidate cached responses every 24 hours
+ */
 export const revalidate = 86400; // refresh daily
+
+/**
+ * Force Node.js runtime for database operations
+ */
 export const runtime = "nodejs";
 
+/**
+ * GET handler for item crafting data
+ *
+ * @param _req - The incoming request (unused)
+ * @param context - Route context containing URL parameters
+ * @returns JSON response with crafting data or error
+ */
 export async function GET(
   _req: NextRequest,
   { params }: RouteContext<{ id: string }>

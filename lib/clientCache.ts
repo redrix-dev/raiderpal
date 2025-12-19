@@ -1,5 +1,10 @@
-// lib/clientCache.ts
-// Simple localStorage-backed JSON fetch cache to reduce repeat hits on API routes.
+/**
+ * @fileoverview Client-side caching utility for Raider Pal
+ *
+ * Provides localStorage-backed JSON caching with TTL, versioning, and debug events.
+ * Reduces API calls by caching responses and automatically invalidating stale data.
+ * Includes development-only debug panel integration for cache monitoring.
+ */
 
 import { apiResponseSchema } from "@/lib/apiSchemas";
 import { CACHE } from "@/lib/constants";
@@ -9,7 +14,9 @@ import type { Schema } from "@/lib/validation";
 const CACHE_PREFIX = "rp_cache_v1:";
 const LONG_CACHE_KEY = "rp_long_cache_enabled";
 
-// Debug event system (dev only)
+/**
+ * Cache event types for debug monitoring
+ */
 type CacheEvent = {
   type: "HIT" | "MISS" | "EXPIRED" | "STORED" | "CLEARED";
   url: string;
@@ -19,6 +26,10 @@ type CacheEvent = {
 
 const cacheEvents: CacheEvent[] = [];
 
+/**
+ * Emits a cache event for debug monitoring (development only)
+ * @param event - The cache event to emit
+ */
 function emitCacheEvent(event: CacheEvent) {
   if (typeof window === "undefined") return;
   if (process.env.NODE_ENV !== "development") return;
@@ -27,36 +38,65 @@ function emitCacheEvent(event: CacheEvent) {
   window.dispatchEvent(new CustomEvent("cache-debug", { detail: event }));
 }
 
+/**
+ * Gets all cache events for debug display
+ * @returns Array of cache events
+ */
 export function getCacheEvents() {
   if (typeof window === "undefined") return [];
   return cacheEvents;
 }
 
+/**
+ * Clears the cache events log
+ */
 export function clearCacheEvents() {
   if (typeof window === "undefined") return;
   cacheEvents.length = 0;
 }
 
+/**
+ * Options for cached fetch operations
+ */
 type CacheOptions<T> = {
+  /** Time-to-live in milliseconds */
   ttlMs?: number;
+  /** Version identifier for cache invalidation */
   version?: string | number;
+  /** Skip caching entirely */
   disableCache?: boolean;
+  /** Schema to validate the full API response */
   responseSchema?: Schema<ApiResponse<T>>;
+  /** Schema to validate just the data portion */
   dataSchema?: Schema<T>;
 };
 
+/**
+ * Cached entry structure stored in localStorage
+ */
 type CachedEntry<T> = {
   ts: number;
   data: T;
   version?: string | number;
 };
 
+/**
+ * Generates a unique cache key for a URL and version
+ * @param url - The URL being cached
+ * @param version - Optional version identifier
+ * @returns Cache key string
+ */
 function getCacheKey(url: string, version?: string | number) {
   // Version becomes part of the key, so a version bump guarantees a new fetch.
   const v = version === undefined ? "nov" : String(version);
   return `${CACHE_PREFIX}${v}:${url}`;
 }
 
+/**
+ * Reads a cached entry from localStorage
+ * @param key - Cache key to read
+ * @returns Parsed cache entry or null if not found/invalid
+ */
 function readCache<T>(key: string): CachedEntry<T> | null {
   if (typeof window === "undefined") return null;
   try {
@@ -68,6 +108,11 @@ function readCache<T>(key: string): CachedEntry<T> | null {
   }
 }
 
+/**
+ * Writes a cache entry to localStorage
+ * @param key - Cache key to write
+ * @param value - Cache entry to store
+ */
 function writeCache<T>(key: string, value: CachedEntry<T>) {
   if (typeof window === "undefined") return;
   try {
@@ -77,6 +122,10 @@ function writeCache<T>(key: string, value: CachedEntry<T>) {
   }
 }
 
+/**
+ * Checks if user prefers long cache durations
+ * @returns True if long cache is enabled
+ */
 function prefersLongCache(): boolean {
   if (typeof window === "undefined") return false;
   try {
@@ -86,6 +135,12 @@ function prefersLongCache(): boolean {
   }
 }
 
+/**
+ * Coerces unknown payload into API response format
+ * @param payload - Raw response payload
+ * @returns Parsed API response
+ * @throws Error if payload doesn't match expected format
+ */
 function coerceApiResponse<T>(payload: unknown): ApiResponse<T> {
   if (payload && typeof payload === "object" && "success" in payload) {
     const { success, data } = payload as { success: unknown; data?: unknown };
@@ -125,6 +180,16 @@ function coerceApiResponse<T>(payload: unknown): ApiResponse<T> {
   throw new Error("Invalid API response envelope");
 }
 
+/**
+ * Fetches JSON data with intelligent caching
+ *
+ * Automatically caches responses in localStorage with TTL and version support.
+ * Handles API response validation and cache invalidation.
+ *
+ * @param url - URL to fetch
+ * @param opts - Caching and validation options
+ * @returns Promise resolving to the fetched/validated data
+ */
 export async function cachedFetchJson<T>(
   url: string,
   opts: CacheOptions<T> = {}
@@ -209,6 +274,10 @@ export async function cachedFetchJson<T>(
   return parsedData;
 }
 
+/**
+ * Sets the user's long cache preference
+ * @param enabled - Whether to enable long cache durations
+ */
 export function setLongCachePreference(enabled: boolean) {
   if (typeof window === "undefined") return;
   try {
@@ -222,10 +291,19 @@ export function setLongCachePreference(enabled: boolean) {
   }
 }
 
+/**
+ * Gets the current long cache preference
+ * @returns True if long cache is enabled
+ */
 export function getLongCachePreference(): boolean {
   return prefersLongCache();
 }
 
+/**
+ * Clears a specific cached entry or all versions of a URL
+ * @param url - URL to clear from cache
+ * @param version - Specific version to clear (clears all if undefined)
+ */
 export function clearCachedEntry(url: string, version?: string | number) {
   if (typeof window === "undefined") return;
   try {
@@ -256,6 +334,10 @@ export function clearCachedEntry(url: string, version?: string | number) {
   }
 }
 
+/**
+ * Gets statistics about the current cache state
+ * @returns Cache statistics or null if unavailable
+ */
 export function getCacheStats() {
   if (typeof window === "undefined") return null;
 

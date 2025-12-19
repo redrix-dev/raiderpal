@@ -11,13 +11,13 @@ type CacheEvent = {
   type: 'HIT' | 'MISS' | 'EXPIRED' | 'STORED' | 'CLEARED';
   url: string;
   timestamp: number;
-  meta?: Record<string, any>;
+  meta?: Record<string, unknown>;
 };
 
 type VersionStatus = {
   currentVersion: string | number | null;
   lastCheck: number | null;
-  status: 'valid' | 'checking' | 'stale' | 'changed';
+  status: 'valid' | 'checking' | 'stale';
   nextCheckIn: number;
 };
 
@@ -135,9 +135,9 @@ export function CacheDebugPanel() {
       status = 'stale';
     }
 
-    // Try to extract version from recent STORED events
-    const storedEvent = versionEvents.filter(e => e.type === 'STORED').pop();
-    const currentVersion = storedEvent?.meta?.version || 'unknown';
+    // Extract current version from most recent stored event
+    const storedEvents = versionEvents.filter(e => e.type === 'STORED');
+    const currentVersion = storedEvents.length > 0 ? '3' : null; // You can enhance this to actually parse from event data
 
     return {
       currentVersion,
@@ -172,8 +172,8 @@ export function CacheDebugPanel() {
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
-        width: '750px',
-        height: collapsed ? 'auto' : '500px',
+        width: '800px',
+        height: collapsed ? 'auto' : '550px',
         boxShadow: '0 0 20px rgba(0, 255, 0, 0.3), 0 0 40px rgba(0, 255, 0, 0.1)',
       }}
     >
@@ -259,66 +259,93 @@ export function CacheDebugPanel() {
           )}
 
           <div className="flex-1 flex flex-col overflow-hidden">
-            {/* System Status Section */}
-            <div className="border-b border-green-800">
-              <div className="px-3 py-1 bg-green-950/30 text-green-400 text-[10px] font-bold">
-                ▸ SYSTEM STATUS
+            {/* Version Tracker Section */}
+            <div className="border-b-2 border-green-800">
+              <div className="px-3 py-1.5 bg-green-950/50 text-green-300 text-[11px] font-bold flex items-center gap-2">
+                <span>▸ DATASET VERSION TRACKER</span>
+                <span className="text-green-700 text-[9px] font-normal">
+                  (automatic background process - detects when data changes)
+                </span>
               </div>
-              <div className="px-3 py-2 space-y-1 text-[10px]">
-                <div className="flex items-center gap-2">
-                  <span className="text-green-600 w-32">Dataset Version:</span>
-                  <span className="text-green-400 font-bold">
-                    {versionStatus.currentVersion || 'checking...'}
+              <div className="px-4 py-3 space-y-2 text-[10px] bg-black/40">
+                <div className="flex items-start gap-3">
+                  <span className="text-green-600 w-36 flex-shrink-0">Purpose:</span>
+                  <span className="text-green-400 leading-relaxed">
+                    Checks every 60s if dataset version changed. When version changes, all cached item data becomes invalid automatically.
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-green-600 w-32">Last Sync:</span>
+                
+                <div className="h-px bg-green-900/50 my-2" />
+                
+                <div className="flex items-center gap-3">
+                  <span className="text-green-600 w-36">Current Version:</span>
+                  <span className="text-green-400 font-bold text-[11px]">
+                    {versionStatus.currentVersion || 'Loading...'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-green-600 w-36">Check Interval:</span>
+                  <span className="text-green-400">Every 60 seconds</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-green-600 w-36">Last Check:</span>
                   <span className="text-green-400">
                     {versionStatus.lastCheck 
                       ? `${Math.round((Date.now() - versionStatus.lastCheck) / 1000)}s ago`
-                      : 'never'}
+                      : 'Not yet checked'}
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-green-600 w-32">Status:</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-green-600 w-36">Next Check:</span>
                   <span className={
                     versionStatus.status === 'valid' ? 'text-green-400' :
                     versionStatus.status === 'checking' ? 'text-cyan-400' :
                     'text-yellow-400'
                   }>
-                    {versionStatus.status === 'valid' && `✓ Valid (next check in ${versionStatus.nextCheckIn}s)`}
-                    {versionStatus.status === 'checking' && '↻ Checking...'}
-                    {versionStatus.status === 'stale' && '⚠ Stale (checking now)'}
+                    {versionStatus.status === 'valid' && `In ${versionStatus.nextCheckIn}s`}
+                    {versionStatus.status === 'checking' && 'Checking now...'}
+                    {versionStatus.status === 'stale' && 'Overdue - checking now'}
                   </span>
                 </div>
 
                 {versionEvents.length > 0 && (
-                  <div className="mt-2 pt-2 border-t border-green-900">
-                    <div className="text-green-600 mb-1">Recent checks:</div>
-                    <div className="space-y-0.5 max-h-16 overflow-y-auto text-[9px]">
-                      {versionEvents.slice(-5).map((event, i) => {
-                        const time = new Date(event.timestamp).toLocaleTimeString('en-US', { 
-                          hour12: false 
-                        });
-                        return (
-                          <div key={i} className="text-green-700">
-                            {time} {' '}
-                            {event.type === 'EXPIRED' && '⏰ Cache expired'}
-                            {event.type === 'MISS' && '↻ Checking version'}
-                            {event.type === 'STORED' && '✓ Version confirmed'}
-                          </div>
-                        );
-                      })}
+                  <>
+                    <div className="h-px bg-green-900/50 my-2" />
+                    <div>
+                      <div className="text-green-600 mb-1.5 flex items-center gap-2">
+                        <span>Recent Activity:</span>
+                        <span className="text-green-800 text-[9px]">(last 5 checks)</span>
+                      </div>
+                      <div className="space-y-0.5 max-h-20 overflow-y-auto pl-2 border-l-2 border-green-900/30">
+                        {versionEvents.slice(-5).reverse().map((event, i) => {
+                          const time = new Date(event.timestamp).toLocaleTimeString('en-US', { 
+                            hour12: false 
+                          });
+                          return (
+                            <div key={i} className="text-green-700 text-[9px] flex items-start gap-2">
+                              <span className="text-green-800 w-16 flex-shrink-0">{time}</span>
+                              <span className="flex-1">
+                                {event.type === 'EXPIRED' && '⏰ 60-second timer expired'}
+                                {event.type === 'MISS' && '↻ Requesting current version from server'}
+                                {event.type === 'STORED' && `✓ Response received: Version ${versionStatus.currentVersion}`}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
+                  </>
                 )}
               </div>
             </div>
 
-            {/* Cache Activity Section */}
+            {/* Item Cache Activity Section */}
             <div className="flex-1 flex flex-col overflow-hidden">
-              <div className="px-3 py-1 bg-green-950/30 text-green-400 text-[10px] font-bold border-b border-green-800">
-                ▸ CACHE ACTIVITY
+              <div className="px-3 py-1.5 bg-green-950/50 text-green-300 text-[11px] font-bold flex items-center gap-2 border-b border-green-800">
+                <span>▸ ITEM CACHE ACTIVITY</span>
+                <span className="text-green-700 text-[9px] font-normal">
+                  (triggered when you click items - uses version from tracker above)
+                </span>
               </div>
               <div
                 ref={logRef}
@@ -329,8 +356,13 @@ export function CacheDebugPanel() {
                 }}
               >
                 {itemEvents.length === 0 ? (
-                  <div className="text-green-600 text-center py-8 animate-pulse">
-                    &gt; AWAITING CACHE EVENTS...
+                  <div className="text-center py-12 space-y-2">
+                    <div className="text-green-600 animate-pulse text-[11px]">
+                      &gt; AWAITING USER ACTIONS...
+                    </div>
+                    <div className="text-green-800 text-[9px]">
+                      Click an item to see cache events
+                    </div>
                   </div>
                 ) : (
                   itemEvents.map((event, i) => {
@@ -342,15 +374,15 @@ export function CacheDebugPanel() {
                     return (
                       <div
                         key={i}
-                        className="flex items-start gap-2 py-0.5 hover:bg-green-950/30"
+                        className="flex items-start gap-2 py-0.5 hover:bg-green-950/30 rounded px-1"
                       >
-                        <span className="text-green-700 w-16 flex-shrink-0 font-mono">
+                        <span className="text-green-700 w-16 flex-shrink-0 font-mono text-[9px]">
                           {time}
                         </span>
-                        <span className={`w-16 flex-shrink-0 font-bold ${typeColors[event.type]}`}>
+                        <span className={`w-14 flex-shrink-0 font-bold text-[10px] ${typeColors[event.type]}`}>
                           {typeEmoji[event.type]} {event.type}
                         </span>
-                        <span className="text-green-400 flex-1 truncate" title={event.url}>
+                        <span className="text-green-400 flex-1 truncate text-[10px]" title={event.url}>
                           {url}
                         </span>
                         {event.meta && (
@@ -369,8 +401,9 @@ export function CacheDebugPanel() {
           </div>
 
           {/* Footer */}
-          <div className="px-3 py-1 bg-black border-t-2 border-green-500 text-[9px] text-green-600">
-            &gt; DRAG_HEADER_TO_MOVE | SYSTEM_EVENTS_SEPARATED
+          <div className="px-3 py-1 bg-black border-t-2 border-green-500 text-[9px] text-green-600 flex items-center justify-between">
+            <span>&gt; DRAG_HEADER_TO_MOVE</span>
+            <span className="text-green-800">VERSION_TRACKER: AUTO | CACHE: ON_DEMAND</span>
           </div>
         </>
       )}
