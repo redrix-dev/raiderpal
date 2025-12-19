@@ -40,7 +40,6 @@ graph TD
 - Item detail (`app/items/[id]/page.tsx`): Server-rendered detail view combining `ItemHero`, `ItemStatsPanel`, and `ItemDetailsTabs`. Data pulled directly from `lib/data` without an API hop.
 - Recycle Helper (`app/recycle-helper/page.tsx`): Server wrapper feeds items and id sets; `components/RecycleHelperClient.tsx` owns mode switching (Need vs Have), filters, and results, and fetches row-level data with `useCachedJson`.
 - Repair/Replace Calculator (`app/repair-calculator/page.tsx`): Server wrapper provides repairable items; `components/RepairCalculatorClient.tsx` runs `computeRepairSummary` and renders CostCards for per-cycle, crafting, recycling, and net costs.
-- Repair & Recycle Breakdown (`app/repair-breakdown/page.tsx`): Server wrapper; `components/RepairBreakdownClient.tsx` renders grouped repair/recycle tables for all items at once.
 
 ## Data and state on the UI
 - Server vs client: Pages fetch initial data on the server via `lib/data/**` repositories. Client components fetch incremental detail via `/api/items/*` using `useCachedJson` plus schemas from `lib/apiSchemas.ts`.

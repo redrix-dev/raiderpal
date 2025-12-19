@@ -53,12 +53,6 @@ graph TD
   RepairCalculatorClient
   ]
 
-  RepairBreak[
-  Repair and Recycle Breakdown
-  /repair-breakdown
-  RepairBreakdownClient
-  ]
-
   BrowseParts[
   SearchControls
   PaginationControls
@@ -79,11 +73,6 @@ graph TD
   computeRepairSummary
   ]
 
-  RepairBreakParts[
-  CostCard tables
-  listRepairableItems
-  ]
-
   Shell --> Header
   Shell --> Routes
 
@@ -92,9 +81,7 @@ graph TD
   Routes --> Browse
   Routes --> Recycle
   Routes --> RepairCalc
-  Routes --> RepairBreak
 
   Browse --> BrowseParts
   Recycle --> RecycleParts
   RepairCalc --> RepairCalcParts
-  RepairBreak --> RepairBreakParts

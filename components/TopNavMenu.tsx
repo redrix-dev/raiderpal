@@ -12,7 +12,6 @@ const links = [
   { label: "Item Browser", href: "/items/browse" },
   { label: "Recycle Helper", href: "/recycle-helper" },
   { label: "Repair or Replace Calculator", href: "/repair-calculator" },
-  { label: "Repair & Recycle Breakdown", href: "/repair-breakdown" },
 ];
 
 export function TopNavMenu() {

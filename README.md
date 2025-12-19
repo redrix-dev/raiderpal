@@ -38,11 +38,11 @@ Live site: https://raiderpal.vercel.app
 
 ## UI map
 
-- Home tiles route to Item Browser, Recycle Helper, Repair/Replace Calculator, and Repair Breakdown (`app/page.tsx`).
+- Home tiles route to Item Browser, Recycle Helper, and Repair/Replace Calculator (`app/page.tsx`).
 - Item Browser (`app/items/browse/page.tsx` + `ItemsBrowseClient`) handles search, rarity filters, pagination, and per-item previews.
 - Item Detail (`app/items/[id]/page.tsx`) stitches metadata, stats, and crafting/recycling/sources/used-in tabs.
-- Recycle Helper (`app/recycle-helper/page.tsx` + `RecycleHelperClient`) flips between “Need” and “Have” modes with mode-specific filters.
-- Repair tools (`app/repair-calculator`, `app/repair-breakdown`) render repair math via shared cost cards.
+- Recycle Helper (`app/recycle-helper/page.tsx` + `RecycleHelperClient`) flips between "Need" and "Have" modes with mode-specific filters.
+- Repair Calculator (`app/repair-calculator`) renders repair math via shared cost cards.
 - UI ownership and composition diagrams live under `docs/mermaid_diagrams/` (e.g., `ui-route-and-composition.md`, `ui-ownership-index.md`).
 
 ---
