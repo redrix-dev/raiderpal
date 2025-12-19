@@ -14,13 +14,14 @@ Live site: https://raiderpal.vercel.app
 
 ---
 
-## Architecture highlights (the “why”)
+## Architecture highlights (the "why")
 
 - **Server owns data; clients fetch via API envelopes** – DB access lives in `lib/data/**` (see `docs/app-architecture.md`) to avoid leaking keys and to centralize business logic and schema validation.
+- **Security-first design** – Input sanitization on search filters, ID parameter validation with character whitelisting, comprehensive security headers middleware (CSP, X-Frame-Options, etc.), and LRU cache eviction for localStorage quota handling.
 - **Views are contracts** – the app only consumes `rp_view_*` shapes; see `docs/contracts.md` and `docs/raiderpal-db-architecture.md` for the rationale and invariants.
 - **Metadata enrichment instead of ad-hoc fields** – repositories attach `metaById` to rows so UI never guesses names/icons/rarity.
-- **Version-aware caching** – `useCachedJson` + `useAppVersion` keep client fetches aligned with `rp_dataset_version`; long-term cache toggle is exposed in the header.
-- **Tools are modular** – each feature is its own page + client component (`ItemsBrowseClient`, `RecycleHelperClient`, `RepairCalculatorClient`, etc.) so new calculators can be added without touching existing flows.
+- **Version-aware caching** – `useCachedJson` + `useAppVersion` keep client fetches aligned with `rp_dataset_version`; long-term cache toggle is exposed in the header. Client cache includes LRU eviction policy for graceful localStorage quota handling.
+- **Tools are modular** – each feature is its own page + client component (`ItemsBrowseClient`, `RecycleHelperClient`, `RepairCalculatorClient`, etc.) composed from reusable building blocks (`SearchControls`, `PaginationControls`, `PreviewModal`) so new calculators can be added without touching existing flows.
 
 ---
 

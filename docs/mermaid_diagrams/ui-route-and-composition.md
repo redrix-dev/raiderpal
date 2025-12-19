@@ -60,8 +60,10 @@ graph TD
   ]
 
   BrowseParts[
+  SearchControls
+  PaginationControls
   ItemCard grid
-  Preview modal
+  PreviewModal
   useCachedJson to api items
   ]
 

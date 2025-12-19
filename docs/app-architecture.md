@@ -224,6 +224,21 @@ Example: user views an item detail page.
 6. API validates output and returns `{ success: true, data }`.
 7. Client validates response and renders.
 
+## Security Layer
+
+### Middleware
+- **Security headers**: `middleware.ts` applies defense-in-depth headers to all responses
+  - X-Content-Type-Options: nosniff
+  - X-Frame-Options: DENY
+  - X-XSS-Protection: 1; mode=block
+  - Referrer-Policy: strict-origin-when-cross-origin
+  - Content-Security-Policy with restrictive defaults
+
+### Input Validation
+- **Search sanitization**: `lib/data/items.repo.ts` validates search inputs with character whitelist (`/^[\w\s\-'.]*$/`) to prevent PostgREST DSL injection
+- **ID validation**: `lib/apiSchemas.ts` restricts ID parameters to 255 characters max and alphanumeric/underscore/hyphen characters via enhanced validation library
+- **Schema validation**: All API inputs and outputs validated against schemas
+
 ## Evidence (File References)
 - Centralized relation names: `lib/data/db/contracts.ts`
 - Query + validation behavior: `lib/data/db/query.ts`
@@ -234,6 +249,9 @@ Example: user views an item detail page.
 - Server component direct repository usage: `app/items/[id]/page.tsx`
 - Client cached fetch usage: `hooks/useCachedJson.ts`
 - Client schema-validated usage: `components/ItemsBrowseClient.tsx`
+- Security middleware: `middleware.ts`
+- Input validation: `lib/data/items.repo.ts`, `lib/apiSchemas.ts`, `lib/validation.ts`
+- Cache eviction: `lib/clientCache.ts`
 
 This flow isolates responsibilities, reduces data drift risk, and improves clarity for future refactors.
 

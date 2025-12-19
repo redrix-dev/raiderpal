@@ -30,12 +30,13 @@ graph TD
 - Actions: `components/ui/Button.tsx`, `components/PrimaryButton.tsx`, `components/TwoOptionToggle.tsx`.
 - Item display: `components/ItemCard.tsx` (list/grid card + rarity badge), `components/ItemHero.tsx` (large hero with description), `components/ItemStatsPanel.tsx` (value/type/workbench/loot badge stack), `components/SelectedItemSummary.tsx` (compact header with icon and rarity).
 - Pickers & tables: `components/ItemPicker.tsx` (searchable dropdown), `components/ItemDetailsTabs.tsx` (crafting/recycling/sources/used-in tabs), `components/costs.tsx` (CostCard + helpers for recipe rows).
+- Search & navigation: `components/SearchControls.tsx` (search input + filter dropdown), `components/PaginationControls.tsx` (page navigation with window), `components/PreviewModal.tsx` (item detail modal with focus management).
 - Layout helpers: `components/Sidebar.tsx`, `components/ToolPanel.tsx`, `components/ModulePanel.tsx` are the common shells to keep spacing consistent.
 
 ## Page owners (where to edit)
 - Home (`app/page.tsx`): Landing tiles built with `ModulePanel` + `PrimaryButton` links. Add/remove tools here.
 - Item list (`app/items/page.tsx`): Minimal server page; renders `ItemsList` (client-side search of provided items).
-- Item browser (`app/items/browse/page.tsx`): Server wrapper fetches item summaries + dataset version. UI lives in `components/ItemsBrowseClient.tsx` (search, rarity filter, pagination, preview modal with crafting/recycling fetched via `useCachedJson`).
+- Item browser (`app/items/browse/page.tsx`): Server wrapper fetches item summaries + dataset version. UI lives in `components/ItemsBrowseClient.tsx` (refactored from 557 to 292 lines) which composes `SearchControls`, `PaginationControls`, and `PreviewModal`. Modal fetches crafting/recycling data via `useCachedJson`.
 - Item detail (`app/items/[id]/page.tsx`): Server-rendered detail view combining `ItemHero`, `ItemStatsPanel`, and `ItemDetailsTabs`. Data pulled directly from `lib/data` without an API hop.
 - Recycle Helper (`app/recycle-helper/page.tsx`): Server wrapper feeds items and id sets; `components/RecycleHelperClient.tsx` owns mode switching (Need vs Have), filters, and results, and fetches row-level data with `useCachedJson`.
 - Repair/Replace Calculator (`app/repair-calculator/page.tsx`): Server wrapper provides repairable items; `components/RepairCalculatorClient.tsx` runs `computeRepairSummary` and renders CostCards for per-cycle, crafting, recycling, and net costs.
