@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, staging]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+        env:
+          # Add any env vars your build needs; remove if none required
+          # NEXT_PUBLIC_...: ${{ secrets.NEXT_PUBLIC_... }}
+          SUPABASE_URL: ${{ secrets.REPO_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.REPO_ANON_KEY }}
+          NEXT_TELEMETRY_DISABLED: 1
