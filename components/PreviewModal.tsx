@@ -80,9 +80,10 @@ export function PreviewModal({
 
   // Restore focus when modal closes
   useEffect(() => {
+    const elementToFocus = lastFocusedRef.current;
     return () => {
-      if (lastFocusedRef.current) {
-        lastFocusedRef.current.focus();
+      if (elementToFocus) {
+        elementToFocus.focus();
       }
     };
   }, [lastFocusedRef]);
