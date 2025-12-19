@@ -42,6 +42,8 @@ class StringSchema extends BaseSchema<string> {
     private readonly opts: {
       trim?: boolean;
       min?: number;
+      max?: number;
+      pattern?: RegExp;
       message?: string;
     } = {}
   ) {
@@ -56,6 +58,14 @@ class StringSchema extends BaseSchema<string> {
     return new StringSchema({ ...this.opts, min: length, message });
   }
 
+  max(length: number, message?: string) {
+    return new StringSchema({ ...this.opts, max: length, message });
+  }
+
+  regex(pattern: RegExp, message?: string) {
+    return new StringSchema({ ...this.opts, pattern, message });
+  }
+
   safeParse(input: unknown): SafeParseResult<string> {
     if (typeof input !== "string") {
       return { success: false, error: "Expected string" };
@@ -68,6 +78,21 @@ class StringSchema extends BaseSchema<string> {
         success: false,
         error:
           this.opts.message ?? `Expected at least ${this.opts.min} characters`,
+      };
+    }
+
+    if (this.opts.max !== undefined && value.length > this.opts.max) {
+      return {
+        success: false,
+        error:
+          this.opts.message ?? `Expected at most ${this.opts.max} characters`,
+      };
+    }
+
+    if (this.opts.pattern !== undefined && !this.opts.pattern.test(value)) {
+      return {
+        success: false,
+        error: this.opts.message ?? "String does not match required pattern",
       };
     }
 

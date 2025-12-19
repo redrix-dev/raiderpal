@@ -122,7 +122,13 @@ export async function listCanonicalItems(
     let next = q.order("name", { ascending: true });
 
     if (filters.search) {
-      const query = `%${filters.search.trim()}%`;
+      const sanitized = filters.search.trim();
+      // Whitelist validation: only allow alphanumeric, spaces, hyphens, apostrophes, and periods
+      // This prevents PostgREST DSL injection via special characters
+      if (!/^[\w\s\-'.]*$/.test(sanitized)) {
+        throw new Error("Search query contains invalid characters");
+      }
+      const query = `%${sanitized}%`;
       next = next.or(`name.ilike.${query},item_type.ilike.${query},loot_area.ilike.${query}`);
     }
 

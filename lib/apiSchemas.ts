@@ -30,7 +30,12 @@ export const apiResponseSchema = <TData>(
   z.union([apiSuccessSchema(dataSchema), apiErrorSchema]);
 
 export const itemParamsSchema = z.object({
-  id: z.string().trim().min(1, "Missing or invalid id"),
+  id: z
+    .string()
+    .trim()
+    .min(1, "Missing or invalid id")
+    .max(255, "ID exceeds maximum length")
+    .regex(/^[a-zA-Z0-9_-]+$/, "ID contains invalid characters"),
 });
 
 export const itemSummarySchema = z.object({

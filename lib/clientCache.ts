@@ -109,16 +109,96 @@ function readCache<T>(key: string): CachedEntry<T> | null {
 }
 
 /**
- * Writes a cache entry to localStorage
+ * Gets all cache keys sorted by access time (oldest first)
+ * @returns Array of cache keys sorted by timestamp
+ */
+function getCacheKeysByAge(): Array<{ key: string; ts: number }> {
+  if (typeof window === "undefined") return [];
+  const entries: Array<{ key: string; ts: number }> = [];
+
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(CACHE_PREFIX)) {
+        try {
+          const raw = localStorage.getItem(key);
+          if (raw) {
+            const entry = JSON.parse(raw) as CachedEntry<unknown>;
+            entries.push({ key, ts: entry.ts });
+          }
+        } catch {
+          // Skip invalid entries
+        }
+      }
+    }
+  } catch {
+    return [];
+  }
+
+  // Sort by timestamp ascending (oldest first)
+  entries.sort((a, b) => a.ts - b.ts);
+  return entries;
+}
+
+/**
+ * Evicts the oldest cache entries to free up space
+ * @param minToEvict - Minimum number of entries to evict
+ */
+function evictOldestEntries(minToEvict: number = 5) {
+  if (typeof window === "undefined") return;
+
+  const entries = getCacheKeysByAge();
+  const toEvict = Math.max(minToEvict, Math.floor(entries.length * 0.2)); // Evict at least 20% or minToEvict
+
+  for (let i = 0; i < toEvict && i < entries.length; i++) {
+    try {
+      localStorage.removeItem(entries[i].key);
+      emitCacheEvent({
+        type: "CLEARED",
+        url: entries[i].key,
+        timestamp: Date.now(),
+        meta: { reason: "quota-eviction" },
+      });
+    } catch {
+      // Continue evicting even if one fails
+    }
+  }
+}
+
+/**
+ * Writes a cache entry to localStorage with LRU eviction on quota exceeded
  * @param key - Cache key to write
  * @param value - Cache entry to store
  */
 function writeCache<T>(key: string, value: CachedEntry<T>) {
   if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    // Swallow errors (storage full / disabled)
+
+  let retries = 0;
+  const maxRetries = 2;
+
+  while (retries <= maxRetries) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+      return; // Success
+    } catch (error) {
+      // Check if it's a quota exceeded error
+      const isQuotaError =
+        error instanceof DOMException &&
+        (error.name === "QuotaExceededError" ||
+          error.name === "NS_ERROR_DOM_QUOTA_REACHED");
+
+      if (isQuotaError && retries < maxRetries) {
+        // Try evicting old entries and retry
+        evictOldestEntries(5);
+        retries++;
+      } else {
+        // Either not a quota error, or we've exhausted retries
+        if (process.env.NODE_ENV === "development") {
+          console.warn(`Failed to write cache entry for ${key}:`, error);
+        }
+        return;
+      }
+    }
   }
 }
 
