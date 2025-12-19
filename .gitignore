@@ -45,3 +45,13 @@ scripts/generate_expensive_repair.sql
 docs/data_pipeline.md
 *storybook.log
 storybook-static
+
+# local temp files
+cachingAdjustmentDiff
+
+# additional common ignores
+.cache/
+*.tmp
+*.bak
+*~
+Thumbs.db

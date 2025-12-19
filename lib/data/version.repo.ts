@@ -1,5 +1,5 @@
 import { VIEW_CONTRACTS } from "./db/contracts";
-import { queryViewMaybeSingle } from "./db/query";
+import { queryView, queryViewMaybeSingle } from "./db/query";
 
 export type AppMetadataRow = {
   id: string;
@@ -12,11 +12,23 @@ export async function getDataVersion(): Promise<AppMetadataRow | null> {
     q.eq("id", "global")
   );
 
-  if (!row) return null;
+  const resolved =
+    row ??
+    (await queryView(VIEW_CONTRACTS.datasetVersion, (q) => q.limit(1)))[0] ??
+    null;
+
+  if (!resolved) return null;
+
+  if (!row && resolved.id !== "global") {
+    console.warn(
+      "[version] dataset version row missing expected id 'global'; using fallback row",
+      { resolvedId: resolved.id }
+    );
+  }
 
   return {
-    id: row.id,
-    version: row.version,
-    last_synced_at: row.last_synced_at,
+    id: resolved.id,
+    version: resolved.version,
+    last_synced_at: resolved.last_synced_at,
   };
 }

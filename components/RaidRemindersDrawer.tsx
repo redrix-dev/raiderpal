@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { RarityBadge } from "./ItemCard";
 import {
@@ -17,6 +18,8 @@ type Props = {
 export function RaidRemindersDrawer({ open, onClose }: Props) {
   const [mounted, setMounted] = useState(false);
   const [portalEl, setPortalEl] = useState<HTMLElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const lastFocusedRef = useRef<HTMLElement | null>(null);
   const {
     items,
     sort,
@@ -32,6 +35,17 @@ export function RaidRemindersDrawer({ open, onClose }: Props) {
       setPortalEl(document.body);
     }
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    if (typeof document !== "undefined") {
+      lastFocusedRef.current = document.activeElement as HTMLElement | null;
+    }
+    closeButtonRef.current?.focus();
+    return () => {
+      lastFocusedRef.current?.focus();
+    };
+  }, [open]);
 
   if (!mounted || !open || !portalEl) return null;
 
@@ -71,6 +85,7 @@ export function RaidRemindersDrawer({ open, onClose }: Props) {
             <button
               type="button"
               onClick={onClose}
+              ref={closeButtonRef}
               className="rounded-full p-2 text-warm hover:text-white hover:bg-slate-800/80 focus:outline-none focus:ring-2 focus:ring-[#4fc1e9]"
               aria-label="Close reminders"
             >
@@ -153,19 +168,23 @@ function ReminderRow({
     <div className="rounded-lg border border-slate-800 bg-panel-texture p-3 shadow-sm">
       <div className="flex items-start gap-3">
         {item.icon && (
-          <img
+          <Image
             src={item.icon}
             alt={item.name}
+            width={48}
+            height={48}
+            sizes="48px"
+            loading="lazy"
             className="h-12 w-12 rounded border border-slate-800 bg-slate-950 object-contain"
           />
         )}
         <div className="flex-1 min-w-0 space-y-1">
           <div className="flex items-start gap-2">
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-semibold text-warm truncate">
+              <div className="text-sm font-semibold text-text-primary truncate">
                 {item.name}
               </div>
-              <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-warm-muted font-medium">
+              <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-text-muted font-medium">
                 <RarityBadge rarity={item.rarity} />
                 {item.lootLocation && (
                   <span className="inline-flex items-center gap-1">

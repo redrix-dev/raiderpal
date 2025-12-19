@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { recyclingDataSchema, itemParamsSchema } from "@/lib/apiSchemas";
-import { getRecyclingForItem } from "@/lib/data";
+import { getCanonicalItemById, getRecyclingForItem } from "@/lib/data";
 import {
   assertResponseShape,
   formatValidationError,
@@ -30,6 +30,10 @@ export async function GET(
   const { id } = parsedParams.data;
 
   try {
+    const item = await getCanonicalItemById(id);
+    if (!item) {
+      return jsonError("not_found", "Item not found", 404);
+    }
     const data = await getRecyclingForItem(id);
     const validated = assertResponseShape(recyclingDataSchema, data);
 

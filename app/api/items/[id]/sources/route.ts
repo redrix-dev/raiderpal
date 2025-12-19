@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { itemParamsSchema, sourcesDataSchema } from "@/lib/apiSchemas";
-import { getBestSourcesForItem } from "@/lib/data";
+import { getBestSourcesForItem, getCanonicalItemById } from "@/lib/data";
 import {
   assertResponseShape,
   formatValidationError,
@@ -30,6 +30,10 @@ export async function GET(
   const { id } = parsedParams.data;
 
   try {
+    const item = await getCanonicalItemById(id);
+    if (!item) {
+      return jsonError("not_found", "Item not found", 404);
+    }
     const sources = await getBestSourcesForItem(id);
     const validated = assertResponseShape(sourcesDataSchema, sources);
 

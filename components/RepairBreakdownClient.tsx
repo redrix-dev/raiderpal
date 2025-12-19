@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import {
   type RepairableItem,
@@ -58,6 +59,8 @@ export function RepairBreakdownClient({ items }: Props) {
         name: entry.item.name,
         icon: entry.item.icon,
         rarity: entry.item.rarity ?? undefined,
+        itemType: entry.item.item_type ?? undefined,
+        lootArea: entry.item.loot_area ?? undefined,
         subtitle: entry.profile.max_durability
           ? `Max durability: ${entry.profile.max_durability}`
           : null,
@@ -159,7 +162,7 @@ export function RepairBreakdownClient({ items }: Props) {
   return (
     <ModulePanel title="Repair & Recipe Breakdown">
       <div className="space-y-6">
-        <p className="text-base text-warm">
+        <p className="text-base text-text-primary">
           Inspect the manual repair recipe for each item, including per-cycle
           costs and the total components needed to reach max durability.
         </p>
@@ -167,7 +170,7 @@ export function RepairBreakdownClient({ items }: Props) {
         <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr] items-start">
           <Card className="space-y-6 h-full flex flex-col overflow-visible">
             <div className="space-y-3">
-              <label className="text-base text-warm font-semibold">
+              <label className="text-base text-text-primary font-semibold">
                 Select item
               </label>
               <ItemPicker
@@ -176,14 +179,14 @@ export function RepairBreakdownClient({ items }: Props) {
                 onChange={(id) => setSelectedId(id)}
                 placeholder="Select an item..."
                 triggerClassName="h-11 text-base"
-                dropdownClassName="md:w-[420px]"
+                dropdownClassName="md:w-[420px] 2xl:[.ui-compact_&]:w-full"
               />
             </div>
 
             <div className="space-y-3">
-              <label className="text-base text-warm font-semibold flex items-center justify-between">
+              <label className="text-base text-text-primary font-semibold flex items-center justify-between">
                 <span>Current durability</span>
-                <span className="text-xs text-warm-muted">{durability}</span>
+                <span className="text-xs text-text-muted">{durability}</span>
               </label>
               <input
                 type="range"
@@ -192,22 +195,22 @@ export function RepairBreakdownClient({ items }: Props) {
                 step={selected?.profile.step_durability ?? 1}
                 value={durability}
                 onChange={(e) => setDurability(Number(e.target.value))}
-                className="w-full accent-[#4fc1e9]"
+                className="w-full accent-brand-cyan"
               />
-              <div className="text-xs text-warm-muted">
+              <div className="text-xs text-text-muted">
                 Max durability: {selected?.profile.max_durability ?? 0}
               </div>
             </div>
 
             {selected && summary && (
               <div className="rounded-lg border border-white/5 bg-black/20 p-4 space-y-3">
-                <div className="flex items-center justify-between text-sm font-semibold text-warm">
+                <div className="flex items-center justify-between text-sm font-semibold text-text-primary">
                   <span>Repair cycles to full</span>
-                  <span className="rounded-md bg-[#4fc1e9]/10 px-3 py-1 text-xs text-[#4fc1e9]">
+                  <span className="rounded-md bg-brand-cyan/10 px-3 py-1 text-xs text-brand-cyan">
                     {cycles}
                   </span>
                 </div>
-                <div className="text-xs text-warm-muted">
+                <div className="text-xs text-text-muted">
                   Step durability: {selected.profile.step_durability}
                 </div>
               </div>
@@ -244,12 +247,12 @@ export function RepairBreakdownClient({ items }: Props) {
 
         {selected && (
           <Card className="space-y-3 overflow-hidden">
-            <div className="text-base font-semibold text-warm px-4 pt-4">
+            <div className="text-base font-semibold text-text-primary px-4 pt-4">
               Recipe breakdown
             </div>
             <div className="overflow-x-auto px-2 pb-4">
-              <table className="min-w-full text-sm text-warm">
-                <thead className="text-xs uppercase text-warm-muted">
+              <table className="min-w-full text-sm text-text-primary">
+                <thead className="text-xs uppercase text-text-muted">
                   <tr>
                     <th className="px-3 py-2 text-left">Component</th>
                     <th className="px-3 py-2 text-right">Per cycle</th>
@@ -264,9 +267,13 @@ export function RepairBreakdownClient({ items }: Props) {
                         <td className="px-3 py-2">
                           <div className="flex items-center gap-2">
                             {row.component?.icon && (
-                              <img
+                              <Image
                                 src={row.component.icon}
                                 alt={row.component.name ?? row.component_id}
+                                width={32}
+                                height={32}
+                                sizes="32px"
+                                loading="lazy"
                                 className="h-8 w-8 rounded border border-white/10 bg-black/50 object-contain"
                               />
                             )}

@@ -1,7 +1,7 @@
 # RaiderPal Database Architecture (Authoritative Reference)
 
 ## Related Docs
-- App-side architecture: docs/AppArchitecture.md
+- App-side architecture: docs/app-architecture.md
 - Refactor notes: REFactorNotes.md
 - Data contracts: docs/contracts.md
 

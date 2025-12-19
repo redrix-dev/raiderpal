@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { RarityBadge } from "@/components/ItemCard";
 
 type SelectedItemSummaryProps = {
@@ -30,17 +31,21 @@ export function SelectedItemSummary({
       }
     >
       {icon && (
-        <img
+        <Image
           src={icon}
           alt={name ?? ""}
-          className="h-10 w-10 rounded border border-slate-700 bg-slate-950 object-contain"
+          width={40}
+          height={40}
+          sizes="40px"
+          loading="lazy"
+          className="h-10 w-10 rounded border border-border-subtle bg-surface-base object-contain"
         />
       )}
       <div className="min-w-0">
-        <div className="font-medium text-warm truncate">
+        <div className="font-medium text-text-primary truncate">
           {name ?? "Unnamed item"}
         </div>
-        <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-warm-muted">
+        <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-text-muted">
           {itemType && <span className="rp-pill">{itemType}</span>}
           <RarityBadge rarity={rarity ?? undefined} />
           {typeof maxDurability === "number" && (

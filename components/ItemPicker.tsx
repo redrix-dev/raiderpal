@@ -1,7 +1,8 @@
 "use client";
 
-import { useId, useMemo, useState } from "react";
-import { RarityBadge } from "@/components/ItemCard";
+import Image from "next/image";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { RarityBadge, rarityClasses } from "@/components/ItemCard";
 import { cn } from "@/lib/cn";
 
 export type PickerItem = {
@@ -9,7 +10,9 @@ export type PickerItem = {
   name: string | null;
   icon?: string | null;
   rarity?: string | null;
-  subtitle?: string | null; // e.g. item_type or "Max durability: 100"
+  itemType?: string | null;
+  lootArea?: string | null;
+  subtitle?: string | null; // e.g. "Max durability: 100"
 };
 
 type ItemPickerProps = {
@@ -32,6 +35,9 @@ export function ItemPicker({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const dropdownId = useId();
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const searchRef = useRef<HTMLInputElement | null>(null);
+  const wasOpenRef = useRef(false);
 
   const selected = items.find((i) => i.id === selectedId) ?? null;
 
@@ -49,6 +55,15 @@ export function ItemPicker({
     setQuery("");
   };
 
+  useEffect(() => {
+    if (open) {
+      searchRef.current?.focus();
+    } else if (wasOpenRef.current) {
+      triggerRef.current?.focus();
+    }
+    wasOpenRef.current = open;
+  }, [open]);
+
   return (
     <div className="relative">
       <button
@@ -57,82 +72,122 @@ export function ItemPicker({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={dropdownId}
+        ref={triggerRef}
         className={cn(
-          "w-full h-10 rounded-md border border-slate-800 bg-slate-900 px-3 py-2 text-base text-warm flex items-center justify-between focus:outline-none focus:ring-1 focus:ring-[#4fc1e9] hover:border-[#4fc1e9]",
+          "w-full h-10 2xl:[.ui-compact_&]:h-14 rounded-md border px-3 py-2 text-base 2xl:[.ui-compact_&]:text-sm text-text-primary flex items-center justify-between focus:outline-none focus:ring-1 focus:ring-brand-cyan hover:border-brand-cyan",
+          selected ? rarityClasses(selected.rarity) : "border-border-strong bg-surface-base",
           triggerClassName
         )}
       >
         <span className="flex items-center gap-2 truncate">
           {selected?.icon && (
-            <img
+            <Image
               src={selected.icon}
               alt={selected.name ?? "Selected item"}
-              className="h-6 w-6 rounded border border-slate-700 bg-slate-950 object-contain"
+              width={52}
+              height={52}
+              sizes="52px"
+              loading="lazy"
+              className="h-[52px] w-[52px] 2xl:[.ui-compact_&]:h-11 2xl:[.ui-compact_&]:w-11 rounded border border-border-subtle bg-surface-base object-contain"
             />
           )}
-          <span className="truncate">
+          <span
+            className={cn(
+              "truncate",
+              selected ? "text-text-primary" : "text-text-muted"
+            )}
+          >
             {selected?.name ?? placeholder}
           </span>
         </span>
-        <span className="ml-2 text-xs text-warm-muted">
+        <span className="ml-2 text-xs text-text-muted">
           {open ? "▲" : "▼"}
         </span>
       </button>
 
       {open && (
         <div
-          id={dropdownId}
-          role="listbox"
           className={cn(
-            "absolute z-40 left-0 top-full mt-1 w-full rounded-md border border-slate-800 bg-slate-900 shadow-lg text-xs max-h-[70vh] overflow-auto",
+            "absolute z-40 left-0 top-full mt-1 w-full rounded-md border border-border-strong bg-surface-panel shadow-lg text-xs 2xl:[.ui-compact_&]:text-[11px] max-h-[70vh] overflow-auto",
             dropdownClassName
           )}
         >
-          <div className="border-b border-slate-800 p-2 bg-slate-900/80 rounded-t-md">
+          <div className="border-b border-border-strong p-2 bg-surface-panel/80 rounded-t-md">
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Filter by name..."
-              className="w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-warm placeholder:text-warm-muted focus:outline-none focus:ring-1 focus:ring-[#4fc1e9]"
+              ref={searchRef}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  setOpen(false);
+                  setQuery("");
+                }
+              }}
+              className="w-full rounded-md border border-border-subtle bg-surface-card px-2 py-1 text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-brand-cyan"
             />
           </div>
 
           <div className="max-h-80 overflow-y-auto">
             {filtered.length === 0 ? (
-              <div className="p-3 text-xs text-warm-muted">
+              <div className="p-3 text-xs text-text-muted">
                 No items match your filters.
               </div>
             ) : (
-              <ul className="divide-y divide-slate-800 text-xs">
+              <ul className="text-xs 2xl:[.ui-compact_&]:text-[11px]">
                 {filtered.map((item) => (
-                  <li key={item.id}>
+                  <li key={item.id} className="px-2 py-1">
                     <button
                       type="button"
                       onClick={() => handleSelect(item.id)}
                       role="option"
                       aria-selected={item.id === selectedId}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-slate-900"
+                      className={cn(
+                        "group w-full flex items-center gap-3 rounded-lg border px-3 py-2.5 text-left text-sm 2xl:[.ui-compact_&]:text-sm transition-colors hover:border-brand-cyan/70 hover:bg-surface-card",
+                        rarityClasses(item.rarity)
+                      )}
                     >
                       {item.icon && (
-                        <img
+                        <Image
                           src={item.icon}
                           alt={item.name ?? "icon"}
-                          className="h-6 w-6 rounded border border-slate-700 bg-slate-950 object-contain"
+                          width={52}
+                          height={52}
+                          sizes="52px"
+                          loading="lazy"
+                          className="h-[52px] w-[52px] 2xl:[.ui-compact_&]:h-11 2xl:[.ui-compact_&]:w-11 rounded border border-border-subtle bg-surface-base object-contain"
                         />
                       )}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="truncate text-warm">
+                          <span className="truncate font-condensed font-semibold text-text-primary">
                             {item.name}
                           </span>
                           {item.rarity && (
                             <RarityBadge rarity={item.rarity} />
                           )}
                         </div>
-                        {item.subtitle && (
-                          <div className="text-[10px] text-warm-muted truncate">
-                            {item.subtitle}
+                        {(item.itemType || item.lootArea || item.subtitle) && (
+                          <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] 2xl:[.ui-compact_&]:text-[10px] text-text-muted font-medium">
+                            {item.itemType && (
+                              <span className="inline-flex items-center gap-1">
+                                <span className="w-1 h-1 rounded-full bg-slate-500" />
+                                {item.itemType}
+                              </span>
+                            )}
+                            {item.lootArea && (
+                              <span className="inline-flex items-center gap-1">
+                                <span className="w-1 h-1 rounded-full bg-[#4fc1e9]" />
+                                {item.lootArea}
+                              </span>
+                            )}
+                            {item.subtitle && (
+                              <span className="inline-flex items-center gap-1">
+                                <span className="w-1 h-1 rounded-full bg-slate-500/80" />
+                                {item.subtitle}
+                              </span>
+                            )}
                           </div>
                         )}
                       </div>

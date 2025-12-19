@@ -95,7 +95,7 @@ export function TopNavMenu() {
           onClick={handleToggleMenu}
           aria-expanded={open}
           aria-label="Toggle navigation"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-slate-800 bg-slate-900/60 text-warm transition hover:border-slate-700 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-[#4fc1e9] focus:ring-offset-2 focus:ring-offset-slate-950"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-border-strong bg-surface-base/60 text-text-primary transition hover:border-border-subtle hover:bg-surface-base focus:outline-none focus:ring-2 focus:ring-brand-cyan focus:ring-offset-2 focus:ring-offset-surface-base"
         >
           <MenuIcon open={open} />
         </button>
@@ -109,8 +109,8 @@ export function TopNavMenu() {
             className="fixed z-[100] w-56"
             style={{ top: menuPosition.top, right: menuPosition.right }}
           >
-            <div className="overflow-hidden rounded-lg border border-slate-800 bg-panel-texture shadow-2xl backdrop-blur text-warm">
-              <div className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-warm-muted">
+            <div className="overflow-hidden rounded-lg border border-border-strong bg-panel-texture shadow-2xl backdrop-blur text-text-primary">
+              <div className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
                 Navigation
               </div>
               <div className="pb-2">
@@ -125,8 +125,8 @@ export function TopNavMenu() {
                       href={link.href}
                       className={`block px-4 py-2 text-sm transition ${
                         active
-                          ? "bg-slate-900 text-warm"
-                          : "text-warm hover:bg-slate-900 hover:text-warm"
+                          ? "bg-surface-base text-text-primary"
+                          : "text-text-primary hover:bg-surface-base hover:text-text-primary"
                       }`}
                     >
                       {link.label}
@@ -135,14 +135,14 @@ export function TopNavMenu() {
                 })}
               </div>
 
-              <div className="border-t border-slate-900 pt-3 pb-4 space-y-2">
-                <div className="px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-warm-muted">
+              <div className="border-t border-border-subtle pt-3 pb-4 space-y-2">
+                <div className="px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
                   Settings
                 </div>
                 <button
                   type="button"
                   onClick={handleOpenSettings}
-                  className="block w-full text-left rounded-md px-4 py-2 text-sm text-warm transition hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#4fc1e9] focus:ring-offset-2 focus:ring-offset-slate-950"
+                  className="block w-full text-left rounded-md px-4 py-2 text-sm text-text-primary transition hover:bg-surface-base focus:outline-none focus:ring-2 focus:ring-brand-cyan focus:ring-offset-2 focus:ring-offset-surface-base"
                 >
                   Long Term Caching
                 </button>

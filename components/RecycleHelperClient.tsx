@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useMemo, useState } from "react";
 import type {
   CanonicalItemSummary,
@@ -14,6 +15,7 @@ import { ModulePanel } from "@/components/ModulePanel";
 import { ItemPicker, type PickerItem } from "@/components/ItemPicker";
 import { TwoOptionToggle } from "@/components/TwoOptionToggle";
 import { SelectedItemSummary } from "@/components/SelectedItemSummary";
+import { CACHE } from "@/lib/constants";
 import { Card } from "./ui/Card";
 
 type HelperItem = CanonicalItemSummary;
@@ -135,7 +137,8 @@ export function RecycleHelperClient({
         name: item.name,
         icon: item.icon,
         rarity: item.rarity ?? undefined,
-        subtitle: item.item_type ?? undefined,
+        itemType: item.item_type ?? undefined,
+        lootArea: item.loot_area ?? undefined,
       })),
     [filteredItems]
   );
@@ -153,9 +156,8 @@ export function RecycleHelperClient({
     selectedItemId ? `/api/items/${selectedItemId}/sources` : null,
     {
       version: cacheVersion,
-      initialData: [],
       enabled: mode === "need" && Boolean(selectedItemId),
-      disableCache: true,
+      ttlMs: CACHE.MODAL_TTL_MS,
     }
   );
 
@@ -167,9 +169,8 @@ export function RecycleHelperClient({
     selectedItemId ? `/api/items/${selectedItemId}/recycling` : null,
     {
       version: cacheVersion,
-      initialData: [],
       enabled: mode === "have" && Boolean(selectedItemId),
-      disableCache: true,
+      ttlMs: CACHE.MODAL_TTL_MS,
     }
   );
 
@@ -334,7 +335,7 @@ export function RecycleHelperClient({
       className="overflow-visible"
       bodyClassName="space-y-4"
     >
-      <p className="text-base text-warm">
+      <p className="text-base text-text-primary">
         Quickly answer two questions: what should I recycle to get a specific item, and what do I get from recycling something I already have.
       </p>
 
@@ -343,7 +344,7 @@ export function RecycleHelperClient({
         <Card>
           <div className="grid gap-3 md:grid-cols-[1.5fr_1fr] md:items-end">
             <div className="flex-1">
-              <label className="block text-sm font-medium text-warm mb-1">
+              <label className="block text-sm font-medium text-text-primary mb-1">
                 Item type
               </label>
               <select
@@ -352,7 +353,7 @@ export function RecycleHelperClient({
                   setItemTypeFilter(e.target.value);
                   setSelectedItemId("");
                 }}
-                className="w-full h-10 rounded-md border border-slate-800 bg-slate-900 px-3 py-2 text-base text-warm focus:outline-none focus:ring-1 focus:ring-[#4fc1e9] hover:border-[#4fc1e9]"
+                className="w-full h-10 rounded-md border border-border-strong bg-surface-base px-3 py-2 text-base text-text-primary focus:outline-none focus:ring-1 focus:ring-brand-cyan hover:border-brand-cyan"
               >
                 <option value="all">All types</option>
                 {itemTypes.map((t) => (
@@ -364,7 +365,7 @@ export function RecycleHelperClient({
             </div>
 
             <div className="flex-1">
-              <label className="block text-sm font-medium text-warm mb-1">
+              <label className="block text-sm font-medium text-text-primary mb-1">
                 {mode === "need"
                   ? "Item you want to obtain"
                   : "Item you want to recycle"}
@@ -419,13 +420,13 @@ export function RecycleHelperClient({
 
             <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
               <div className="w-full md:flex-1">
-                <label className="block text-sm font-medium text-warm mb-1">
+                <label className="block text-sm font-medium text-text-primary mb-1">
                   Sort results
                 </label>
                 <select
                   value={sortKey}
                   onChange={(e) => setSortKey(e.target.value as SortKey)}
-                  className="w-full h-10 rounded-md border border-slate-800 bg-slate-900 px-3 py-2 text-base text-warm focus:outline-none focus:ring-1 focus:ring-[#4fc1e9] hover:border-[#4fc1e9]"
+                  className="w-full h-10 rounded-md border border-border-strong bg-surface-base px-3 py-2 text-base text-text-primary focus:outline-none focus:ring-1 focus:ring-brand-cyan hover:border-brand-cyan"
                 >
                   <option value="quantityDesc">Quantity (high to low)</option>
                   <option value="quantityAsc">Quantity (low to high)</option>
@@ -434,12 +435,12 @@ export function RecycleHelperClient({
                 </select>
               </div>
               {mode === "need" && (
-                <label className="inline-flex items-center gap-2 h-10 px-2 text-sm text-warm md:justify-end">
+                <label className="inline-flex items-center gap-2 h-10 px-2 text-sm text-text-primary md:justify-end">
                   <input
                     type="checkbox"
                     checked={hideWeapons}
                     onChange={(e) => setHideWeapons(e.target.checked)}
-                    className="h-5 w-5 rounded border-slate-700 bg-slate-900 text-[#4fc1e9] focus:ring-[#4fc1e9]"
+                    className="h-5 w-5 rounded border-border-subtle bg-surface-base text-brand-cyan focus:ring-brand-cyan"
                   />
                   Hide weapons
                 </label>
@@ -462,7 +463,11 @@ export function RecycleHelperClient({
 
       {/* Status */}
       {loading && (
-        <div className="text-xs text-warm-muted">Loading results...</div>
+        <div className="space-y-2 animate-pulse">
+          <div className="h-3 w-40 rounded bg-white/10" />
+          <div className="h-16 w-full rounded border border-white/5 bg-black/20" />
+          <div className="h-16 w-full rounded border border-white/5 bg-black/20" />
+        </div>
       )}
       {error && (
         <div className="text-xs text-red-400">
@@ -474,7 +479,7 @@ export function RecycleHelperClient({
       {selectedItemId && !loading && !error && (
         <div className="space-y-2">
           <div className="flex items-center justify-between gap-3">
-            <div className="text-xs text-warm-muted">
+            <div className="text-xs text-text-muted">
               Select rows and add them to Raid Reminders.
             </div>
             <button
@@ -483,8 +488,8 @@ export function RecycleHelperClient({
               disabled={!hasSelection}
               className={`rounded-md px-3 py-2 text-sm font-medium border ${
                 hasSelection
-                  ? "border-[#4fc1e9]/60 bg-[#4fc1e9]/15 text-[#4fc1e9] hover:border-[#4fc1e9]"
-                  : "cursor-not-allowed border-slate-800 bg-slate-900 text-warm-muted"
+                  ? "border-brand-cyan/60 bg-brand-cyan/15 text-brand-cyan hover:border-brand-cyan"
+                  : "cursor-not-allowed border-border-strong bg-surface-base text-text-muted"
               }`}
             >
               Add to Raid Reminders
@@ -518,9 +523,13 @@ export function RecycleHelperClient({
 
                 {/* icon */}
                 {row.sourceIcon && (
-                  <img
+                  <Image
                     src={row.sourceIcon}
                     alt={row.sourceName ?? ""}
+                    width={40}
+                    height={40}
+                    sizes="40px"
+                    loading="lazy"
                     className="h-10 w-10 rounded border border-slate-700 bg-slate-950 object-contain flex-shrink-0"
                   />
                 )}
@@ -529,11 +538,11 @@ export function RecycleHelperClient({
                 <div className="flex-1 min-w-0">
                   <a
                     href={`/items/${row.sourceItemId}`}
-                    className="block text-sm text-warm font-semibold truncate hover:underline"
+                    className="block text-sm text-text-primary font-semibold truncate hover:underline"
                   >
                     {row.sourceName}
                   </a>
-                  <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-warm-muted">
+                  <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-text-muted">
                     <span>{row.sourceType ?? "Unknown"}</span>
                     <RarityBadge rarity={row.sourceRarity ?? undefined} />
                     {alreadyAdded && (
@@ -544,16 +553,16 @@ export function RecycleHelperClient({
 
                 {/* quantity on the right */}
                 <div className="flex-shrink-0 text-right">
-                  <div className="text-sm font-semibold text-warm">
+                  <div className="text-sm font-semibold text-text-primary">
                     {row.quantity ?? 0}
                   </div>
-                  <div className="text-[10px] text-warm-muted">Qty</div>
+                  <div className="text-[10px] text-text-muted">Qty</div>
                 </div>
               </div>
             );
           })
         ) : (
-          <div className="rounded-md border border-slate-800 bg-slate-900/80 p-3 text-xs text-warm-muted text-center">
+          <div className="rounded-md border border-border-strong bg-surface-base/80 p-3 text-xs text-text-muted text-center">
             No direct recycle sources found.
           </div>
         ))}
@@ -584,9 +593,13 @@ export function RecycleHelperClient({
 
                 {/* icon */}
                 {row.component?.icon && (
-                  <img
+                  <Image
                     src={row.component.icon}
                     alt={row.component?.name ?? ""}
+                    width={40}
+                    height={40}
+                    sizes="40px"
+                    loading="lazy"
                     className="h-10 w-10 rounded border border-slate-700 bg-slate-950 object-contain flex-shrink-0"
                   />
                 )}
@@ -596,16 +609,16 @@ export function RecycleHelperClient({
                     {row.component_id ? (
                       <a
                         href={`/items/${row.component_id}`}
-                        className="block text-sm text-warm font-semibold truncate hover:underline"
+                        className="block text-sm text-text-primary font-semibold truncate hover:underline"
                       >
                         {row.component?.name ?? row.component_id}
                       </a>
                     ) : (
-                      <span className="block text-sm text-warm font-semibold truncate">
+                      <span className="block text-sm text-text-primary font-semibold truncate">
                         {row.component?.name ?? "Unknown item"}
                       </span>
                     )}
-                  <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-warm-muted">
+                  <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-text-muted">
                     <span>{row.component?.item_type ?? "Unknown"}</span>
                     <RarityBadge
                       rarity={row.component?.rarity ?? undefined}
@@ -618,10 +631,10 @@ export function RecycleHelperClient({
 
                 {/* quantity on the right */}
                 <div className="flex-shrink-0 text-right">
-                  <div className="text-sm font-semibold text-warm">
+                  <div className="text-sm font-semibold text-text-primary">
                     {row.quantity ?? 0}
                   </div>
-                  <div className="text-[10px] text-warm-muted">Qty</div>
+                  <div className="text-[10px] text-text-muted">Qty</div>
                 </div>
               </div>
             );
@@ -671,9 +684,13 @@ export function RecycleHelperClient({
                       </td>
                       <td className="px-3 py-2 flex items-center gap-2">
                         {row.sourceIcon && (
-                          <img
+                          <Image
                             src={row.sourceIcon}
                             alt={row.sourceName ?? ""}
+                            width={32}
+                            height={32}
+                            sizes="32px"
+                            loading="lazy"
                             className="h-8 w-8 rounded border border-slate-700 bg-slate-950 object-contain"
                           />
                         )}
@@ -737,9 +754,13 @@ export function RecycleHelperClient({
                       </td>
                       <td className="px-3 py-2 flex items-center gap-2">
                         {row.component?.icon && (
-                          <img
+                          <Image
                             src={row.component.icon}
                             alt={row.component?.name ?? ""}
+                            width={32}
+                            height={32}
+                            sizes="32px"
+                            loading="lazy"
                             className="h-8 w-8 rounded border border-slate-700 bg-slate-950 object-contain"
                           />
                         )}

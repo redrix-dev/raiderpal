@@ -1,4 +1,5 @@
 // components/ModulePanel.tsx
+import Image from "next/image";
 import type { ReactNode } from "react";
 import { Panel } from "./ui/Panel";
 
@@ -42,12 +43,12 @@ export function ModulePanel({
     >
       <div
         className={
-          "bg-black/50 border-b border-white/10 px-6 md:px-7 py-4 " +
+          "bg-black/50 border-b border-white/10 px-6 md:px-7 py-4 2xl:[.ui-compact_&]:px-5 2xl:[.ui-compact_&]:py-3 " +
           headerClassName
         }
       >
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-2xl font-condensed font-semibold text-warm uppercase tracking-wide">
+          <h2 className="text-2xl 2xl:[.ui-compact_&]:text-xl font-condensed font-semibold text-warm uppercase tracking-wide">
             {title}
           </h2>
           {headerRight}
@@ -56,7 +57,7 @@ export function ModulePanel({
 
       <div
         className={
-          "px-6 py-6 space-y-3 " +
+          "px-6 py-6 space-y-3 2xl:[.ui-compact_&]:px-5 2xl:[.ui-compact_&]:py-4 2xl:[.ui-compact_&]:space-y-2.5 " +
           bodyClassName
         }
       >
@@ -65,9 +66,13 @@ export function ModulePanel({
               const content = (
                 <div className="flex items-center gap-3 min-w-0">
                   {row.icon && (
-                    <img
+                    <Image
                       src={row.icon}
                       alt={typeof row.label === "string" ? row.label : "Icon"}
+                      width={40}
+                      height={40}
+                      sizes="40px"
+                      loading="lazy"
                       className="h-10 w-10 rounded border border-white/10 bg-black/60 object-contain flex-shrink-0"
                     />
                   )}
@@ -81,7 +86,7 @@ export function ModulePanel({
                 <div
                   key={row.key}
                   className={
-                    "flex items-center justify-between gap-3 rounded-lg border border-white/5 bg-black/20 px-6 py-4 text-base " +
+                    "flex items-center justify-between gap-3 rounded-lg border border-white/5 bg-black/20 px-6 py-4 text-base 2xl:[.ui-compact_&]:px-5 2xl:[.ui-compact_&]:py-3 2xl:[.ui-compact_&]:text-sm " +
                     rowClassName
                   }
                 >
@@ -105,3 +110,4 @@ export function ModulePanel({
     </Panel>
   );
 }
+

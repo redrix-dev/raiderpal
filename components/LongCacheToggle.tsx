@@ -1,7 +1,7 @@
 // components/LongCacheToggle.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   getLongCachePreference,
@@ -72,6 +72,8 @@ export function LongCacheSettingsModal({
 }) {
   const { enabled, ready, setPreference } = useLongCachePreference();
   const [mounted, setMounted] = useState(false);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const lastFocusedRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -84,10 +86,20 @@ export function LongCacheSettingsModal({
       }
     }
     if (open) {
+      if (typeof document !== "undefined") {
+        lastFocusedRef.current = document.activeElement as HTMLElement | null;
+      }
+      closeButtonRef.current?.focus();
       document.addEventListener("keydown", onKey);
       return () => document.removeEventListener("keydown", onKey);
     }
   }, [open, onClose]);
+
+  useEffect(() => {
+    if (!open) {
+      lastFocusedRef.current?.focus();
+    }
+  }, [open]);
 
   if (!mounted || !open) return null;
 
@@ -116,6 +128,7 @@ export function LongCacheSettingsModal({
             <button
               type="button"
               onClick={onClose}
+              ref={closeButtonRef}
               className="rounded-full p-2 text-warm hover:text-white hover:bg-slate-800/80 focus:outline-none focus:ring-2 focus:ring-[#4fc1e9]"
               aria-label="Close settings"
             >

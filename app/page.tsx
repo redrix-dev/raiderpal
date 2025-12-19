@@ -11,7 +11,7 @@ export default function HomePage() {
         <h1 className="text-3xl font-bold tracking-wide uppercase font-condensed">
           Raider Pal
         </h1>
-        <p className="text-sm text-warm-muted max-w-2xl font-medium">
+        <p className="text-sm text-text-muted max-w-2xl font-medium">
           ARC Raiders item explorer & crafting companion.
         </p>
       </section>
@@ -19,7 +19,7 @@ export default function HomePage() {
       <section className="grid gap-4 md:grid-cols-2">
         <ModulePanel title="Item Browser" className="h-full" headerClassName="[&_>div]:justify-center [&_h2]:text-center">
           <div className="space-y-2">
-            <p className="text-sm text-warm-muted">
+            <p className="text-sm text-text-muted">
               Search and filter every known item, peek at crafting inputs and
               recycling outputs, and jump to full details.
             </p>
@@ -31,7 +31,7 @@ export default function HomePage() {
 
         <ModulePanel title="Recycle Helper" className="h-full" headerClassName="[&_>div]:justify-center [&_h2]:text-center">
           <div className="space-y-2">
-            <p className="text-sm text-warm-muted">
+            <p className="text-sm text-text-muted">
               Pick an item you need or have and get the best recycling sources or
               outputs, with loot locations and rarity at a glance.
             </p>
@@ -43,7 +43,7 @@ export default function HomePage() {
 
         <ModulePanel title="Repair or Replace Calculator" className="h-full" headerClassName="[&_>div]:justify-center [&_h2]:text-center">
           <div className="space-y-2">
-            <p className="text-sm text-warm-muted">
+            <p className="text-sm text-text-muted">
               Compare repairing versus crafting new to choose the most efficient option.
               Balance resource costs, outputs, and time to optimize your runs.
             </p>
@@ -53,7 +53,7 @@ export default function HomePage() {
           </div>
         </ModulePanel>
         <ModulePanel title="About Raider Pal" className="h-full" headerClassName="[&_>div]:justify-center [&_h2]:text-center">
-          <div className="space-y-2 text-sm text-warm">
+          <div className="space-y-2 text-sm text-text-primary">
             <p>
               A Raider simply cannot waste time pondering the best way to acquire steel springs.
               Raider Pal puts that info at your fingertips. Or...feet...tips? <em>We got you Scrappy.</em>

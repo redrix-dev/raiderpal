@@ -1,6 +1,7 @@
 // components/ItemsBrowseClient.tsx
 "use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ItemCard, RarityBadge } from "@/components/ItemCard";
 import { useCachedJson } from "@/hooks/useCachedJson";
@@ -12,6 +13,7 @@ import {
   recyclingDataSchema,
   recyclingResponseSchema,
 } from "@/lib/apiSchemas";
+import { CACHE } from "@/lib/constants";
 import type {
   CanonicalItemSummary,
   CraftingComponentRow,
@@ -46,6 +48,7 @@ export function ItemsBrowseClient({
   const { add, isAdded } = useRaidReminders();
 
   const [selectedItem, setSelectedItem] = useState<BrowseItem | null>(null);
+  const lastFocusedRef = useRef<HTMLElement | null>(null);
   const [page, setPage] = useState(1);
   const pageSize = 20;
   const visiblePageCount = 5;
@@ -104,7 +107,7 @@ export function ItemsBrowseClient({
     {
       version: cacheVersion,
       enabled: Boolean(selectedItem),
-      disableCache: true,
+      ttlMs: CACHE.MODAL_TTL_MS,
       responseSchema: craftingResponseSchema,
       dataSchema: craftingDataSchema,
     }
@@ -118,7 +121,7 @@ export function ItemsBrowseClient({
     {
       version: cacheVersion,
       enabled: Boolean(selectedItem),
-      disableCache: true,
+      ttlMs: CACHE.MODAL_TTL_MS,
       responseSchema: recyclingResponseSchema,
       dataSchema: recyclingDataSchema,
     }
@@ -135,6 +138,9 @@ export function ItemsBrowseClient({
   const loadingDetails = craftingLoading || recyclingLoading;
 
   function handleOpenPreview(item: BrowseItem) {
+    if (typeof document !== "undefined") {
+      lastFocusedRef.current = document.activeElement as HTMLElement | null;
+    }
     setSelectedItem(item);
   }
 
@@ -149,10 +155,9 @@ export function ItemsBrowseClient({
     }
   }, [selectedItem]);
 
-  // Focus management for modal: focus close button when opened
   useEffect(() => {
-    if (selectedItem && closeButtonRef.current) {
-      closeButtonRef.current.focus();
+    if (!selectedItem && lastFocusedRef.current) {
+      lastFocusedRef.current.focus();
     }
   }, [selectedItem]);
 
@@ -161,7 +166,7 @@ export function ItemsBrowseClient({
       {/* Controls */}
       <div className="flex flex-col gap-3 md:flex-row md:items-end">
         <div className="flex-1">
-          <label className="block text-xs font-medium text-warm-muted mb-1">
+          <label className="block text-xs font-medium text-text-muted mb-1">
             Search
           </label>
           <input
@@ -169,12 +174,12 @@ export function ItemsBrowseClient({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Name, type, or loot area"
-            className="w-full rounded-md border border-[#4fc1e9]/60 bg-panel-texture px-3 py-2 text-base sm:text-sm text-warm placeholder:text-warm-muted focus:outline-none focus:ring-1 focus:ring-[#4fc1e9] hover:border-[#4fc1e9]"
+            className="w-full rounded-md border border-brand-cyan/60 bg-panel-texture px-3 py-2 text-base sm:text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-brand-cyan hover:border-brand-cyan"
           />
         </div>
 
         <div className="w-full md:w-52">
-          <label className="block text-xs font-medium text-warm-muted mb-1">
+          <label className="block text-xs font-medium text-text-muted mb-1">
             Rarity
           </label>
           <select
@@ -328,9 +333,13 @@ export function ItemsBrowseClient({
             <div className="flex items-start justify-between gap-3 mb-3">
               <div className="flex items-center gap-3">
                 {selectedItem.icon && (
-                  <img
+                  <Image
                     src={selectedItem.icon}
                     alt={selectedItem.name ?? "Item icon"}
+                    width={40}
+                    height={40}
+                    sizes="40px"
+                    loading="lazy"
                     className="h-10 w-10 rounded border border-slate-700 bg-slate-900 object-contain"
                   />
                 )}
@@ -372,7 +381,11 @@ export function ItemsBrowseClient({
 
             {/* Details loading / content */}
             {loadingDetails && (
-              <div className="text-xs text-warm-muted">Loading details…</div>
+              <div className="space-y-2 animate-pulse">
+                <div className="h-3 w-32 rounded bg-white/10" />
+                <div className="h-3 w-44 rounded bg-white/10" />
+                <div className="h-3 w-28 rounded bg-white/10" />
+              </div>
             )}
 
             {!loadingDetails && details && (

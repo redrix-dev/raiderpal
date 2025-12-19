@@ -1,7 +1,8 @@
 export const CACHE = {
   DEFAULT_TTL_MS: 60 * 60 * 1000, // 1 hour
-  LONG_TTL_MS: 30 * 24 * 60 * 60 * 1000, // 30 days
+  LONG_TTL_MS: Infinity, // version-gated keys make TTL redundant
   VERSION_TTL_MS: 60 * 1000, // 1 minute
+  MODAL_TTL_MS: 15 * 60 * 1000, // 15 minutes for item previews
 } as const;
 
 export const QUERY = {

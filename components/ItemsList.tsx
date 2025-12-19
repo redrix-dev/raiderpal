@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import type { CanonicalItemSummary } from "@/lib/data/client";
 
@@ -36,9 +37,13 @@ export default function ItemsList({ initialItems }: ItemsListProps) {
             >
               {/* Icon */}
               {item.icon && (
-                <img
+                <Image
                   src={item.icon}
                   alt={item.name ?? "Item icon"}
+                  width={40}
+                  height={40}
+                  sizes="40px"
+                  loading="lazy"
                   className="w-10 h-10 rounded border border-slate-700 bg-slate-950"
                 />
               )}

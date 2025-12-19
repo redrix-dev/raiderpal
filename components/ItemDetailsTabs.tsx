@@ -1,6 +1,7 @@
 // components/ItemDetailsTabs.tsx
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import type {
   CraftingComponentRow,
@@ -162,9 +163,13 @@ function TabList<TRow>({ rows, emptyText, mapRow }: TabListProps<TRow>) {
               className="flex items-center gap-3 min-w-0 text-warm hover:underline"
             >
               {row.icon && (
-                <img
+                <Image
                   src={row.icon}
                   alt={row.name}
+                  width={40}
+                  height={40}
+                  sizes="40px"
+                  loading="lazy"
                   className="h-10 w-10 rounded border border-white/10 bg-black/60 object-contain flex-shrink-0"
                 />
               )}

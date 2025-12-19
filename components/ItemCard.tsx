@@ -1,4 +1,5 @@
 // components/ItemCard.tsx
+import Image from "next/image";
 import Link from "next/link";
 
 export type ItemCardProps = {
@@ -17,20 +18,20 @@ export type ItemCardProps = {
   ariaControls?: string;
 };
 
-function rarityClasses(rarity?: string | null) {
+export function rarityClasses(rarity?: string | null) {
   switch (rarity) {
     case "Common":
-      return "border-slate-600 bg-slate-900/70";
+      return "border-border-subtle bg-surface-card/70";
     case "Uncommon":
       return "border-emerald-600/70 bg-emerald-950/40";
     case "Rare":
-      return "border-[#4fc1e9]/70 bg-[#4fc1e9]/10";
+      return "border-brand-cyan/70 bg-brand-cyan/10";
     case "Epic":
       return "border-purple-600/70 bg-purple-950/40";
     case "Legendary":
       return "border-amber-500/80 bg-amber-950/40";
     default:
-      return "border-slate-700 bg-slate-900/60";
+      return "border-border-subtle bg-surface-card/60";
   }
 }
 
@@ -58,9 +59,13 @@ export function ItemCard({ item, onClick, action, ariaControls }: ItemCardProps)
     >
       {/* Icon */}
       {item.icon && (
-        <img
+        <Image
           src={item.icon}
           alt={item.name ?? "Item icon"}
+          width={36}
+          height={36}
+          sizes="36px"
+          loading="lazy"
           className="h-9 w-9 rounded border border-slate-700 bg-slate-900 object-contain"
         />
       )}

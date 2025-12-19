@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { itemParamsSchema, usedInDataSchema } from "@/lib/apiSchemas";
-import { getUsedInForItem } from "@/lib/data";
+import { getCanonicalItemById, getUsedInForItem } from "@/lib/data";
 import {
   assertResponseShape,
   formatValidationError,
@@ -30,6 +30,10 @@ export async function GET(
   const { id } = parsedParams.data;
 
   try {
+    const item = await getCanonicalItemById(id);
+    if (!item) {
+      return jsonError("not_found", "Item not found", 404);
+    }
     const data = await getUsedInForItem(id);
     const validated = assertResponseShape(usedInDataSchema, data);
 

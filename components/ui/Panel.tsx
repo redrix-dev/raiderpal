@@ -10,8 +10,8 @@ type PanelProps = {
 
 const paddingClasses: Record<PanelPadding, string> = {
   none: "",
-  base: "p-4 sm:p-5",
-  roomy: "p-6 sm:p-7",
+  base: "p-4 sm:p-5 2xl:[.ui-compact_&]:p-4",
+  roomy: "p-6 sm:p-7 2xl:[.ui-compact_&]:p-5",
 };
 
 const panelBase =
@@ -25,3 +25,4 @@ export function Panel({ children, className = "", padding = "base", ...rest }: P
     </div>
   );
 }
+

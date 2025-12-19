@@ -1,14 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import {
   type RepairableItem,
   computeRepairSummary,
 } from "@/lib/data/client";
 import { ModulePanel } from "./ModulePanel";
-import { SelectedItemSummary } from "@/components/SelectedItemSummary";
 import { ItemPicker, type PickerItem } from "@/components/ItemPicker";
-import { Card } from "./ui/Card";
 import { CostCard, type CostRow } from "./costs";
 
 type Props = {
@@ -16,6 +15,7 @@ type Props = {
 };
 
 export function RepairCalculatorClient({ items }: Props) {
+  const repairStep = 50;
   const sortedItems = useMemo(
     () =>
       [...items].sort((a, b) =>
@@ -58,6 +58,8 @@ export function RepairCalculatorClient({ items }: Props) {
         name: entry.item.name,
         icon: entry.item.icon,
         rarity: entry.item.rarity ?? undefined,
+        itemType: entry.item.item_type ?? undefined,
+        lootArea: entry.item.loot_area ?? undefined,
         subtitle: entry.profile.max_durability
           ? `Max durability: ${entry.profile.max_durability}`
           : null,
@@ -68,11 +70,11 @@ export function RepairCalculatorClient({ items }: Props) {
   const summary = useMemo(() => {
     if (!selected) return null;
     return computeRepairSummary({
-      profile: selected.profile,
+      profile: { ...selected.profile, step_durability: repairStep },
       recipe: selected.recipe,
       currentDurability: durability,
     });
-  }, [durability, selected]);
+  }, [durability, selected, repairStep]);
 
   const perCycleRows = useMemo<CostRow[]>(() => {
     if (!selected) return [];
@@ -154,21 +156,53 @@ export function RepairCalculatorClient({ items }: Props) {
       .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
   }, [selected, summary]);
 
+  const maxDurability = selected?.profile.max_durability ?? 0;
+  const sliderFill =
+    maxDurability > 0 ? Math.min(100, Math.max(0, (durability / maxDurability) * 100)) : 0;
+  const rangeStyle = {
+    ["--rp-range-progress"]: `${sliderFill}%`,
+  } as CSSProperties & { ["--rp-range-progress"]?: string };
+
+  const costTableRows = useMemo(() => {
+    const totalMap = new Map(totalCostRows.map((row) => [row.id, row]));
+    const perCycleMap = new Map(perCycleRows.map((row) => [row.id, row]));
+    const ids = new Set([...perCycleMap.keys(), ...totalMap.keys()]);
+
+    return Array.from(ids)
+      .map((id) => {
+        const perCycle = perCycleMap.get(id);
+        const total = totalMap.get(id);
+        return {
+          id,
+          name: perCycle?.name ?? total?.name ?? id,
+          icon: perCycle?.icon ?? total?.icon ?? null,
+          rarity: perCycle?.rarity ?? total?.rarity ?? null,
+          perCycleQty: perCycle?.quantity ?? 0,
+          totalQty: total?.quantity ?? 0,
+        };
+      })
+      .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+  }, [perCycleRows, totalCostRows]);
+
   const cycles = summary?.cycles ?? 0;
   const missing = summary?.missing ?? 0;
 
   return (
     <ModulePanel title="Repair Cost Calculator">
       <div className="space-y-4">
-        <p className="text-base text-warm">
+        <p className="text-base text-text-primary">
           Calculate how many repair cycles are needed to reach max durability
           and the total component cost based on the manual repair recipes.
         </p>
 
         <div className="grid gap-6 lg:grid-cols-2 items-stretch">
-          <Card className="space-y-6 h-full flex flex-col overflow-visible">
+          <ModulePanel
+            title="Item & Durability"
+            className="overflow-visible"
+            bodyClassName="space-y-6"
+          >
             <div className="space-y-3">
-              <label className="text-base text-warm font-semibold">
+              <label className="text-base text-text-primary font-semibold">
                 Select item
               </label>
               <ItemPicker
@@ -176,61 +210,117 @@ export function RepairCalculatorClient({ items }: Props) {
                 selectedId={selectedId}
                 onChange={(id) => setSelectedId(id)}
                 placeholder="Select an item..."
-                triggerClassName="h-11 text-base"
-                dropdownClassName="md:w-[420px]"
+                triggerClassName="h-18 text-base"
+                dropdownClassName="md:w-[420px] 2xl:[.ui-compact_&]:w-full"
               />
             </div>
 
             <div className="space-y-3">
-              <label className="text-base text-warm font-semibold flex items-center justify-between">
+              <label className="text-base text-text-primary font-semibold flex items-center justify-between">
                 <span>Current durability</span>
-                <span className="text-xs text-warm-muted">{durability}</span>
+                <span className="text-xs text-text-muted">{durability}</span>
               </label>
               <input
                 type="range"
                 min={0}
-                max={selected?.profile.max_durability ?? 0}
-                step={selected?.profile.step_durability ?? 1}
+                max={maxDurability}
+                step={1}
                 value={durability}
                 onChange={(e) => setDurability(Number(e.target.value))}
-                className="w-full accent-[#4fc1e9]"
+                className="w-full rp-range"
+                style={rangeStyle}
               />
-              <div className="text-xs text-warm-muted">
+              <div className="text-xs text-text-muted">
                 Max durability: {selected?.profile.max_durability ?? 0}
               </div>
             </div>
 
             {selected && summary && (
               <div className="rounded-lg border border-white/5 bg-black/20 p-4 space-y-2">
-                <div className="text-sm text-warm font-semibold">
+                <div className="text-sm text-text-primary font-semibold">
                   Repair cycles needed: {cycles}
                 </div>
-                <div className="text-xs text-warm-muted font-medium">
-                  Missing durability: {missing} (step size {" "}
-                  {selected.profile.step_durability})
+                <div className="text-xs text-text-muted font-medium">
+                  Missing durability: {missing} (step size {repairStep})
                 </div>
               </div>
             )}
-          </Card>
 
-          <Card className="space-y-4 overflow-visible">
-            {selected && (
-              <SelectedItemSummary
-                name={selected.item.name}
-                icon={selected.item.icon}
-                rarity={selected.item.rarity ?? undefined}
-                itemType={selected.item.item_type ?? undefined}
-                maxDurability={selected.profile.max_durability ?? undefined}
-                className="rounded-lg border border-white/5 bg-black/25 p-4"
-              />
-            )}
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <CostCard title="Cost per repair cycle" items={perCycleRows} />
-              <CostCard title="Cost to reach full" items={totalCostRows} />
+            <div className="rounded-lg border border-white/5 bg-black/25 p-4 2xl:[.ui-compact_&]:p-3 space-y-3 2xl:[.ui-compact_&]:space-y-2.5">
+              <div className="text-base 2xl:[.ui-compact_&]:text-sm font-semibold text-text-primary">
+                Repair costs
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm 2xl:[.ui-compact_&]:text-xs text-text-primary">
+                  <thead className="text-xs 2xl:[.ui-compact_&]:text-[10px] uppercase text-text-muted">
+                    <tr>
+                      <th className="px-3 py-2 text-left">Component</th>
+                      <th className="px-3 py-2 text-right">Cost per cycle</th>
+                      <th className="px-3 py-2 text-right">Cost to full</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {costTableRows.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={3}
+                          className="px-3 py-3 2xl:[.ui-compact_&]:py-2 text-center text-xs 2xl:[.ui-compact_&]:text-[10px] text-text-muted"
+                        >
+                          {selected ? "No repairs needed" : "No data."}
+                        </td>
+                      </tr>
+                    ) : (
+                      costTableRows.map((row) => (
+                        <tr
+                          key={row.id}
+                          className="border-t border-white/5"
+                        >
+                          <td className="px-3 py-2">
+                            <div className="flex items-center gap-3 min-w-0">
+                              {row.icon && (
+                                <Image
+                                  src={row.icon}
+                                  alt={row.name ?? "Component"}
+                                  width={32}
+                                  height={32}
+                                  sizes="32px"
+                                  loading="lazy"
+                                  className="h-8 w-8 2xl:[.ui-compact_&]:h-7 2xl:[.ui-compact_&]:w-7 rounded border border-white/10 bg-black/50 object-contain flex-shrink-0"
+                                />
+                              )}
+                              <div className="min-w-0">
+                                <div className="truncate text-sm 2xl:[.ui-compact_&]:text-xs text-text-primary font-semibold">
+                                  {row.name}
+                                </div>
+                                {row.rarity ? (
+                                  <div className="text-[11px] 2xl:[.ui-compact_&]:text-[10px] text-text-muted">
+                                    {row.rarity}
+                                  </div>
+                                ) : null}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-3 py-2 text-right">
+                            {row.perCycleQty > 0 ? `x${row.perCycleQty}` : "-"}
+                          </td>
+                          <td className="px-3 py-2 text-right">
+                            {row.totalQty > 0 ? `x${row.totalQty}` : "-"}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
+          </ModulePanel>
 
-            <div className="grid gap-4 md:grid-cols-3">
+          <ModulePanel
+            title="Repair Costs"
+            className="overflow-visible"
+            bodyClassName="space-y-4"
+          >
+            <div className="space-y-4">
               <CostCard title="Crafting cost" items={craftingRows} />
               <CostCard title="Recycling return" items={recyclingRows} />
               <CostCard
@@ -238,7 +328,7 @@ export function RepairCalculatorClient({ items }: Props) {
                 items={netCraftRows}
               />
             </div>
-          </Card>
+          </ModulePanel>
         </div>
 
         {!selected || !summary ? (

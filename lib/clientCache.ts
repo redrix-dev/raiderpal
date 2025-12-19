@@ -9,6 +9,34 @@ import type { Schema } from "@/lib/validation";
 const CACHE_PREFIX = "rp_cache_v1:";
 const LONG_CACHE_KEY = "rp_long_cache_enabled";
 
+// Debug event system (dev only)
+type CacheEvent = {
+  type: "HIT" | "MISS" | "EXPIRED" | "STORED" | "CLEARED";
+  url: string;
+  timestamp: number;
+  meta?: Record<string, unknown>;
+};
+
+const cacheEvents: CacheEvent[] = [];
+
+function emitCacheEvent(event: CacheEvent) {
+  if (typeof window === "undefined") return;
+  if (process.env.NODE_ENV !== "development") return;
+
+  cacheEvents.push(event);
+  window.dispatchEvent(new CustomEvent("cache-debug", { detail: event }));
+}
+
+export function getCacheEvents() {
+  if (typeof window === "undefined") return [];
+  return cacheEvents;
+}
+
+export function clearCacheEvents() {
+  if (typeof window === "undefined") return;
+  cacheEvents.length = 0;
+}
+
 type CacheOptions<T> = {
   ttlMs?: number;
   version?: string | number;
@@ -110,11 +138,48 @@ export async function cachedFetchJson<T>(
 
   if (!disableCache) {
     const cached = readCache<T>(key);
-    const stillValid = cached && Date.now() - cached.ts < effectiveTtl;
-    if (stillValid) return cached.data;
+    const stillValid =
+      cached &&
+      (effectiveTtl === Infinity || Date.now() - cached.ts < effectiveTtl);
+    if (stillValid) {
+      const age = Date.now() - cached.ts;
+      emitCacheEvent({
+        type: "HIT",
+        url,
+        timestamp: Date.now(),
+        meta: {
+          age: `${Math.round(age / 1000)}s`,
+          ttl: effectiveTtl === Infinity ? "inf" : `${Math.round(effectiveTtl / 1000)}s`,
+          version: version ?? "none",
+        },
+      });
+      return cached.data;
+    }
+
+    if (cached) {
+      emitCacheEvent({
+        type: "EXPIRED",
+        url,
+        timestamp: Date.now(),
+        meta: {
+          age: `${Math.round((Date.now() - cached.ts) / 1000)}s`,
+          ttl: effectiveTtl === Infinity ? "inf" : `${Math.round(effectiveTtl / 1000)}s`,
+        },
+      });
+    }
   }
 
-  const res = await fetch(url, { cache: "no-store" });
+  emitCacheEvent({
+    type: "MISS",
+    url,
+    timestamp: Date.now(),
+    meta: {
+      reason: disableCache ? "disabled" : "not found",
+      version: version ?? "none",
+    },
+  });
+
+  const res = await fetch(url, disableCache ? { cache: "no-store" } : undefined);
   if (!res.ok) throw new Error(`Request failed (${res.status})`);
   const rawPayload = (await res.json()) as unknown;
 
@@ -134,6 +199,12 @@ export async function cachedFetchJson<T>(
 
   if (!disableCache) {
     writeCache(key, { ts: Date.now(), data: parsedData, version });
+    emitCacheEvent({
+      type: "STORED",
+      url,
+      timestamp: Date.now(),
+      meta: { version: version ?? "none" },
+    });
   }
   return parsedData;
 }
@@ -173,6 +244,13 @@ export function clearCachedEntry(url: string, version?: string | number) {
         localStorage.removeItem(k);
       }
     }
+
+    emitCacheEvent({
+      type: "CLEARED",
+      url,
+      timestamp: Date.now(),
+      meta: { version: version ?? "all" },
+    });
   } catch {
     // ignore
   }

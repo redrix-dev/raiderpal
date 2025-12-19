@@ -1,5 +1,5 @@
 import { craftingDataSchema, itemParamsSchema } from "@/lib/apiSchemas";
-import { getCraftingForItem } from "@/lib/data";
+import { getCanonicalItemById, getCraftingForItem } from "@/lib/data";
 import {
   assertResponseShape,
   formatValidationError,
@@ -30,6 +30,10 @@ export async function GET(
   const { id } = parsedParams.data;
 
   try {
+    const item = await getCanonicalItemById(id);
+    if (!item) {
+      return jsonError("not_found", "Item not found", 404);
+    }
     const data = await getCraftingForItem(id);
     const validatedData = assertResponseShape(craftingDataSchema, data);
 

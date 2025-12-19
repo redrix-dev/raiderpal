@@ -238,6 +238,6 @@ Example: user views an item detail page.
 This flow isolates responsibilities, reduces data drift risk, and improves clarity for future refactors.
 
 ## Related Docs
-- Database architecture (authoritative): docs/raiderpal_db_architecture.md
+- Database architecture (authoritative): docs/raiderpal-db-architecture.md
 - Refactor notes: REFactorNotes.md
 - Data contracts: docs/contracts.md

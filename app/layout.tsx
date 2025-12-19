@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { HeaderControls } from "@/components/HeaderControls";
+import { CacheDebugPanel } from "@/components/CacheDebugPanel";
 import { Barlow, Barlow_Condensed } from "next/font/google";
 
 const barlow = Barlow({
@@ -19,9 +20,34 @@ const barlowCondensed = Barlow_Condensed({
   display: "swap",
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
 export const metadata: Metadata = {
-  title: "Raider Pal",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Raider Pal",
+    template: "%s | Raider Pal",
+  },
   description: "Arc Raiders item browser, crafting, and recycling tool.",
+  openGraph: {
+    title: "Raider Pal",
+    description: "Arc Raiders item browser, crafting, and recycling tool.",
+    url: "/",
+    siteName: "Raider Pal",
+    images: [
+      {
+        url: "/backgrounds/ARC_Raiders_Module_Background.png",
+        alt: "Raider Pal",
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Raider Pal",
+    description: "Arc Raiders item browser, crafting, and recycling tool.",
+    images: ["/backgrounds/ARC_Raiders_Module_Background.png"],
+  },
 };
 
 export default function RootLayout({
@@ -38,7 +64,7 @@ export default function RootLayout({
         <div className="relative min-h-screen flex flex-col" style={{ zIndex: 2 }}>
           {/* Header */}
           <header
-            className="border-b border-slate-800 bg-[#050910]/95 backdrop-blur"
+            className="border-b border-border-strong bg-surface-base/95 backdrop-blur"
             style={{
               backgroundImage: 'url("/backgrounds/ARC_Raiders_Module_Background.png")',
               backgroundRepeat: "repeat-x",
@@ -55,7 +81,7 @@ export default function RootLayout({
                   <h1 className="text-xl font-bold tracking-wide uppercase font-condensed text-center sm:text-left">
                     Raider Pal
                   </h1>
-                  <p className="text-sm text-warm-muted text-center sm:text-left font-medium">
+                  <p className="text-sm text-text-muted text-center sm:text-left font-medium">
                     Arc Raiders item explorer & crafting companion
                   </p>
                 </div>
@@ -72,6 +98,7 @@ export default function RootLayout({
               <div className="min-w-0">{children}</div>
             </div>
           </main>
+          {process.env.NODE_ENV === "development" && <CacheDebugPanel />}
           <Analytics />
 
           {/* Footer stripe accent */}
@@ -96,8 +123,8 @@ export default function RootLayout({
               backgroundPosition: "center",
             }}
           >
-            <div className="mx-auto w-full max-w-[1680px] 2xl:max-w-[1800px] px-6 lg:px-8 py-4 text-sm text-warm-muted flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <span className="text-warm-muted">
+            <div className="mx-auto w-full max-w-[1680px] 2xl:max-w-[1800px] px-6 lg:px-8 py-4 text-sm text-text-muted flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <span className="text-text-muted">
                 Raider Pal — an unofficial Arc Raiders companion. Game data and assets are © Embark Studios AB, with item information sourced from MetaForge (
                 <a
                   href="https://metaforge.app/arc-raiders"
@@ -107,7 +134,7 @@ export default function RootLayout({
                 </a>
                 ). “Arc Raiders” and its associated trademarks are owned by Embark Studios AB.
               </span>
-              <span className="text-warm-muted">Built with Next.js & Supabase</span>
+              <span className="text-text-muted">Built with Next.js & Supabase</span>
             </div>
           </footer>
         </div>
