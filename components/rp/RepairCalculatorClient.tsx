@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { CardHeader } from "@/components/ui/CardHeader";
 import { Panel } from "@/components/ui/Panel";
 import { ItemPicker, type PickerItem } from "@/components/rp/ItemPicker-portal";
-import { type CostRow } from "@/components/costs";
+import { type CostRow } from "@/lib/types/costs";
 
 type Props = {
   items: RepairableItem[];

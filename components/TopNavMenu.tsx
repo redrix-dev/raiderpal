@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { LongCacheSettingsModal } from "./LongCacheToggle";
+import { LongCacheSettingsModal } from "@/components/rp/LongCacheToggle";
 
 const links = [
   { label: "Home", href: "/" },
