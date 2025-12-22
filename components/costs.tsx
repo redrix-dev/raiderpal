@@ -1,13 +1,7 @@
 import Image from "next/image";
+import { type CostRow } from "@/lib/types/costs";
 
-export type CostRow = {
-  id: string;
-  name?: string | null;
-  quantity: number;
-  rarity?: string | null;
-  icon?: string | null;
-  isCredit?: boolean;
-};
+export type { CostRow } from "@/lib/types/costs";
 
 export function CostCard({
   title,

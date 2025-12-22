@@ -7,7 +7,7 @@ import { createPortal } from "react-dom";
 import { Card } from "@/components/ui/Card";
 import { CardHeader } from "@/components/ui/CardHeader";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import { LongCacheSettingsModal } from "@/components/LongCacheToggle";
+import { LongCacheSettingsModal } from "@/components/rp/LongCacheToggle";
 
 const links = [
   { label: "Home", href: "/" },

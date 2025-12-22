@@ -3,7 +3,8 @@
 import Image from "next/image";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { RarityBadge, rarityClasses } from "@/components/ItemCard";
+import { RarityBadge } from "@/components/ui/RarityBadge";
+import { rarityClasses } from "@/components/ui/rarity";
 import { cn } from "@/lib/cn";
 
 export type PickerItem = {
@@ -37,7 +38,7 @@ export function ItemPicker({
   const [query, setQuery] = useState("");
   const [mounted, setMounted] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0, width: 0 });
-  
+
   const dropdownId = useId();
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const searchRef = useRef<HTMLInputElement | null>(null);
@@ -64,7 +65,7 @@ export function ItemPicker({
   // Update dropdown position when opened
   useEffect(() => {
     if (!open || !triggerRef.current) return;
-    
+
     const updatePosition = () => {
       if (!triggerRef.current) return;
       const rect = triggerRef.current.getBoundingClientRect();
@@ -76,12 +77,12 @@ export function ItemPicker({
     };
 
     updatePosition();
-    window.addEventListener('resize', updatePosition);
-    window.addEventListener('scroll', updatePosition, true);
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
 
     return () => {
-      window.removeEventListener('resize', updatePosition);
-      window.removeEventListener('scroll', updatePosition, true);
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
     };
   }, [open]);
 
@@ -108,19 +109,19 @@ export function ItemPicker({
     };
 
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         setOpen(false);
         setQuery("");
         triggerRef.current?.focus();
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleEscape);
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
     };
   }, [open]);
 
@@ -166,7 +167,7 @@ export function ItemPicker({
                   role="option"
                   aria-selected={item.id === selectedId}
                   className={cn(
-                    "group w-full flex items-center gap-3 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors hover:border-brand-cyan/70 hover:bg-white/5",
+                    "group w-full flex items-center gap-3 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors hover:border-brand-cyan/70 hover:bg-surface-card",
                     rarityClasses(item.rarity)
                   )}
                 >
@@ -194,7 +195,7 @@ export function ItemPicker({
                       <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted font-medium">
                         {item.itemType && (
                           <span className="inline-flex items-center gap-1">
-                            <span className="w-1 h-1 rounded-full bg-slate-500" />
+                            <span className="w-1 h-1 rounded-full bg-border-strong" />
                             {item.itemType}
                           </span>
                         )}
@@ -206,7 +207,7 @@ export function ItemPicker({
                         )}
                         {item.subtitle && (
                           <span className="inline-flex items-center gap-1">
-                            <span className="w-1 h-1 rounded-full bg-slate-500/80" />
+                            <span className="w-1 h-1 rounded-full bg-border-subtle" />
                             {item.subtitle}
                           </span>
                         )}
@@ -235,7 +236,7 @@ export function ItemPicker({
           "w-full h-10 rounded-md border px-3 py-2 text-base text-primary flex items-center justify-between focus:outline-none focus:ring-1 focus:ring-brand-cyan hover:border-brand-cyan transition-colors",
           selected
             ? rarityClasses(selected.rarity)
-            : "border-border-strong bg-surface-base",
+            : "border-border-strong bg-surface-card",
           triggerClassName
         )}
       >
@@ -258,7 +259,7 @@ export function ItemPicker({
         <span className="ml-2 text-xs text-muted">{open ? "▲" : "▼"}</span>
       </button>
 
-      {mounted && typeof document !== 'undefined' && dropdown && createPortal(dropdown, document.body)}
+      {mounted && typeof document !== "undefined" && dropdown && createPortal(dropdown, document.body)}
     </div>
   );
 }

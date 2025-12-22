@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { TopNavMenu } from "@/components/rp/TopNavMenu";
 import { RaidRemindersDrawer } from "@/components/rp/RaidRemindersDrawer";
-import { LongCacheIndicator } from "./LongCacheToggle";
+import { LongCacheIndicator } from "@/components/rp/LongCacheToggle";
 import { useRaidReminders } from "@/hooks/useRaidReminders";
 
 export function HeaderControls() {
