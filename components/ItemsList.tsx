@@ -25,7 +25,7 @@ export default function ItemsList({ initialItems }: ItemsListProps) {
         placeholder="Search items..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        className="w-full p-2 rounded border border-slate-700 bg-slate-900 text-warm placeholder:text-warm-muted"
+        className="w-full p-2 rounded border border-slate-700 bg-slate-900 text-primary-invert placeholder:text-muted"
       />
 
       <ul className="space-y-2">
@@ -33,7 +33,7 @@ export default function ItemsList({ initialItems }: ItemsListProps) {
           <li key={item.id}>
             <a
               href={`/items/${item.id}`}
-              className="flex items-center gap-3 p-3 rounded border border-slate-700 bg-slate-900 text-warm hover:bg-slate-800"
+              className="flex items-center gap-3 p-3 rounded border border-slate-700 bg-slate-900 text-primary-invert hover:bg-slate-800"
             >
               {/* Icon */}
               {item.icon && (
@@ -50,22 +50,22 @@ export default function ItemsList({ initialItems }: ItemsListProps) {
 
               {/* Name + Type */}
               <div className="flex flex-col">
-                <span className="font-medium text-warm">{item.name}</span>
-                <span className="text-xs text-warm-muted font-medium">{item.item_type}</span>
+                <span className="font-medium text-primary-invert">{item.name}</span>
+                <span className="text-xs text-muted-invert font-medium">{item.item_type}</span>
               </div>
 
               {/* Rarity pill */}
               <span
                 className={`ml-auto px-2 py-1 text-xs rounded ${
                   item.rarity === "Common"
-                    ? "bg-gray-700 text-warm"
+                    ? "bg-gray-700 text-primary-invert"
                     : item.rarity === "Uncommon"
-                    ? "bg-green-700 text-warm"
+                    ? "bg-green-700 text-primary-invert"
                     : item.rarity === "Rare"
-                    ? "bg-blue-700 text-warm"
+                    ? "bg-blue-700 text-primary-invert"
                     : item.rarity === "Epic"
-                    ? "bg-purple-700 text-warm"
-                    : "bg-yellow-700 text-warm"
+                    ? "bg-purple-700 text-primary-invert"
+                    : "bg-yellow-700 text-primary-invert"
                 }`}
               >
                 {item.rarity}
@@ -76,7 +76,7 @@ export default function ItemsList({ initialItems }: ItemsListProps) {
 
         {/* No results */}
         {filtered.length === 0 && (
-          <li className="text-warm-muted italic">No matching items.</li>
+          <li className="text-muted italic">No matching items.</li>
         )}
       </ul>
     </div>

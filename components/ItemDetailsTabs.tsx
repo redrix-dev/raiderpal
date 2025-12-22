@@ -35,7 +35,7 @@ export function ItemDetailsTabs({
   const [active, setActive] = useState<TabId>("crafting");
 
   return (
-    <div className="h-full w-full rounded-xl border border-white/5 bg-panel-texture shadow-[0_0_40px_rgba(0,0,0,0.6)] overflow-hidden">
+    <div className="h-full w-full rounded-xl border border-white/5 bg-surface-card shadow-[0_0_40px_rgba(0,0,0,0.6)] overflow-hidden">
       {/* Tabs header */}
       <div className="border-b border-white/5 bg-black/20 overflow-x-auto">
         <div className="flex gap-2 px-5 pt-4 pb-3 text-sm whitespace-nowrap">
@@ -49,8 +49,8 @@ export function ItemDetailsTabs({
                 className={
                   "px-3.5 py-2 rounded-md border text-sm font-medium font-condensed tracking-wide uppercase " +
                   (isActive
-                    ? "border-[#4fc1e9] bg-[#4fc1e9]/15 text-warm"
-                    : "border-transparent bg-transparent text-warm-muted hover:bg-black/30 hover:text-warm")
+                    ? "border-[#4fc1e9] bg-[#4fc1e9]/15 text-primary"
+                    : "border-transparent bg-transparent text-muted hover:bg-black/30 hover:text-primary")
               }
             >
               {tab.label}
@@ -61,7 +61,7 @@ export function ItemDetailsTabs({
       </div>
 
       {/* Tab content */}
-      <div className="px-5 py-5 text-base text-warm">
+      <div className="px-5 py-5 text-base text-primary">
         {active === "crafting" && (
           <TabList
             emptyText="No crafting recipe."
@@ -143,7 +143,7 @@ type TabListProps<TRow> = {
 function TabList<TRow>({ rows, emptyText, mapRow }: TabListProps<TRow>) {
   if (!rows || rows.length === 0) {
     return (
-      <p className="text-sm text-warm-muted leading-relaxed">
+      <p className="text-sm text-muted leading-relaxed">
         {emptyText}
       </p>
     );
@@ -160,7 +160,7 @@ function TabList<TRow>({ rows, emptyText, mapRow }: TabListProps<TRow>) {
           >
             <a
               href={row.href}
-              className="flex items-center gap-3 min-w-0 text-warm hover:underline"
+              className="flex items-center gap-3 min-w-0 text-primary hover:underline"
             >
               {row.icon && (
                 <Image
@@ -176,12 +176,12 @@ function TabList<TRow>({ rows, emptyText, mapRow }: TabListProps<TRow>) {
               <span className="truncate">{row.name}</span>
             </a>
 
-            <div className="flex-shrink-0 text-right text-warm">
+            <div className="flex-shrink-0 text-right text-primary">
               {row.quantity != null && (
                 <span className="font-semibold">×{row.quantity}</span>
               )}
               {row.quantitySuffix && (
-                <span className="block text-[11px] text-warm-muted">
+                <span className="block text-[11px] text-muted">
                   {row.quantitySuffix}
                 </span>
               )}

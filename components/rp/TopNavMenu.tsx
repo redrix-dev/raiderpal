@@ -1,16 +1,17 @@
-// components/TopNavMenu.tsx
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { LongCacheSettingsModal } from "./LongCacheToggle";
+import { Card } from "@/components/ui/Card";
+import { CardHeader } from "@/components/ui/CardHeader";
+import { SectionHeader } from "@/components/ui/SectionHeader";
+import { LongCacheSettingsModal } from "@/components/LongCacheToggle";
 
 const links = [
   { label: "Home", href: "/" },
-  { label: "Item Browser", href: "/items/browse" },
-  { label: "Recycle Helper", href: "/recycle-helper" },
+  { label: "Item Browser", href: "/item-browser" },
   { label: "Repair or Replace Calculator", href: "/repair-calculator" },
 ];
 
@@ -22,12 +23,10 @@ export function TopNavMenu() {
   const containerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Close menu on route change
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
 
-  // Close when clicking outside or pressing escape
   useEffect(() => {
     function handleClick(event: MouseEvent) {
       if (showSettings) return;
@@ -51,7 +50,6 @@ export function TopNavMenu() {
     };
   }, [showSettings]);
 
-  // Position the menu relative to the trigger; use fixed + portal to escape stacking contexts
   useEffect(() => {
     function updatePosition() {
       if (!open || !containerRef.current) return;
@@ -94,7 +92,7 @@ export function TopNavMenu() {
           onClick={handleToggleMenu}
           aria-expanded={open}
           aria-label="Toggle navigation"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-md border-border-strong bg-surface-base/60 text-primary-invert transition hover:border-border-subtle hover:bg-surface-base focus:outline-none focus:ring-2 focus:ring-brand-cyan focus:ring-offset-2 focus:ring-offset-surface-base"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-border-strong bg-surface-base/70 text-primary-invert transition hover:border-brand-cyan/60 hover:bg-surface-base/90 focus:outline-none focus:ring-2 focus:ring-brand-cyan focus:ring-offset-2 focus:ring-offset-surface-base"
         >
           <MenuIcon open={open} />
         </button>
@@ -105,47 +103,56 @@ export function TopNavMenu() {
         createPortal(
           <div
             ref={menuRef}
-            className="fixed z-[100] w-56"
+            className="fixed z-[100] w-60"
             style={{ top: menuPosition.top, right: menuPosition.right }}
           >
-            <div className="overflow-hidden rounded-lg border-border-strong bg-surface-card shadow-2xl backdrop-blur text-muted">
-              <div className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-primary">
-                Navigation
-              </div>
-              <div className="pb-2">
-                {links.map((link) => {
-                  const active =
-                    link.href === "/"
-                      ? pathname === link.href
-                      : pathname.startsWith(link.href);
-                  return (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      className={`block px-4 py-2 text-sm transition ${
-                        active
-                          ? "bg-surface-base text-primary"
-                          : "text-primary-invert hover:bg-surface-base hover:text-primary-invert"
-                      }`}
-                    >
-                      {link.label}
-                    </Link>
-                  );
-                })}
-              </div>
-
-              <div className="border-t border-border-subtle pt-3 pb-4 space-y-2">
-                <div className="px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">
-                  Settings
+            <div>
+              <SectionHeader
+                contentClassName="px-4 py-2 sm:px-4 sm:py-2"
+                className="rounded-t-lg"
+              >
+                <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-primary-invert">
+                  Navigation
                 </div>
-                <button
-                  type="button"
-                  onClick={handleOpenSettings}
-                  className="block w-full text-left rounded-md px-4 py-2 text-sm text-primary transition hover:bg-surface-base focus:outline-none focus:ring-2 focus:ring-brand-cyan focus:ring-offset-2 focus:ring-offset-surface-base"
-                >
-                  Long Term Caching
-                </button>
-              </div>
+              </SectionHeader>
+              <Card className="border-border-strong rounded-t-none border-t-0 !p-0 text-primary shadow-2xl">
+                <div className="pb-2">
+                  {links.map((link) => {
+                    const active = pathname.startsWith(link.href);
+                    return (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        className={`block px-4 py-2 text-sm font-semibold transition ${
+                          active
+                            ? "bg-surface-panel text-primary"
+                            : "text-primary hover:bg-surface-panel"
+                        }`}
+                      >
+                        {link.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+
+                <div className="border-t border-border-subtle pb-4">
+                  <CardHeader
+                    className="border-0 border-b border-border-subtle rounded-none"
+                    contentClassName="px-4 py-2 sm:px-4 sm:py-2"
+                  >
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-primary-invert">
+                      Settings
+                    </div>
+                  </CardHeader>
+                  <button
+                    type="button"
+                    onClick={handleOpenSettings}
+                    className="mt-2 block w-full text-left px-4 py-2 text-sm font-semibold text-primary transition hover:bg-surface-panel focus:outline-none focus:ring-2 focus:ring-brand-cyan focus:ring-offset-2 focus:ring-offset-surface-card"
+                  >
+                    Long Term Caching
+                  </button>
+                </div>
+              </Card>
             </div>
           </div>,
           document.body

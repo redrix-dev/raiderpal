@@ -7,13 +7,20 @@
   /* Semantic palette used across the app */
   --color-brand-cyan: #4fc1e9;
   --color-brand-amber: #f1aa1c;
-  --color-text-primary: #e3ddd4;
-  --color-text-muted: #8ea0b8;
-  --color-surface-base: #050910;
-  --color-surface-panel: #130918;
-  --color-surface-card: #07040f;
+  --color-text-primary: #130918;
+  --color-text-muted: #2a212f;
+  --color-text-primary-invert: #ece2d0;
+  --color-text-muted-invert: #ccc3b3;
+  --color-surface-base: #0f1005;
+  --color-surface-panel: #ece2d0;
+  --color-surface-card: #f5ede0;
   --color-border-strong: #130918;
   --color-border-subtle: rgba(255, 255, 255, 0.06);
+  --color-rarity-common: #6c6c6c;
+  --color-rarity-uncommon: #25bf56;
+  --color-rarity-rare: #00a9f2;
+  --color-rarity-epic: #cc3099;
+  --color-rarity-legendary: #ffc600;
 
   /* Font fallbacks mirror the Tailwind theme */
   --font-sans: var(--font-barlow, "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif);
@@ -31,6 +38,26 @@
   --texture-url: url("/textures/ARC_Raiders_Background_Texture.png");
   --wallpaper-overlay: rgba(5, 9, 16, 0);
 }
+
+@theme {
+  --color-brand-cyan: #4fc1e9;
+  --color-brand-amber: #f1aa1c;
+  --color-text-primary: #130918;
+  --color-text-muted: #2a212f;
+  --color-text-primary-invert: #ece2d0;
+  --color-text-muted-invert: #ccc3b3;
+  --color-surface-base: #0f1005;
+  --color-surface-panel: #ece2d0;
+  --color-surface-card: #f5ede0;
+  --color-border-strong: #130918;
+  --color-border-subtle: rgba(255, 255, 255, 0.06);
+  --color-rarity-common: #6c6c6c;
+  --color-rarity-uncommon: #25bf56;
+  --color-rarity-rare: #00a9f2;
+  --color-rarity-epic: #cc3099;
+  --color-rarity-legendary: #ffc600;
+}
+
 
 /* Tailwind v4 theme helpers can confuse CSS validators. If your editor flags
    unknown at-rules, add at-rule-no-unknown ignores in your linter config. */
@@ -55,7 +82,7 @@ body::before {
   background-blend-mode: screen;
   opacity: 0.95;
   pointer-events: none;
-  z-index: 0;
+  z-index: -2; /* CHANGED: force behind app stacking root */
 }
 
 /* Overlay to maintain contrast */
@@ -65,16 +92,15 @@ body::after {
   inset: 0;
   background: linear-gradient(180deg, var(--wallpaper-overlay), var(--wallpaper-overlay));
   pointer-events: none;
-  z-index: 1;
+  z-index: -1; /* CHANGED: force behind app stacking root */
 }
+
 
 /* Prevent mobile Safari zoom on form controls */
 input,
 select,
 textarea {
   font-size: 16px;
-  position: relative;
-  z-index: 2;
 }
 
 /* Slider styling: cyan thumb/active, warm inactive track */
@@ -161,25 +187,6 @@ input[type="range"]::-moz-range-thumb {
 
 @layer components {
   /* Main inner panels (tool bodies, info sections) */
-  .rp-panel {
-    @apply rounded-xl border p-4 sm:p-5;
-    border-color: var(--color-border-strong);
-    background-image: linear-gradient(rgba(5, 9, 16, 0.35), rgba(5, 9, 16, 0.35)),
-      url("/backgrounds/ARC_Raiders_Module_Background.png");
-    background-repeat: repeat-x;
-    background-size: auto 140%;
-    background-position: center;
-    background-color: color-mix(in srgb, var(--color-surface-panel) 60%, transparent);
-    color: var(--color-text-primary);
-  }
-
-  /* Secondary cards inside panels (subsections, result blocks) */
-  .rp-card {
-    @apply rounded-lg border p-4;
-    border-color: var(--color-border-subtle);
-    background-color: color-mix(in srgb, var(--color-surface-card) 92%, transparent);
-    color: var(--color-text-primary);
-  }
 
   /* Generic pill/tag (non-rarity) */
   .rp-pill {
@@ -189,15 +196,13 @@ input[type="range"]::-moz-range-thumb {
     border: 1px solid color-mix(in srgb, var(--color-text-primary) 16%, transparent);
   }
 
-  /* Accent pill for highlighted states */
-  .rp-pill-accent {
-    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold;
-    background-color: var(--color-brand-amber);
-    color: #1a0704;
-  }
 }
 
-/* Panel texture helper: deep blue module texture with subtle tint */
+/* 
+ * Dark purple branded texture from Embark media kit
+ * USE ONLY FOR: UI chrome (modals, drawers, navigation, sidebars)
+ * DO NOT USE FOR: Content surfaces (cards, item details, data display)
+ */
 .bg-panel-texture {
   background-image: linear-gradient(rgba(5, 9, 16, 0.35), rgba(5, 9, 16, 0.35)),
     url("/backgrounds/ARC_Raiders_Module_Background.png");
@@ -207,10 +212,27 @@ input[type="range"]::-moz-range-thumb {
   background-color: color-mix(in srgb, var(--color-surface-panel) 60%, transparent);
 }
 
-.text-warm {
+
+/**
+ * Text color tokens
+ * 
+ * Use -primary/-muted on LIGHT backgrounds (cards, content areas)
+ * Use -primary-invert/-muted-invert on DARK backgrounds (headers, chrome, overlays)
+ * 
+ * Example:
+ *   <Card className="bg-surface-card text-primary"> ← light bg, dark text
+ *   <Header className="bg-surface-base text-primary-invert"> ← dark bg, light text
+ */
+
+.text-primary {
   color: var(--color-text-primary);
 }
-
-.text-warm-muted {
+.text-primary-invert {
+  color: var(--color-text-primary-invert);
+}
+.text-muted {
   color: var(--color-text-muted);
+}
+.text-muted-invert {
+  color: var(--color-text-muted-invert);
 }

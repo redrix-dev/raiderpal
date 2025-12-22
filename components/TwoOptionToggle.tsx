@@ -32,7 +32,7 @@ export function TwoOptionToggle<T extends string>({
           "flex-1 px-3 py-1 rounded " +
           (value === optionA.value
             ? "bg-brand-cyan text-white"
-            : "text-text-primary hover:bg-surface-base")
+            : "text-primary hover:bg-surface-base")
         }
       >
         {optionA.label}
@@ -46,7 +46,7 @@ export function TwoOptionToggle<T extends string>({
           "flex-1 px-3 py-1 rounded " +
           (value === optionB.value
             ? "bg-brand-cyan text-white"
-            : "text-text-primary hover:bg-surface-base")
+            : "text-primary hover:bg-surface-base")
         }
       >
         {optionB.label}

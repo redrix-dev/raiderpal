@@ -120,16 +120,16 @@ export function LongCacheSettingsModal({
         >
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-2">
-              <div className="text-sm uppercase tracking-[0.08em] font-condensed text-warm">
+              <div className="text-sm uppercase tracking-[0.08em] font-condensed text-primary">
                 Long Term Caching
               </div>
-              <p className="text-sm leading-relaxed text-warm-muted">{INFO_TEXT}</p>
+              <p className="text-sm leading-relaxed text-muted">{INFO_TEXT}</p>
             </div>
             <button
               type="button"
               onClick={onClose}
               ref={closeButtonRef}
-              className="rounded-full p-2 text-warm hover:text-white hover:bg-slate-800/80 focus:outline-none focus:ring-2 focus:ring-[#4fc1e9]"
+              className="rounded-full p-2 text-primary hover:text-white hover:bg-slate-800/80 focus:outline-none focus:ring-2 focus:ring-[#4fc1e9]"
               aria-label="Close settings"
             >
               X
@@ -138,10 +138,10 @@ export function LongCacheSettingsModal({
 
           <div className="mt-4 flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/60 px-4 py-3">
             <div className="space-y-1">
-              <div className="text-sm font-condensed font-medium text-warm-muted">
+              <div className="text-sm font-condensed font-medium text-muted">
                 Toggle long term caching
               </div>
-              <div className="text-xs text-warm-muted">
+              <div className="text-xs text-muted">
                 {enabled ? "Currently enabled" : "Currently disabled"}
               </div>
             </div>

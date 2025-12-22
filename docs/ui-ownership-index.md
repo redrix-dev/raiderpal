@@ -45,7 +45,7 @@ graph TD
 - Server vs client: Pages fetch initial data on the server via `lib/data/**` repositories. Client components fetch incremental detail via `/api/items/*` using `useCachedJson` plus schemas from `lib/apiSchemas.ts`.
 - Caching/versioning: `useAppVersion` and `dataVersion` props keep client fetches aligned with the dataset version. Long cache toggle controls `useCachedJson` durations.
 - Local state helpers: `useRaidReminders` (persistent reminders), `useCachedJson` (validated fetch + cache), `useAppVersion` (reads API-reported version).
-- Styling: Tailwind + semantic theme tokens in `tailwind.config.js` and `app/globals.css`. Always use theme colors (e.g., `text-text-primary`, `bg-surface-base`, `border-border-strong`) over default Tailwind classes or hardcoded values. Prefer composing `Panel`/`Card` and existing utility patterns before adding new globals. For migration: replace `text-warm` with `text-text-primary`, `text-warm-muted` with `text-text-muted`, `border-slate-800` with `border-border-strong`, etc.
+- Styling: Tailwind + semantic theme tokens in `tailwind.config.js` and `app/globals.css`. Always use theme colors (e.g., `text-primary`, `bg-surface-base`, `border-border-strong`) over default Tailwind classes or hardcoded values. Prefer composing `Panel`/`Card` and existing utility patterns before adding new globals. For migration: replace `text-primary` with `text-primary`, `text-muted` with `text-muted`, `border-slate-800` with `border-border-strong`, etc.
 - Density mode: Page-level compact styling is opt-in via `ToolPanel` (`density="compact"`). Compact-only tweaks use the arbitrary variant selector `2xl:[.ui-compact_&]:...` so they only apply under a `.ui-compact` ancestor.
 
 Example (compact-only tweak on a shared component):

@@ -14,7 +14,7 @@ export function InfoBanner({ children, variant = "info", className = "" }: InfoB
   const styles =
     variant === "warning"
       ? "border-amber-700/50 bg-amber-900/20 text-amber-100"
-      : "border-slate-600/70 bg-slate-900/50 text-warm";
+      : "border-slate-600/70 bg-slate-900/50 text-primary-invert";
 
   return (
     <div className={`rounded-lg border p-4 text-sm ${styles} ${className}`}>

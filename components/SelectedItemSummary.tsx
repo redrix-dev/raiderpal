@@ -42,10 +42,10 @@ export function SelectedItemSummary({
         />
       )}
       <div className="min-w-0">
-        <div className="font-medium text-text-primary truncate">
+        <div className="font-medium text-primary truncate">
           {name ?? "Unnamed item"}
         </div>
-        <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-text-muted">
+        <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-muted">
           {itemType && <span className="rp-pill">{itemType}</span>}
           <RarityBadge rarity={rarity ?? undefined} />
           {typeof maxDurability === "number" && (

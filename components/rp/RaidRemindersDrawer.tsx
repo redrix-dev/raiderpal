@@ -3,31 +3,26 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { RarityBadge } from "./ItemCard";
+import { RarityBadge } from "@/components/RarityBadge";
+import { Card } from "@/components/ui/Card";
+import { SectionHeader } from "@/components/ui/SectionHeader";
 import {
   ReminderItem,
   ReminderSort,
   useRaidReminders,
 } from "@/hooks/useRaidReminders";
 
-type Props = {
+type RaidRemindersDrawerProps = {
   open: boolean;
   onClose: () => void;
 };
 
-export function RaidRemindersDrawer({ open, onClose }: Props) {
+export function RaidRemindersDrawer({ open, onClose }: RaidRemindersDrawerProps) {
   const [mounted, setMounted] = useState(false);
   const [portalEl, setPortalEl] = useState<HTMLElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const lastFocusedRef = useRef<HTMLElement | null>(null);
-  const {
-    items,
-    sort,
-    remove,
-    clear,
-    updateNote,
-    setSort,
-  } = useRaidReminders();
+  const { items, sort, remove, clear, updateNote, setSort } = useRaidReminders();
 
   useEffect(() => {
     setMounted(true);
@@ -49,8 +44,7 @@ export function RaidRemindersDrawer({ open, onClose }: Props) {
 
   if (!mounted || !open || !portalEl) return null;
 
-  const sorted = items; // already sorted in hook
-
+  const sorted = items;
   const empty = sorted.length === 0;
 
   function handleClear() {
@@ -66,81 +60,82 @@ export function RaidRemindersDrawer({ open, onClose }: Props) {
       onClick={onClose}
       role="presentation"
     >
-      <div className="absolute inset-0 bg-black/70 pointer-events-none" />
+      <div className="absolute inset-0 bg-surface-base/70" />
 
       <div className="relative flex h-full items-start justify-center pt-10 pointer-events-none">
         <div
-          className="relative w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl border border-border-strong bg-surface-card shadow-2xl transform transition-transform duration-200 ease-out translate-y-0 pointer-events-auto"
+          className="relative w-full max-w-4xl pointer-events-auto"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-border-strong">
-            <div>
-              <div className="text-xs uppercase tracking-[0.08em] text-muted font-medium">
-                Raid Reminders
+          <SectionHeader className="rounded-t-2xl" accent>
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <h2 className="text-xl font-condensed font-semibold uppercase tracking-wide text-primary-invert">
+                  Raid Reminders
+                </h2>
+                <p className="mt-1 text-xs text-muted-invert">
+                  {empty ? "Nothing added yet" : `${sorted.length} item(s) saved`}
+                </p>
               </div>
-              <div className="text-sm text-primary">
-                {empty ? "Nothing added yet" : `${sorted.length} item(s) saved`}
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              ref={closeButtonRef}
-              className="rounded-full p-2 text-primary bg-brand-amber hover:ring-brand-cyan focus:outline-none focus:ring-2 focus:ring-brand-cyan"
-              aria-label="Close reminders"
-            >
-              X
-            </button>
-          </div>
-
-          {/* Controls */}
-          <div className="px-4 py-3 flex items-center gap-3 border-b border-border-strong text-sm">
-            <button
-              type="button"
-              onClick={handleClear}
-              disabled={empty}
-              className={`rounded-md px-3 py-2 text-sm font-medium border ${
-                empty
-                  ? "cursor-not-allowed border-border-strong bg-surface-panel text-muted opacity-50"
-                  : "border-red-500/40 bg-red-500/10 text-red-200 hover:bg-red-500/15"
-              }`}
-            >
-              Clear all
-            </button>
-
-            <div className="flex items-center gap-2 ml-auto">
-              <label className="text-xs text-muted font-medium">Sort</label>
-              <select
-                value={sort}
-                onChange={(e) => setSort(e.target.value as ReminderSort)}
-                className="rounded-md border border-border-strong bg-brand-amber px-2 py-1 text-xs text-primary focus:outline-none focus:ring-1 focus:ring-brand-cyan"
+              <button
+                type="button"
+                onClick={onClose}
+                ref={closeButtonRef}
+                className="shrink-0 rounded-md border border-border-strong bg-surface-base/80 px-3 py-1.5 text-xs text-primary-invert hover:border-brand-cyan/60 hover:text-brand-cyan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base"
+                aria-label="Close reminders"
               >
-                <option value="added">Order added</option>
-                <option value="location">Loot location</option>
-                <option value="az">Name A-Z</option>
-                <option value="za">Name Z-A</option>
-              </select>
+                Close
+              </button>
             </div>
-          </div>
+          </SectionHeader>
 
-          {/* Content */}
-          <div className="overflow-y-auto max-h-[70vh] p-4 space-y-3">
-            {empty ? (
-              <div className="rounded-lg border border-dashed border-border-strong bg-surface-card p-4 text-sm text-primary">
-                Add items to Raid Reminders to populate this dashboard.
+          <Card className="rounded-t-none border-t-0 border-border-strong !p-0">
+            <div className="px-6 py-4 border-b border-border-subtle bg-surface-panel flex items-center gap-3 text-xs text-primary">
+              <button
+                type="button"
+                onClick={handleClear}
+                disabled={empty}
+                className={`rounded-md px-3 py-1.5 text-xs font-medium border ${
+                  empty
+                    ? "cursor-not-allowed border-border-strong bg-surface-panel text-muted opacity-60"
+                    : "border-brand-amber/60 bg-brand-amber/10 text-primary hover:bg-brand-amber/20"
+                }`}
+              >
+                Clear all
+              </button>
+
+              <div className="flex items-center gap-2 ml-auto">
+                <label className="text-xs text-muted font-medium">Sort</label>
+                <select
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value as ReminderSort)}
+                  className="rounded-md border border-border-strong bg-surface-panel px-2 py-1 text-xs text-primary focus:outline-none focus:ring-1 focus:ring-brand-cyan"
+                >
+                  <option value="added">Order added</option>
+                  <option value="location">Loot location</option>
+                  <option value="az">Name A-Z</option>
+                  <option value="za">Name Z-A</option>
+                </select>
               </div>
-            ) : (
-              sorted.map((item) => (
-                <ReminderRow
-                  key={item.id}
-                  item={item}
-                  onRemove={() => remove(item.id)}
-                  onNoteChange={(note) => updateNote(item.id, note)}
-                />
-              ))
-            )}
-          </div>
+            </div>
+
+            <div className="max-h-[70vh] overflow-y-auto px-6 py-4 space-y-3">
+              {empty ? (
+                <div className="rounded-lg border border-dashed border-border-subtle bg-surface-panel p-4 text-sm text-muted">
+                  Add items to Raid Reminders to populate this dashboard.
+                </div>
+              ) : (
+                sorted.map((item) => (
+                  <ReminderRow
+                    key={item.id}
+                    item={item}
+                    onRemove={() => remove(item.id)}
+                    onNoteChange={(note) => updateNote(item.id, note)}
+                  />
+                ))
+              )}
+            </div>
+          </Card>
         </div>
       </div>
     </div>,
@@ -168,7 +163,7 @@ function ReminderRow({
   const charLeft = 200 - noteValue.length;
 
   return (
-    <div className="rounded-lg border border-border-subtle bg-surface-card p-3 shadow-sm">
+    <div className="rounded-lg border border-border-subtle bg-surface-panel p-3">
       <div className="flex items-start gap-3">
         {item.icon && (
           <Image
@@ -178,7 +173,7 @@ function ReminderRow({
             height={48}
             sizes="48px"
             loading="lazy"
-            className="h-12 w-12 rounded border border-border-subtle bg-surface-base object-contain"
+            className="h-12 w-12 rounded border border-border-subtle bg-surface-card object-contain"
           />
         )}
         <div className="flex-1 min-w-0 space-y-1">
@@ -205,7 +200,7 @@ function ReminderRow({
             <button
               type="button"
               onClick={onRemove}
-              className="shrink-0 rounded-md px-2 py-1 text-xs border border-red-500/40 bg-red-500/10 text-red-200 hover:bg-red-500/15 focus:outline-none focus:ring-1 focus:ring-red-500"
+              className="shrink-0 rounded-md px-2 py-1 text-xs border border-brand-amber/60 bg-brand-amber/10 text-primary hover:bg-brand-amber/20 focus:outline-none focus:ring-1 focus:ring-brand-cyan"
               aria-label={`Remove ${item.name}`}
             >
               Remove
@@ -228,7 +223,7 @@ function ReminderRow({
                 value={noteValue}
                 onChange={(e) => setTempNote(e.target.value.slice(0, 200))}
                 rows={3}
-                className="w-full rounded-md border border-border-strong bg-surface-panel px-3 py-2 text-sm text-primary placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-brand-cyan"
+                className="w-full rounded-md border border-border-strong bg-surface-card px-3 py-2 text-sm text-primary placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-brand-cyan"
                 placeholder="Add a reminder or comment"
               />
               <div className="flex items-center justify-between text-[10px] text-muted">
@@ -250,7 +245,7 @@ function ReminderRow({
                       setTempNote(item.note ?? "");
                       setEditing(false);
                     }}
-                    className="rounded-md px-3 py-1.5 text-xs font-medium border border-border-strong bg-surface-panel text-primary hover:border-border-subtle"
+                    className="rounded-md px-3 py-1.5 text-xs font-medium border border-border-strong bg-surface-card text-primary hover:border-border-subtle"
                   >
                     Cancel
                   </button>

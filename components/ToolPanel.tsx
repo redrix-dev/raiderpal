@@ -1,17 +1,28 @@
+// components/ToolPanel.tsx
 import type { ReactNode } from "react";
-import { Panel } from "./ui/Panel";
+import { ToolShell } from "@/components/ToolShell";
 
 type ToolPanelProps = {
   children: ReactNode;
   className?: string;
   density?: "compact";
+
+  /**
+   * Width control for tool pages.
+   */
+  width?: "normal" | "wide";
 };
 
-export function ToolPanel({ children, className = "", density }: ToolPanelProps) {
+export function ToolPanel({
+  children,
+  className = "",
+  density,
+  width = "normal",
+}: ToolPanelProps) {
   const content = (
-    <Panel className={className}>
+    <ToolShell width={width} className={className}>
       <div className="space-y-4 2xl:[.ui-compact_&]:space-y-3">{children}</div>
-    </Panel>
+    </ToolShell>
   );
 
   if (density === "compact") {

@@ -13,7 +13,7 @@ type PrimaryButtonProps = {
  * Standard CTA button used across pages and panels.
  * Keeps color, padding, and focus ring consistent.
  */
-export function PrimaryButton({ href, children, className = "", variant = "brand" }: PrimaryButtonProps) {
+export function PrimaryButton({ href, children, className = "", variant = "cta" }: PrimaryButtonProps) {
   return (
     <Button href={href} className={className} variant={variant}>
       {children}

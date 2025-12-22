@@ -4,7 +4,7 @@ import { default as dynamicImport } from "next/dynamic";
 
 const RepairCalculatorClient = dynamicImport(
   () =>
-    import("@/components/RepairCalculatorClient").then(
+    import("@/components/rp/RepairCalculatorClient").then(
       (mod) => mod.RepairCalculatorClient
     ),
   {

@@ -60,13 +60,15 @@ export default function RootLayout({
       lang="en"
       className={`${barlow.variable} ${barlowCondensed.variable} h-full`}
     >
-      <body className="relative min-h-full bg-surface-base text-text-primary font-sans">
-        <div className="relative min-h-screen flex flex-col" style={{ zIndex: 2 }}>
+      <body className="relative min-h-full bg-surface-base text-primary font-sans">
+        {/* App stacking root: ensures ALL UI sits above body pseudo-element wallpaper layers */}
+        <div id="app-root" className="relative z-10 min-h-screen flex flex-col">
           {/* Header */}
           <header
-            className="border-b border-border-strong bg-surface-base/95 backdrop-blur"
+            className="border-b border-border-strong bg-surface-base/100"
             style={{
-              backgroundImage: 'url("/backgrounds/ARC_Raiders_Module_Background.png")',
+              backgroundImage:
+                'url("/backgrounds/ARC_Raiders_Module_Background.png")',
               backgroundRepeat: "repeat-x",
               backgroundSize: "auto 100%",
               backgroundPosition: "center",
@@ -74,14 +76,14 @@ export default function RootLayout({
           >
             <div className="mx-auto w-full max-w-[1680px] 2xl:max-w-[1800px] px-6 lg:px-8 py-4 flex items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded bg-[#4fc1e9]/20 border border-[#4fc1e9]/40 flex items-center justify-center text-base font-semibold">
+                <div className="h-12 w-12 rounded bg-[#4fc1e9]/20 border border-[#4fc1e9]/40 flex items-center justify-center text-primary-invert font-semibold">
                   RP
                 </div>
                 <div className="hidden sm:flex flex-col">
-                  <h1 className="text-xl font-bold tracking-wide uppercase font-condensed text-center sm:text-left">
+                  <h1 className="text-xl font-bold tracking-wide uppercase font-condensed text-center text-primary-invert sm:text-left">
                     Raider Pal
                   </h1>
-                  <p className="text-sm text-text-muted text-center sm:text-left font-medium">
+                  <p className="text-sm text-muted-invert text-center sm:text-left font-medium">
                     Arc Raiders item explorer & crafting companion
                   </p>
                 </div>
@@ -98,6 +100,7 @@ export default function RootLayout({
               <div className="min-w-0">{children}</div>
             </div>
           </main>
+
           {process.env.NODE_ENV === "development" && <CacheDebugPanel />}
           <Analytics />
 
@@ -117,24 +120,30 @@ export default function RootLayout({
           <footer
             className="border-t border-slate-800 bg-[#050910]"
             style={{
-              backgroundImage: 'url("/backgrounds/ARC_Raiders_Module_Background.png")',
+              backgroundImage:
+                'url("/backgrounds/ARC_Raiders_Module_Background.png")',
               backgroundRepeat: "repeat-x",
               backgroundSize: "auto 100%",
               backgroundPosition: "center",
             }}
           >
-            <div className="mx-auto w-full max-w-[1680px] 2xl:max-w-[1800px] px-6 lg:px-8 py-4 text-sm text-text-muted flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <span className="text-text-muted">
-                Raider Pal — an unofficial Arc Raiders companion. Game data and assets are © Embark Studios AB, with item information sourced from MetaForge (
+            <div className="mx-auto w-full max-w-[1680px] 2xl:max-w-[1800px] px-6 lg:px-8 py-4 text-sm text-muted-invert flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <span className="text-muted-invert">
+                Raider Pal — an unofficial Arc Raiders companion. Game data and
+                assets are © Embark Studios AB, with item information sourced
+                from MetaForge (
                 <a
                   href="https://metaforge.app/arc-raiders"
                   className="text-[#4fc1e9] hover:text-[#4fc1e9]"
                 >
                   metaforge.app/arc-raiders
                 </a>
-                ). “Arc Raiders” and its associated trademarks are owned by Embark Studios AB.
+                ). “Arc Raiders” and its associated trademarks are owned by
+                Embark Studios AB.
               </span>
-              <span className="text-text-muted">Built with Next.js & Supabase</span>
+              <span className="text-muted-invert">
+                Built with Next.js & Supabase
+              </span>
             </div>
           </footer>
         </div>

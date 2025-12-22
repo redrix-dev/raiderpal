@@ -1,7 +1,6 @@
-// components/ModulePanel.tsx
-import Image from "next/image";
 import type { ReactNode } from "react";
-import { Panel } from "./ui/Panel";
+import Image from "next/image";
+import { Panel, PanelVariant } from "@/components/ui/Panel";
 
 export type ModulePanelRow = {
   key: string;
@@ -12,9 +11,11 @@ export type ModulePanelRow = {
 };
 
 type ModulePanelProps = {
-  title: string;
+  title: ReactNode;
+  subtitle?: ReactNode; // ✅ THIS FIXES YOUR ERROR
   rows?: ModulePanelRow[];
   children?: ReactNode;
+
   className?: string;
   headerClassName?: string;
   bodyClassName?: string;
@@ -22,12 +23,9 @@ type ModulePanelProps = {
   headerRight?: ReactNode;
 };
 
-/**
- * Reusable panel with the same shell/row styling used on stats and tabs.
- * Keeps page-level usage minimal: supply a title and rows.
- */
 export function ModulePanel({
   title,
+  subtitle,
   rows = [],
   children,
   className = "",
@@ -38,26 +36,46 @@ export function ModulePanel({
 }: ModulePanelProps) {
   return (
     <Panel
+      variant="light"
       padding="none"
-      className={`h-full w-full overflow-hidden text-base ${className}`}
+      className={`h-full w-full text-base overflow-hidden ${className}`}
     >
+      {/* Header */}
       <div
         className={
-          "bg-black/50 border-b border-white/10 px-6 md:px-7 py-4 2xl:[.ui-compact_&]:px-5 2xl:[.ui-compact_&]:py-3 " +
+          "bg-black/50 border-b border-white/10 px-6 md:px-7 py-4  " +
+          "2xl:[.ui-compact_&]:px-5 2xl:[.ui-compact_&]:py-3 " +
           headerClassName
         }
+        style={{
+              backgroundImage:
+                'url("/backgrounds/ARC_Raiders_Module_Background.png")',
+              backgroundRepeat: "repeat-x",
+              backgroundSize: "auto 100%",
+              backgroundPosition: "center",
+            }}
       >
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-2xl 2xl:[.ui-compact_&]:text-xl font-condensed font-semibold text-warm uppercase tracking-wide">
-            {title}
-          </h2>
-          {headerRight}
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="text-2xl 2xl:[.ui-compact_&]:text-xl font-condensed font-semibold text-primary-invert uppercase tracking-wide truncate">
+              {title}
+            </h2>
+            {subtitle ? (
+              <p className="mt-1 text-sm text-muted-invert">{subtitle}</p>
+            ) : null}
+          </div>
+
+          {headerRight ? (
+            <div className="flex-shrink-0">{headerRight}</div>
+          ) : null}
         </div>
       </div>
 
+      {/* Body */}
       <div
         className={
-          "px-6 py-6 space-y-3 2xl:[.ui-compact_&]:px-5 2xl:[.ui-compact_&]:py-4 2xl:[.ui-compact_&]:space-y-2.5 " +
+          "px-6 py-6 space-y-3 " +
+          "2xl:[.ui-compact_&]:px-5 2xl:[.ui-compact_&]:py-4 2xl:[.ui-compact_&]:space-y-2.5 " +
           bodyClassName
         }
       >
@@ -65,7 +83,7 @@ export function ModulePanel({
           ? rows.map((row) => {
               const content = (
                 <div className="flex items-center gap-3 min-w-0">
-                  {row.icon && (
+                  {row.icon ? (
                     <Image
                       src={row.icon}
                       alt={typeof row.label === "string" ? row.label : "Icon"}
@@ -75,8 +93,8 @@ export function ModulePanel({
                       loading="lazy"
                       className="h-10 w-10 rounded border border-white/10 bg-black/60 object-contain flex-shrink-0"
                     />
-                  )}
-                  <dt className="text-warm-muted font-semibold truncate">
+                  ) : null}
+                  <dt className="text-muted-invert font-semibold truncate">
                     {row.label}
                   </dt>
                 </div>
@@ -86,22 +104,26 @@ export function ModulePanel({
                 <div
                   key={row.key}
                   className={
-                    "flex items-center justify-between gap-3 rounded-lg border border-white/5 bg-black/20 px-6 py-4 text-base 2xl:[.ui-compact_&]:px-5 2xl:[.ui-compact_&]:py-3 2xl:[.ui-compact_&]:text-sm " +
+                    "flex items-center justify-between gap-3 rounded-lg border border-white/5 bg-black/20 px-6 py-4 text-base " +
+                    "2xl:[.ui-compact_&]:px-5 2xl:[.ui-compact_&]:py-3 2xl:[.ui-compact_&]:text-sm " +
                     rowClassName
                   }
                 >
                   {row.href ? (
-                    <a href={row.href} className="flex items-center gap-3 min-w-0 text-warm hover:underline">
+                    <a
+                      href={row.href}
+                      className="flex items-center gap-3 min-w-0 text-primary-invert hover:underline"
+                    >
                       {content}
                     </a>
                   ) : (
                     content
                   )}
-                  {row.value != null && (
-                    <dd className="font-semibold text-warm text-right truncate">
+                  {row.value != null ? (
+                    <dd className="font-semibold text-primary-invert text-right truncate">
                       {row.value}
                     </dd>
-                  )}
+                  ) : null}
                 </div>
               );
             })
@@ -110,4 +132,3 @@ export function ModulePanel({
     </Panel>
   );
 }
-

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { TopNavMenu } from "@/components/rp/TopNavMenu";
+import { TopNavMenu } from "@/components/TopNavMenu";
 import { RaidRemindersDrawer } from "@/components/rp/RaidRemindersDrawer";
-import { LongCacheIndicator } from "./LongCacheToggle";
+import { LongCacheIndicator } from "@/components/LongCacheToggle";
 import { useRaidReminders } from "@/hooks/useRaidReminders";
 
 export function HeaderControls() {

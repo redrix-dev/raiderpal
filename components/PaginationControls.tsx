@@ -52,7 +52,7 @@ export function PaginationControls({
   );
 
   return (
-    <div className="flex flex-col gap-2 text-sm text-warm-muted pt-2">
+    <div className="flex flex-col gap-2 text-sm text-muted pt-2">
       <div>
         Page {currentPage} of {totalPages}
       </div>
@@ -62,7 +62,7 @@ export function PaginationControls({
             type="button"
             onClick={() => onPageChange(Math.max(1, currentPage - visiblePageCount))}
             disabled={currentPage === 1}
-            className="rounded-md border border-white/10 bg-black/30 px-3 py-1 text-sm text-warm hover:border-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-md border border-white/10 bg-black/30 px-3 py-1 text-sm text-primary hover:border-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             ‹‹
           </button>
@@ -70,7 +70,7 @@ export function PaginationControls({
             type="button"
             onClick={() => onPageChange(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
-            className="rounded-md border border-white/10 bg-black/30 px-3 py-1 text-sm text-warm hover:border-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-md border border-white/10 bg-black/30 px-3 py-1 text-sm text-primary hover:border-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Prev
           </button>
@@ -78,7 +78,7 @@ export function PaginationControls({
             type="button"
             onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages}
-            className="rounded-md border border-white/10 bg-black/30 px-3 py-1 text-sm text-warm hover:border-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-md border border-white/10 bg-black/30 px-3 py-1 text-sm text-primary hover:border-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Next
           </button>
@@ -88,7 +88,7 @@ export function PaginationControls({
               onPageChange(Math.min(totalPages, currentPage + visiblePageCount))
             }
             disabled={currentPage === totalPages}
-            className="rounded-md border border-white/10 bg-black/30 px-3 py-1 text-sm text-warm hover:border-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-md border border-white/10 bg-black/30 px-3 py-1 text-sm text-primary hover:border-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             ››
           </button>
@@ -101,8 +101,8 @@ export function PaginationControls({
               onClick={() => onPageChange(num)}
               className={`rounded-md border px-3 py-1 text-sm ${
                 num === currentPage
-                  ? "border-[#4fc1e9] bg-[#4fc1e9]/15 text-warm"
-                  : "border-white/10 bg-black/20 text-warm hover:border-white/30"
+                  ? "border-[#4fc1e9] bg-[#4fc1e9]/15 text-primary"
+                  : "border-white/10 bg-black/20 text-primary hover:border-white/30"
               }`}
             >
               {num}

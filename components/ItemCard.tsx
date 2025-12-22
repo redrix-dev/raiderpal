@@ -21,15 +21,15 @@ export type ItemCardProps = {
 export function rarityClasses(rarity?: string | null) {
   switch (rarity) {
     case "Common":
-      return "border-border-subtle bg-surface-card/70";
+      return "border-rarity-common/100 bg-rarity-common/30";
     case "Uncommon":
-      return "border-emerald-600/70 bg-emerald-950/40";
+      return "border-rarity-uncommon/100 bg-rarity-uncommon/30";
     case "Rare":
-      return "border-brand-cyan/70 bg-brand-cyan/10";
+      return "border-rarity-rare/100 bg-rarity-rare/30";
     case "Epic":
-      return "border-purple-600/70 bg-purple-950/40";
+      return "border-rarity-epic/100 bg-rarity-epic/30";
     case "Legendary":
-      return "border-amber-500/80 bg-amber-950/40";
+      return "border-rarity-legendary/100 bg-rarity-legendary/30";
     default:
       return "border-border-subtle bg-surface-card/60";
   }
@@ -41,7 +41,7 @@ export function RarityBadge({ rarity }: { rarity?: string | null }) {
 
   return (
     <span
-      className={`text-[10px] uppercase tracking-wide text-warm border rounded px-1.5 py-0.5 bg-panel-texture font-condensed ${rarityClasses(
+      className={`text-[10px] uppercase tracking-wide text-primary border rounded px-1.5 py-0.5 bg-surface-panel font-condensed ${rarityClasses(
         rarity
       )}`}
     >
@@ -73,13 +73,13 @@ export function ItemCard({ item, onClick, action, ariaControls }: ItemCardProps)
       {/* Main text */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="truncate font-condensed font-semibold text-warm">
+          <span className="truncate font-condensed font-semibold text-primary">
             {item.name ?? "Unknown item"}
           </span>
           <RarityBadge rarity={item.rarity} />
         </div>
 
-        <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-warm-muted font-medium">
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted font-medium">
           {item.item_type && (
             <span className="inline-flex items-center gap-1">
               <span className="w-1 h-1 rounded-full bg-slate-500" />
@@ -103,11 +103,11 @@ export function ItemCard({ item, onClick, action, ariaControls }: ItemCardProps)
 
       {/* Value */}
       {(item.value != null || action) && (
-        <div className="ml-2 flex flex-col items-end gap-2 text-right text-xs text-warm font-medium">
+        <div className="ml-2 flex flex-col items-end gap-2 text-right text-xs text-primary font-medium">
           {item.value != null && (
             <div>
               <div className="font-semibold">{item.value}</div>
-              <div className="text-[10px] text-warm-muted font-medium">value</div>
+              <div className="text-[10px] text-muted font-medium">value</div>
             </div>
           )}
           {action && (

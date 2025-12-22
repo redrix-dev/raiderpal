@@ -37,19 +37,23 @@ export default async function ItemsBrowsePage() {
     versionRow?.version != null ? String(versionRow.version) : undefined;
 
   return (
-    <Panel className="space-y-4 min-h-[70vh] lg:min-h-[75vh] xl:min-h-[79vh]">
-      <ModulePanel title="Items Browser">
-        <div className="space-y-3">
-          <p className="text-base text-text-primary">
-            Search and filter Arc Raiders items. Click a card for full details,
-            crafting, recycling, and best sources.
-          </p>
-          <ItemsBrowseClient
-            initialItems={items ?? []}
-            dataVersion={dataVersion}
-          />
-        </div>
-      </ModulePanel>
-    </Panel>
+    <main className="mx-auto w-full max-w-5xl px-4 sm:px-6 py-8 space-y-6">
+      {/* Page header */}
+      <div>
+        <h1 className="text-3xl font-bold font-condensed uppercase tracking-wide text-primary">
+          Items Browser
+        </h1>
+        <p className="mt-2 text-base text-primary">
+          Search and filter Arc Raiders items. Click a card for full details,
+          crafting, recycling, and best sources.
+        </p>
+      </div>
+
+      {/* The actual browser */}
+      <ItemsBrowseClient
+        initialItems={items ?? []}
+        dataVersion={dataVersion}
+      />
+    </main>
   );
 }

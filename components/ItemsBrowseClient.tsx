@@ -1,4 +1,4 @@
-/**
+/** app/components/ItemsBrowseClient.tsx
  * @fileoverview Client component for browsing and searching items
  *
  * Interactive item browser with search, filtering, pagination, and preview modals.
@@ -200,13 +200,13 @@ export function ItemsBrowseClient({
       />
 
       {/* Results summary */}
-      <div className="text-xs text-warm-muted">
+      <div className="text-xs text-muted">
         Showing {filtered.length} of {initialItems.length} items
       </div>
 
       {/* Grid */}
       {filtered.length === 0 ? (
-        <div className="text-sm text-warm-muted">
+        <div className="text-sm text-muted">
           No items match your filters.
         </div>
       ) : (
@@ -271,6 +271,25 @@ function AddReminderButton({
   isAdded: boolean;
   onAdd: () => void;
 }) {
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Don't render anything until client-side hydration is complete
+  if (!mounted) {
+    return (
+      <button
+        type="button"
+        disabled
+        className="rounded-md border border-border-strong bg-surface-panel px-2 py-1 text-[11px] font-medium text-muted opacity-50"
+      >
+        ...
+      </button>
+    );
+  }
+
   if (isAdded) {
     return (
       <span className="text-[11px] font-semibold text-emerald-300">(added)</span>
@@ -284,7 +303,7 @@ function AddReminderButton({
         e.stopPropagation();
         onAdd();
       }}
-      className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-[11px] font-medium text-warm hover:border-[#4fc1e9] hover:text-[#4fc1e9]"
+      className="rounded-md border border-brand-cyan/40 bg-brand-cyan/10 px-2 py-1 text-[11px] font-medium text-brand-cyan hover:bg-brand-cyan/15"
     >
       Add to Raid Reminders
     </button>

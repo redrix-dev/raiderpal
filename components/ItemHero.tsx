@@ -18,7 +18,7 @@ export function ItemHero({
   rarity,
 }: ItemHeroProps) {
   return (
-    <div className="h-full w-full rounded-xl border border-white/5 bg-panel-texture shadow-[0_0_40px_rgba(0,0,0,0.6)] overflow-hidden text-text-primary">
+    <div className="h-full w-full rounded-xl border border-white/5 bg-surface-surface shadow-[0_0_40px_rgba(0,0,0,0.6)] overflow-hidden text-primary">
       <div className="px-5 py-5 space-y-3">
         <div className="flex items-center gap-6 rounded-lg border border-white/5 bg-black/25 px-5 py-4">
           {icon && (
@@ -37,7 +37,7 @@ export function ItemHero({
             <h1 className="text-4xl font-bold tracking-wide uppercase font-condensed leading-tight">
               {name}
             </h1>
-            <div className="mt-2 flex items-center gap-2 text-sm text-text-muted font-medium">
+            <div className="mt-2 flex items-center gap-2 text-sm text-muted font-medium">
               <RarityBadge rarity={rarity} />
               {itemType && <span>{itemType}</span>}
             </div>
@@ -46,7 +46,7 @@ export function ItemHero({
 
         {description && (
           <div className="rounded-lg border border-white/5 bg-black/25 px-5 py-4">
-            <p className="text-lg text-text-primary max-w-4xl leading-relaxed">
+            <p className="text-lg text-primary max-w-4xl leading-relaxed">
               {description}
             </p>
           </div>

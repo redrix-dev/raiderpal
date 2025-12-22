@@ -141,15 +141,15 @@ export function PreviewModal({
             <div>
               <h3
                 id="item-preview-title"
-                className="text-base font-condensed font-semibold text-warm"
+                className="text-base font-condensed font-semibold text-primary"
               >
                 {item.name}
               </h3>
-              <div className="text-xs text-warm-muted flex flex-wrap gap-2 items-center font-medium">
+              <div className="text-xs text-muted flex flex-wrap gap-2 items-center font-medium">
                 <RarityBadge rarity={item.rarity} />
                 {item.item_type && <span>{item.item_type}</span>}
                 {item.loot_area && (
-                  <span className="text-warm">Loot: {item.loot_area}</span>
+                  <span className="text-primary">Loot: {item.loot_area}</span>
                 )}
               </div>
             </div>
@@ -158,7 +158,7 @@ export function PreviewModal({
           <button
             type="button"
             onClick={onClose}
-            className="text-xs text-warm-muted hover:text-warm"
+            className="text-xs text-muted hover:text-primary"
             aria-label="Close"
             ref={closeButtonRef}
           >
@@ -168,7 +168,7 @@ export function PreviewModal({
 
         {/* Value */}
         {item.value != null && (
-          <div className="mb-3 text-sm text-warm">
+          <div className="mb-3 text-sm text-primary">
             <span className="font-medium">Value:</span> {item.value}
           </div>
         )}
@@ -186,11 +186,11 @@ export function PreviewModal({
           <div className="space-y-3 text-sm">
             {/* Crafting */}
             <div>
-              <h4 className="text-xs font-condensed font-semibold text-warm mb-1">
+              <h4 className="text-xs font-condensed font-semibold text-primary mb-1">
                 Crafting Recipe
               </h4>
               {details.crafting.length === 0 ? (
-                <div className="text-xs text-warm-muted font-medium">
+                <div className="text-xs text-muted font-medium">
                   No crafting recipe.
                 </div>
               ) : (
@@ -200,10 +200,10 @@ export function PreviewModal({
                     return (
                       <li
                         key={`${componentId ?? "component"}-${idx}`}
-                        className="flex items-center justify-between text-xs text-warm font-medium"
+                        className="flex items-center justify-between text-xs text-primary font-medium"
                       >
                         <span>{c.component?.name ?? "Unknown component"}</span>
-                        <span className="text-warm-muted">
+                        <span className="text-muted">
                           ×{c.quantity ?? "-"}
                         </span>
                       </li>
@@ -215,11 +215,11 @@ export function PreviewModal({
 
             {/* Recycles Into */}
             <div>
-              <h4 className="text-xs font-condensed font-semibold text-warm mb-1">
+              <h4 className="text-xs font-condensed font-semibold text-primary mb-1">
                 Recycles Into
               </h4>
               {details.recycling.length === 0 ? (
-                <div className="text-xs text-warm-muted font-medium">
+                <div className="text-xs text-muted font-medium">
                   No recycling outputs.
                 </div>
               ) : (
@@ -230,10 +230,10 @@ export function PreviewModal({
                     return (
                       <li
                         key={`${componentId}-${idx}`}
-                        className="flex items-center justify-between text-xs text-warm font-medium"
+                        className="flex items-center justify-between text-xs text-primary font-medium"
                       >
                         <span>{r.component?.name ?? "Unknown component"}</span>
-                        <span className="text-warm-muted">×{r.quantity ?? "-"}</span>
+                        <span className="text-muted">×{r.quantity ?? "-"}</span>
                       </li>
                     );
                   })}
