@@ -1,4 +1,4 @@
-// components/ToolShell.tsx
+// components/ui/ToolShell.tsx
 import type { ReactNode } from "react";
 
 type ToolShellProps = {
@@ -40,3 +40,4 @@ export function ToolShell({
     </main>
   );
 }
+

@@ -2,7 +2,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
-import { HeaderControls } from "@/components/HeaderControls";
+import { HeaderControls } from "@/components/rp/HeaderControls";
 import { CacheDebugPanel } from "@/components/CacheDebugPanel";
 import { Barlow, Barlow_Condensed } from "next/font/google";
 

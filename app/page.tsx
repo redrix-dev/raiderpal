@@ -1,6 +1,6 @@
-import { ModulePanel } from "@/components/ModulePanel";
-import { ToolPanel } from "@/components/ToolPanel";
-import { PrimaryButton } from "@/components/PrimaryButton";
+import { ModulePanel } from "@/components/ui/ModulePanel";
+import { ToolPanel } from "@/components/ui/ToolPanel";
+import { PrimaryButton } from "@/components/ui/PrimaryButton";
 
 // app/page.tsx
 

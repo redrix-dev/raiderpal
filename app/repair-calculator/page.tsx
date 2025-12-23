@@ -1,5 +1,5 @@
 import { listRepairableItems } from "@/lib/data";
-import { ToolPanel } from "@/components/ToolPanel";
+import { ToolPanel } from "@/components/ui/ToolPanel";
 import { default as dynamicImport } from "next/dynamic";
 
 const RepairCalculatorClient = dynamicImport(

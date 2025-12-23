@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { Button } from "./ui/Button";
-import type { ButtonVariant } from "./ui/Button";
+import { Button } from "./Button";
+import type { ButtonVariant } from "./Button";
 
 type PrimaryButtonProps = {
   href: string;
@@ -20,3 +20,4 @@ export function PrimaryButton({ href, children, className = "", variant = "cta" 
     </Button>
   );
 }
+

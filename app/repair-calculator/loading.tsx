@@ -1,4 +1,4 @@
-import { ToolPanel } from "@/components/ToolPanel";
+import { ToolPanel } from "@/components/ui/ToolPanel";
 
 export default function Loading() {
   return (

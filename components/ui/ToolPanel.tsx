@@ -1,6 +1,6 @@
-// components/ToolPanel.tsx
+// components/ui/ToolPanel.tsx
 import type { ReactNode } from "react";
-import { ToolShell } from "@/components/ToolShell";
+import { ToolShell } from "@/components/ui/ToolShell";
 
 type ToolPanelProps = {
   children: ReactNode;
@@ -31,3 +31,4 @@ export function ToolPanel({
 
   return content;
 }
+

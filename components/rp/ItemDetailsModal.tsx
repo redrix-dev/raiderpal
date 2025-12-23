@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { RarityBadge } from "@/components/RarityBadge";
+import { RarityBadge } from "@/components/ui/RarityBadge";
 import { Card } from "@/components/ui/Card";
 import { CardHeader } from "@/components/ui/CardHeader";
 import { Panel } from "@/components/ui/Panel";
@@ -56,6 +56,12 @@ export function ItemDetailsModal({
   const titleId = `${dialogId}-title`;
   const [activeTab, setActiveTab] = useState<TabId>("crafting");
   const [hideWeapons, setHideWeapons] = useState(true);
+
+  // Responsive layout classes
+  const scrollableContentClasses = "flex-1 min-h-0 rounded-b-2xl overflow-y-auto sm:overflow-y-hidden";
+  const innerContentClasses = "space-y-6 flex flex-col sm:min-h-0";
+  const overviewStatsGridClasses = "grid gap-4 grid-cols-1 sm:grid-cols-2";
+  const tabContentClasses = "bg-surface-panel p-4 sm:p-5 sm:overflow-y-auto sm:flex-1 sm:min-h-0 sm:max-h-[320px]";
 
   useEffect(() => {
     if (closeButtonRef.current) {
@@ -124,7 +130,7 @@ export function ItemDetailsModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-5xl max-h-[90vh] flex flex-col"
+        className="w-full max-w-7xl max-h-[90vh] flex flex-col rounded-2xl overflow-hidden"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -160,17 +166,17 @@ export function ItemDetailsModal({
         </CardHeader>
 
         {/* Scrollable content area */}
-        <div className="overflow-y-auto flex-1 rounded-b-2xl">
+        <div className={scrollableContentClasses}>
           <Panel
             variant="light"
             padding="roomy"
-            className="rounded-none border-t-0 border-border-strong"
+            className="!rounded-none border-t-0 border-border-strong h-full flex flex-col min-h-0"
           >
-            <div className="space-y-6">
+            <div className={innerContentClasses}>
               {/* Overview and Stats cards */}
-              <div className="grid gap-4 lg:grid-cols-[1.2fr,0.8fr]">
+              <div className={overviewStatsGridClasses}>
                 {/* Overview Card */}
-                <div className="overflow-hidden rounded-lg border border-border-subtle shadow-sm shadow-black/30">
+                <div className="overflow-hidden rounded-lg border border-border-subtle shadow-sm shadow-black/30 flex flex-col flex-1 min-h-0">
                   <CardHeader
                     className="rounded-none border-0 border-b border-border-subtle"
                     contentClassName="px-4 py-2 sm:px-5 sm:py-2"
@@ -279,7 +285,7 @@ export function ItemDetailsModal({
               </div>
 
               {/* Details/Tabs Section */}
-              <div className="overflow-hidden rounded-lg border border-border-subtle shadow-sm shadow-black/30">
+              <div className="overflow-hidden rounded-lg border border-border-subtle shadow-sm shadow-black/30 flex flex-col min-h-0">
                 {/* Tabs in the dark header */}
                 <div className="border-b border-border-subtle bg-surface-base text-primary-invert"
                   style={{
@@ -326,7 +332,7 @@ export function ItemDetailsModal({
                 </div>
                 
                 {/* Darker content area - SCROLLABLE */}
-                <div className="bg-surface-panel p-4 sm:p-5 max-h-96 overflow-y-auto">
+                <div className={tabContentClasses}>
                   {isLoading ? (
                     <div className="space-y-2">
                       {Array.from({ length: 4 }).map((_, index) => (
