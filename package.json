@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@floating-ui/react": "^0.27.16",
     "@supabase/supabase-js": "^2.86.0",
     "@vercel/analytics": "^1.6.1",
     "next": "15.5.9",
@@ -23,6 +24,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.1.9",
+    "next-pwa": "^5.6.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

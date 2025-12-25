@@ -1,16 +1,32 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { type RepairableItem, computeRepairSummary } from "@/lib/data/client";
 import { Card } from "@/components/ui/Card";
 import { CardHeader } from "@/components/ui/CardHeader";
 import { Panel } from "@/components/ui/Panel";
+import { RarityBadge } from "@/components/ui/RarityBadge";
+import { rarityClasses } from "@/components/ui/rarity";
 import { ItemPicker, type PickerItem } from "@/components/rp/ItemPicker-portal";
+import { RangeSlider } from "@/components/rp/RangeSlider";
 import { type CostRow } from "@/lib/types/costs";
+import { cn } from "@/lib/cn";
 
 type Props = {
   items: RepairableItem[];
+};
+
+type ComponentMeta = Pick<CostRow, "id" | "name" | "icon" | "rarity">;
+
+type CostBreakdownRow = ComponentMeta & {
+  perCycleQty: number;
+  totalQty: number;
 };
 
 export function RepairCalculatorClient({ items }: Props) {
@@ -157,16 +173,8 @@ export function RepairCalculatorClient({ items }: Props) {
   }, [selected, summary]);
 
   const maxDurability = selected?.profile.max_durability ?? 0;
-  const sliderFill =
-    maxDurability > 0
-      ? Math.min(100, Math.max(0, (durability / maxDurability) * 100))
-      : 0;
 
-  const rangeStyle = {
-    ["--rp-range-progress"]: `${sliderFill}%`,
-  } as CSSProperties & { ["--rp-range-progress"]?: string };
-
-  const costTableRows = useMemo(() => {
+  const costTableRows = useMemo<CostBreakdownRow[]>(() => {
     const totalMap = new Map(totalCostRows.map((row) => [row.id, row]));
     const perCycleMap = new Map(perCycleRows.map((row) => [row.id, row]));
     const ids = new Set([...perCycleMap.keys(), ...totalMap.keys()]);
@@ -192,22 +200,9 @@ export function RepairCalculatorClient({ items }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-condensed font-bold uppercase tracking-wide text-primary">
-          Repair Cost Calculator
-        </h1>
-        <p className="text-base text-muted">
-          Calculate how many repair cycles are needed to reach max durability
-          and the total component cost based on the manual repair recipes.
-        </p>
-      </div>
-
       <div className="grid gap-6 lg:grid-cols-2 items-start">
-        {/* Left column: Tool Controls */}
-        <div className="space-y-4">
-          {/* Item Selection Card */}
-          <div className="rounded-lg border border-border-subtle shadow-sm shadow-black/30 overflow-hidden">
+        <div className="space-y-6">
+          <Card className="!p-0 overflow-hidden">
             <CardHeader
               className="rounded-none border-0 border-b border-border-subtle"
               contentClassName="px-4 py-2 sm:px-5 sm:py-2"
@@ -217,10 +212,10 @@ export function RepairCalculatorClient({ items }: Props) {
               </div>
             </CardHeader>
 
-            <div className="bg-surface-panel p-4 sm:p-5">
-              <div className="space-y-4 relative">
+            <div className="bg-surface-panel p-4 sm:p-5 space-y-4">
+              <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm text-primary font-semibold">
+                  <label className="block text-xs font-medium text-muted">
                     Select item to repair
                   </label>
                   <ItemPicker
@@ -228,33 +223,33 @@ export function RepairCalculatorClient({ items }: Props) {
                     selectedId={selectedId}
                     onChange={(id) => setSelectedId(id)}
                     placeholder="Select an item..."
-                    triggerClassName="h-14 text-base"
-                    dropdownClassName="max-h-[320px]"
+                    dropdownClassName="max-h-[460px]"
                   />
                 </div>
 
                 <div className="space-y-2">
-                <label className="text-sm text-primary font-semibold flex items-center justify-between">
-                  <span>Current durability</span>
-                  <span className="text-xs text-muted">{durability}</span>
-                </label>
-                <input
-                  type="range"
-                  min={0}
-                  max={maxDurability}
-                  step={1}
-                  value={durability}
-                  onChange={(e) => setDurability(Number(e.target.value))}
-                  className="w-full rp-range"
-                  style={rangeStyle}
-                />
-                <div className="text-xs text-muted">
-                  Max durability: {selected?.profile.max_durability ?? 0}
+                  <div className="flex items-center justify-between text-xs font-medium text-muted">
+                    <span id="current-durability-label">Current durability</span>
+                    <span className="text-primary">{durability}</span>
+                  </div>
+                  <RangeSlider
+                    min={0}
+                    max={maxDurability}
+                    step={1}
+                    value={durability}
+                    onChange={setDurability}
+                    className="w-full"
+                    ariaLabelledBy="current-durability-label"
+                    ariaValueText={`Current durability ${durability}`}
+                  />
+                  <div className="text-xs text-muted">
+                    Max durability: {selected?.profile.max_durability ?? 0}
+                  </div>
                 </div>
               </div>
 
               {selected && summary ? (
-                <Card className="!p-3 bg-brand-cyan/5 border-brand-cyan/20">
+                <Card className="!p-3 border-brand-cyan/40 bg-brand-cyan/10">
                   <div className="space-y-1">
                     <div className="text-sm text-primary font-semibold">
                       Repair cycles needed: {cycles}
@@ -265,12 +260,10 @@ export function RepairCalculatorClient({ items }: Props) {
                   </div>
                 </Card>
               ) : null}
-              </div>
             </div>
-          </div>
+          </Card>
 
-          {/* Repair Costs Table Card */}
-          <div className="overflow-hidden rounded-lg border border-border-subtle shadow-sm shadow-black/30">
+          <Card className="!p-0 overflow-hidden">
             <CardHeader
               className="rounded-none border-0 border-b border-border-subtle"
               contentClassName="px-4 py-2 sm:px-5 sm:py-2"
@@ -280,72 +273,57 @@ export function RepairCalculatorClient({ items }: Props) {
               </div>
             </CardHeader>
 
-            <div className="bg-surface-panel p-4 sm:p-5">
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-sm text-primary">
-                  <thead className="text-xs uppercase text-muted border-b border-border-subtle">
-                    <tr>
-                      <th className="px-3 py-2 text-left font-semibold">Component</th>
-                      <th className="px-3 py-2 text-right font-semibold">Per Cycle</th>
-                      <th className="px-3 py-2 text-right font-semibold">To Full</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {costTableRows.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={3}
-                          className="px-3 py-4 text-center text-xs text-muted"
-                        >
-                          {selected ? "No repairs needed" : "Select an item to see repair costs"}
-                        </td>
-                      </tr>
-                    ) : (
-                      costTableRows.map((row) => (
-                        <tr key={row.id} className="border-t border-border-subtle">
-                          <td className="px-3 py-3">
-                            <div className="flex items-center gap-3 min-w-0">
-                              {row.icon && (
-                                <Image
-                                  src={row.icon}
-                                  alt={row.name ?? "Component"}
-                                  width={32}
-                                  height={32}
-                                  sizes="32px"
-                                  loading="lazy"
-                                  className="h-8 w-8 rounded border border-border-subtle bg-surface-card object-contain flex-shrink-0"
-                                />
-                              )}
-                              <div className="min-w-0">
-                                <div className="truncate text-sm text-primary font-semibold">
-                                  {row.name}
-                                </div>
-                                {row.rarity && (
-                                  <div className="text-[11px] text-muted">
-                                    {row.rarity}
-                                  </div>
-                                )}
+            <div className="bg-surface-panel p-4 sm:p-5 space-y-3">
+              {costTableRows.length === 0 ? (
+                <Card className="!p-3">
+                  <p className="text-xs text-muted">
+                    {selected
+                      ? "No repairs needed"
+                      : "Select an item to see repair costs"}
+                  </p>
+                </Card>
+              ) : (
+                <div className="space-y-2">
+                  {costTableRows.map((row) => {
+                    const perCycleLabel =
+                      row.perCycleQty > 0 ? `x${row.perCycleQty}` : "-";
+                    const totalLabel =
+                      row.totalQty > 0 ? `x${row.totalQty}` : "-";
+
+                    return (
+                      <ComponentCard
+                        key={row.id}
+                        item={row}
+                        right={
+                          <div className="flex items-center gap-6 text-right">
+                            <div className="min-w-16">
+                              <div className="text-[10px] uppercase text-muted">
+                                Per cycle
+                              </div>
+                              <div className="text-sm font-semibold text-primary">
+                                {perCycleLabel}
                               </div>
                             </div>
-                          </td>
-                          <td className="px-3 py-3 text-right font-medium">
-                            {row.perCycleQty > 0 ? `x${row.perCycleQty}` : "-"}
-                          </td>
-                          <td className="px-3 py-3 text-right font-semibold">
-                            {row.totalQty > 0 ? `x${row.totalQty}` : "-"}
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                            <div className="min-w-16">
+                              <div className="text-[10px] uppercase text-muted">
+                                To full
+                              </div>
+                              <div className="text-sm font-semibold text-primary">
+                                {totalLabel}
+                              </div>
+                            </div>
+                          </div>
+                        }
+                      />
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          </div>
+          </Card>
         </div>
 
-        {/* Right column: Crafting Analysis */}
-        <div className="overflow-hidden rounded-lg border border-border-subtle shadow-sm shadow-black/30">
+        <Card className="!p-0 overflow-hidden">
           <CardHeader
             className="rounded-none border-0 border-b border-border-subtle"
             contentClassName="px-4 py-2 sm:px-5 sm:py-2"
@@ -358,23 +336,61 @@ export function RepairCalculatorClient({ items }: Props) {
           <div className="bg-surface-panel p-4 sm:p-5 space-y-4">
             <CostSection title="Crafting Cost" rows={craftingRows} />
             <CostSection title="Recycling Return" rows={recyclingRows} isReturn />
-            <CostSection 
-              title="Net Components Needed" 
-              rows={netCraftRows} 
+            <CostSection
+              title="Net Components Needed"
+              rows={netCraftRows}
               emptyText="No additional components needed (recycling covers all costs)"
             />
           </div>
-        </div>
-      </div>
-
-      {!selected && (
-        <Card className="!p-4 bg-amber-900/10 border-amber-700/30">
-          <p className="text-sm text-primary">
-            Select an item above to calculate repair costs and see the full crafting analysis.
-          </p>
         </Card>
-      )}
+      </div>
     </div>
+  );
+}
+
+function ComponentCard({
+  item,
+  right,
+}: {
+  item: ComponentMeta;
+  right?: ReactNode;
+}) {
+  return (
+    <Card
+      variant="neutral"
+      className={cn("!p-1", rarityClasses(item.rarity))}
+    >
+      <Panel
+        variant="light"
+        padding="none"
+        className="flex items-center gap-3 p-3"
+      >
+        {item.icon ? (
+          <Image
+            src={item.icon}
+            alt={item.name ?? "Component"}
+            width={36}
+            height={36}
+            sizes="36px"
+            loading="lazy"
+            className="h-9 w-9 rounded border border-border-subtle bg-surface-panel object-contain flex-shrink-0"
+          />
+        ) : (
+          <div className="h-9 w-9 rounded border border-border-subtle bg-surface-panel" />
+        )}
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="truncate font-condensed font-semibold text-primary">
+              {item.name ?? "Unknown component"}
+            </span>
+            <RarityBadge rarity={item.rarity} />
+          </div>
+        </div>
+
+        {right ? <div className="flex-shrink-0">{right}</div> : null}
+      </Panel>
+    </Card>
   );
 }
 
@@ -398,36 +414,30 @@ function CostSection({
         </Card>
       ) : (
         <div className="space-y-2">
-          {rows.map((row) => (
-            <Card key={row.id} className="!p-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  {row.icon && (
-                    <Image
-                      src={row.icon}
-                      alt={row.name ?? "Component"}
-                      width={32}
-                      height={32}
-                      sizes="32px"
-                      loading="lazy"
-                      className="h-8 w-8 rounded border border-border-subtle bg-surface-panel object-contain flex-shrink-0"
-                    />
-                  )}
-                  <div className="min-w-0">
-                    <div className="truncate text-sm text-primary font-semibold">
-                      {row.name}
-                    </div>
-                    {row.rarity && (
-                      <div className="text-[11px] text-muted">{row.rarity}</div>
-                    )}
+          {rows.map((row) => {
+            const quantityLabel =
+              row.quantity > 0
+                ? `${isReturn ? "+" : "x"}${row.quantity}`
+                : "-";
+            const quantityClass =
+              row.quantity > 0
+                ? isReturn
+                  ? "text-emerald-600"
+                  : "text-primary"
+                : "text-muted";
+
+            return (
+              <ComponentCard
+                key={row.id}
+                item={row}
+                right={
+                  <div className={cn("text-sm font-semibold", quantityClass)}>
+                    {quantityLabel}
                   </div>
-                </div>
-                <div className={`text-sm font-semibold ${isReturn ? 'text-emerald-600' : 'text-primary'}`}>
-                  {isReturn ? '+' : 'x'}{row.quantity}
-                </div>
-              </div>
-            </Card>
-          ))}
+                }
+              />
+            );
+          })}
         </div>
       )}
     </div>
