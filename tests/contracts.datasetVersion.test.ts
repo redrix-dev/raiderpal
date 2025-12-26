@@ -3,9 +3,15 @@ import { VIEW_CONTRACTS } from "@/lib/data/db/contracts";
 import { assertDatasetVersionInvariants } from "./invariants/datasetVersion.invariants";
 import { readJsonFixture } from "./helpers/readJsonFixture";
 
+type DatasetVersionRow = {
+  id: string;
+  version: number;
+  last_synced_at: string | null;
+};
+
 describe("datasetVersion contract fixture", () => {
   it("validates fixture rows against the contract schema", () => {
-    const data = readJsonFixture("datasetVersion.good.json");
+    const data = readJsonFixture<DatasetVersionRow[]>("datasetVersion.good.json");
 
     expect(Array.isArray(data)).toBe(true);
     expect(data.length).toBeGreaterThan(0);
@@ -39,9 +45,9 @@ describe("datasetVersion contract fixture", () => {
   });
 
   it("fails invariant checks after schema validation", () => {
-    const data = readJsonFixture<unknown[]>("datasetVersion.invariant-bad.json");
+    const data = readJsonFixture<DatasetVersionRow[]>("datasetVersion.invariant-bad.json");
     const schema = VIEW_CONTRACTS.datasetVersion.schema;
-    const parsedRows = [];
+    const parsedRows: DatasetVersionRow[] = [];
 
     for (const row of data) {
       const result = schema.safeParse(row);
@@ -55,9 +61,9 @@ describe("datasetVersion contract fixture", () => {
   });
 
   it("fails cardinality invariant for multiple rows", () => {
-    const data = readJsonFixture<unknown[]>("datasetVersion.cardinality-bad.json");
+    const data = readJsonFixture<DatasetVersionRow[]>("datasetVersion.cardinality-bad.json");
     const schema = VIEW_CONTRACTS.datasetVersion.schema;
-    const parsedRows = [];
+    const parsedRows: DatasetVersionRow[] = [];
 
     for (const row of data) {
       const result = schema.safeParse(row);
