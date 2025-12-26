@@ -26,12 +26,12 @@ jobs:
 
       - name: Typecheck
         run: npm run typecheck
+        
+      - name: Test
+        run: npm test
+
 
       - name: Build
         run: npm run build
         env:
-          # Add any env vars your build needs; remove if none required
-          # NEXT_PUBLIC_...: ${{ secrets.NEXT_PUBLIC_... }}
-          SUPABASE_URL: ${{ secrets.REPO_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.REPO_ANON_KEY }}
           NEXT_TELEMETRY_DISABLED: 1
