@@ -1,7 +1,8 @@
+// components/ui/Button.tsx
 import Link from "next/link";
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from "react";
 
-export type ButtonVariant = "brand" | "neutral";
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "cta";
 
 type CommonButtonProps = {
   children: ReactNode;
@@ -14,17 +15,56 @@ type ButtonProps =
   | (CommonButtonProps & { href?: undefined } & ButtonHTMLAttributes<HTMLButtonElement>);
 
 const variantClasses: Record<ButtonVariant, string> = {
-  brand:
-    "border-brand-cyan/60 bg-surface-base/60 text-brand-cyan hover:border-brand-cyan hover:bg-surface-base/80 focus-visible:ring-brand-cyan",
-  neutral:
-    "border-border-subtle bg-surface-base/60 text-text-primary hover:border-brand-cyan/60 hover:text-brand-cyan focus-visible:ring-brand-cyan",
+  // Primary action - cyan
+  primary:
+    "border-brand-cyan/60 bg-brand-cyan/10 text-brand-cyan " +
+    "hover:bg-brand-cyan/20 hover:border-brand-cyan " +
+    "focus-visible:ring-brand-cyan",
+
+  // Secondary action - subtle light
+  secondary:
+    "border-border-strong bg-surface-panel text-primary " +
+    "hover:border-brand-cyan/60 hover:text-brand-cyan " +
+    "focus-visible:ring-brand-cyan",
+
+  // Ghost - minimal
+  ghost:
+    "border-transparent bg-transparent text-primary " +
+    "hover:bg-surface-panel hover:text-brand-cyan " +
+    "focus-visible:ring-brand-cyan",
+
+  // CTA - amber (most prominent)
+  cta:
+    "border-brand-amber/60 bg-brand-amber text-primary " +
+    "hover:bg-brand-amber/90 hover:border-brand-amber " +
+    "focus-visible:ring-brand-amber",
 };
 
 const baseClasses =
-  "inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-base font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base";
+  "inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-base font-medium transition " +
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-card " +
+  "disabled:opacity-50 disabled:cursor-not-allowed";
 
+/**
+ * Button
+ *
+ * Purpose:
+ * - Consistent button styling across the app
+ * - Multiple variants for different contexts
+ * 
+ * Variants:
+ * - primary: Cyan - main actions, links
+ * - secondary: Subtle - cancel, back, secondary actions  
+ * - ghost: Minimal - tertiary actions, close buttons
+ * - cta: Amber - call-to-action, most important buttons
+ * 
+ * Token Usage:
+ * - Uses brand-cyan and brand-amber for interactive colors
+ * - Uses surface-panel for secondary backgrounds
+ * - All buttons have dark text (text-primary) for consistency
+ */
 export function Button(props: ButtonProps) {
-  const { children, className = "", variant = "brand", href, ...rest } = props as ButtonProps & {
+  const { children, className = "", variant = "primary", href, ...rest } = props as ButtonProps & {
     href?: string;
   };
   const classes = `${baseClasses} ${variantClasses[variant]}${className ? ` ${className}` : ""}`;

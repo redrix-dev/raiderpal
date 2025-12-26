@@ -27,24 +27,10 @@ graph TD
   ModulePanel tiles to tools
   ]
 
-  ItemDetail[
-  Item detail
-  /items/:id
-  ItemHero
-  ItemStatsPanel
-  ItemDetailsTabs
-  ]
-
-  Browse[
+  ItemBrowser[
   Item Browser
-  /items/browse
-  ItemsBrowseClient
-  ]
-
-  Recycle[
-  Recycle Helper
-  /recycle-helper
-  RecycleHelperClient
+  /item-browser
+  ItemBrowserClient
   ]
 
   RepairCalc[
@@ -53,17 +39,11 @@ graph TD
   RepairCalculatorClient
   ]
 
-  BrowseParts[
-  SearchControls
+  ItemBrowserParts[
+  Search + filters
   PaginationControls
-  ItemCard grid
-  PreviewModal
-  useCachedJson to api items
-  ]
-
-  RecycleParts[
-  ItemPicker
-  ModulePanel results
+  Item cards with rarity
+  ItemDetailsModal
   useCachedJson to api items
   ]
 
@@ -77,11 +57,8 @@ graph TD
   Shell --> Routes
 
   Routes --> Home
-  Routes --> ItemDetail
-  Routes --> Browse
-  Routes --> Recycle
+  Routes --> ItemBrowser
   Routes --> RepairCalc
 
-  Browse --> BrowseParts
-  Recycle --> RecycleParts
+  ItemBrowser --> ItemBrowserParts
   RepairCalc --> RepairCalcParts

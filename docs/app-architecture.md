@@ -246,9 +246,9 @@ Example: user views an item detail page.
 - View contracts + response schemas: `lib/apiSchemas.ts`
 - Response envelope shape: `lib/http.ts`
 - Example API route: `app/api/items/[id]/crafting/route.ts`
-- Server component direct repository usage: `app/items/[id]/page.tsx`
+- Server component direct repository usage: (removed - no longer used)
 - Client cached fetch usage: `hooks/useCachedJson.ts`
-- Client schema-validated usage: `components/ItemsBrowseClient.tsx`
+- Client schema-validated usage: `components/rp/ItemBrowserClient.tsx`
 - Security middleware: `middleware.ts`
 - Input validation: `lib/data/items.repo.ts`, `lib/apiSchemas.ts`, `lib/validation.ts`
 - Cache eviction: `lib/clientCache.ts`
@@ -257,5 +257,5 @@ This flow isolates responsibilities, reduces data drift risk, and improves clari
 
 ## Related Docs
 - Database architecture (authoritative): docs/raiderpal-db-architecture.md
-- Refactor notes: REFactorNotes.md
+- UI ownership guide: docs/ui-ownership-index.md
 - Data contracts: docs/contracts.md
