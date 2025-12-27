@@ -10,6 +10,7 @@ type RangeSliderProps = {
   value: number;
   onChange: (value: number) => void;
   className?: string;
+  touchBehavior?: "none" | "pan-y";
   ariaLabel?: string;
   ariaLabelledBy?: string;
   ariaValueText?: string;
@@ -22,6 +23,7 @@ export function RangeSlider({
   value,
   onChange,
   className,
+  touchBehavior = "none",
   ariaLabel,
   ariaLabelledBy,
   ariaValueText,
@@ -110,7 +112,8 @@ export function RangeSlider({
   return (
     <div
       className={cn(
-        "relative h-10 select-none touch-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-cyan",
+        "relative h-10 select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-cyan",
+        touchBehavior === "pan-y" ? "touch-pan-y" : "touch-none",
         className
       )}
       role="slider"

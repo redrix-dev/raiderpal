@@ -13,6 +13,7 @@ import { CardHeader } from "@/components/ui/CardHeader";
 import { Panel } from "@/components/ui/Panel";
 import { RarityBadge } from "@/components/ui/RarityBadge";
 import { rarityClasses } from "@/components/ui/rarity";
+import { ToolGrid } from "@/components/ui/ToolGrid";
 import { ItemPicker, type PickerItem } from "@/components/rp/ItemPicker-portal";
 import { RangeSlider } from "@/components/rp/RangeSlider";
 import { type CostRow } from "@/lib/types/costs";
@@ -200,7 +201,7 @@ export function RepairCalculatorClient({ items }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-6 lg:grid-cols-2 items-start">
+      <ToolGrid columnsAt="md">
         <div className="space-y-6">
           <Card className="!p-0 overflow-hidden">
             <CardHeader
@@ -239,6 +240,7 @@ export function RepairCalculatorClient({ items }: Props) {
                     value={durability}
                     onChange={setDurability}
                     className="w-full"
+                    touchBehavior="pan-y"
                     ariaLabelledBy="current-durability-label"
                     ariaValueText={`Current durability ${durability}`}
                   />
@@ -273,7 +275,7 @@ export function RepairCalculatorClient({ items }: Props) {
               </div>
             </CardHeader>
 
-            <div className="bg-surface-panel p-4 sm:p-5 space-y-3">
+          <div className="bg-surface-panel p-4 sm:p-5 space-y-3">
               {costTableRows.length === 0 ? (
                 <Card className="!p-3">
                   <p className="text-xs text-muted">
@@ -295,24 +297,10 @@ export function RepairCalculatorClient({ items }: Props) {
                         key={row.id}
                         item={row}
                         right={
-                          <div className="flex items-center gap-6 text-right">
-                            <div className="min-w-16">
-                              <div className="text-[10px] uppercase text-muted">
-                                Per cycle
-                              </div>
-                              <div className="text-sm font-semibold text-primary">
-                                {perCycleLabel}
-                              </div>
-                            </div>
-                            <div className="min-w-16">
-                              <div className="text-[10px] uppercase text-muted">
-                                To full
-                              </div>
-                              <div className="text-sm font-semibold text-primary">
-                                {totalLabel}
-                              </div>
-                            </div>
-                          </div>
+                          <TotalsBlock
+                            perCycleLabel={perCycleLabel}
+                            totalLabel={totalLabel}
+                          />
                         }
                       />
                     );
@@ -343,7 +331,7 @@ export function RepairCalculatorClient({ items }: Props) {
             />
           </div>
         </Card>
-      </div>
+      </ToolGrid>
     </div>
   );
 }
@@ -391,6 +379,27 @@ function ComponentCard({
         {right ? <div className="flex-shrink-0">{right}</div> : null}
       </Panel>
     </Card>
+  );
+}
+
+function TotalsBlock({
+  perCycleLabel,
+  totalLabel,
+}: {
+  perCycleLabel: string;
+  totalLabel: string;
+}) {
+  return (
+    <div className="flex flex-col gap-2 text-right sm:flex-row sm:items-center sm:gap-6">
+      <div className="min-w-16">
+        <div className="text-[10px] uppercase text-muted">Per cycle</div>
+        <div className="text-sm font-semibold text-primary">{perCycleLabel}</div>
+      </div>
+      <div className="min-w-16">
+        <div className="text-[10px] uppercase text-muted">To full</div>
+        <div className="text-sm font-semibold text-primary">{totalLabel}</div>
+      </div>
+    </div>
   );
 }
 
