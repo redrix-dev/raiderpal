@@ -1,236 +1,101 @@
-# RaiderPal Database Architecture (Authoritative Reference)
+﻿# RaiderPal Database Architecture (Authoritative Reference)
 
-## Related Docs
+## Related docs
 - App-side architecture: docs/app-architecture.md
-- Refactor notes: REFactorNotes.md
 - Data contracts: docs/contracts.md
+- Query lexicon: docs/rp-db-query-lexicon.sql
+- Schema introspection: docs/rp-schema-introspection-queries.sql
+- Schema snapshot: docs/rp-schema-introspection-snapshot.md
 
-This document is the **source of truth** for how the RaiderPal database is designed, why it exists in its current form, and how it must be interacted with. New contributors, new chat sessions, and future-you should be able to read *only this file* and work safely without breaking invariants.
-
----
-
-## Core Design Principles
-
-### 1) Manual Truth Beats Inferred Truth
-Some game data (notably **repair mechanics**) is **not exposed by the API**. Attempts to infer it programmatically led to fragile logic and hidden assumptions.
-
-**Rule:** If the game does not expose data, we author it manually and store it explicitly.
+This document summarizes the database structure and the constraints the app relies on.
 
 ---
 
-### 2) Layered Data Pipeline (Do Not Bypass)
+## Core design constraints
 
-rp_items_ingest (API payloads)
-->
-rp_items_patches (manual corrections / overrides)
-->
-rp_items_canonical (authoritative, minimal)
-->
-read-only views (app consumption contracts)
+### Manual truth for missing upstream data
+Some game data (notably repair mechanics) is not exposed by upstream sources. Repair profiles and recipes are therefore stored explicitly rather than inferred.
 
+### Layered data pipeline
+rp_items_ingest (external payloads)
+-> rp_items_patches (manual corrections)
+-> rp_items_canonical (authoritative minimal table)
+-> read-only views (app consumption contracts)
 
-**Rules:**
-- `rp_items_ingest` is the landing zone for external data.
-- `rp_items_patches` exists to *fix holes*, not to invent systems.
-- `rp_items_canonical` is the **only table the app should treat as authoritative**.
-- The app must never read directly from ingest or patches.
+The app reads only from the view layer and does not query ingest or patch tables directly.
 
----
-
-### 3) Canonical Is a Minimal Table (On Purpose)
-
-`rp_items_canonical` is a **material table** with an intentionally minimal shape:
-
-- `id` (text PK)
-- `payload` (jsonb)
-- `updated_at` (timestamptz)
-
-Why:
-- Stable foreign key target
-- Predictable performance
-- Clear refresh boundaries
-- Canonical stays stable even if payload fields shift
-
-**App rule:** the app should not query canonical payload directly except through read-only views that extract stable fields.
+### Canonical table is intentionally minimal
+rp_items_canonical stores an id, a JSON payload, and updated_at. This provides a stable foreign key target and keeps schema drift in upstream payloads isolated from app-facing contracts.
 
 ---
 
-## Patch-Day Ingest Workflow (Automatic)
+## View-first app consumption (contracts)
 
-### What happens on patch day
-1. Run the Edge Function that pulls MetaForge items and writes ONLY to `rp_items_ingest`.
-2. A trigger refreshes canonical for changed rows (no manual rebuild loop).
-3. Review deltas via ingest timestamps and/or `rp_items_needing_any_patch`.
-4. Patch or ignore only what actually needs attention.
+### App-facing views
+- rp_view_metadata
+- rp_view_crafting_normalized
+- rp_view_recycle_outputs
+- rp_view_repair_recipes
+- rp_view_repair_profiles (current)
+- rp_repair_profiles (legacy fallback)
+- rp_dataset_version
 
-### Safety note
-Prefer the **RPC batch upsert** pattern that only updates when the payload changed. This avoids firing canonical refresh triggers unnecessarily for unchanged rows.
+The app stitches these views in code rather than using a single joined query, which keeps each feature query focused and avoids Cartesian expansion.
 
----
-
-## View-First App Consumption (Contracts)
-
-### Why views exist
-- Keep frontend types stable
-- Prevent pages from depending on raw payload shape
-- Keep "feature data" (crafting/recycling/repairs) consistent and queryable
-
-### Existing app-facing views
-- `rp_view_metadata`: item browser / display fields (id, name, type, rarity, icon, etc.)
-- `rp_view_crafting_normalized`: crafting components (normalized rows)
-- `rp_view_recycle_outputs`: recycling outputs (normalized rows)
-- `rp_view_repair_recipes`: repair recipes (normalized rows)
-
-Canonical view contracts (columns):
-- `rp_view_metadata`: id, name, description, item_type, rarity, icon, value, workbench, loot_area
-- `rp_view_crafting_normalized`: item_id, component_id, total_quantity
-- `rp_view_recycle_outputs`: item_id, component_id, quantity
-- `rp_view_repair_recipes`: item_id, component_id, quantity_per_cycle
-
-### App stitching is intentional
-The app may call multiple views and stitch results in code:
-- `ItemDetails` from `rp_view_metadata`
-- Crafting from `rp_view_crafting_normalized`
-- Recycling from `rp_view_recycle_outputs`
-- Repairs from `rp_view_repair_recipes`
-
-This avoids join explosions (crafting x recycling x repair) and keeps each feature query simple.
-
-### Metadata enrichment (app-side)
-The app attaches metadata via a `metaById` map sourced from `rp_view_metadata`. Usage rows keep
-only ids + quantities; the UI reads `component` or `source` metadata instead of legacy
-`component_*` fields.
+### Metadata enrichment
+Repository functions attach metadata from rp_view_metadata so UI payloads do not carry ad-hoc name or icon fields.
 
 ---
 
-## Repair System Architecture (Critical Section)
+## Repair system architecture
 
-### Why repairs are special
-- Repair data is **not provided by the API**
-- It is **stable but manually discovered**
-- It must be editable without cascading side effects
+### Why repairs are separate
+Repair data is manually curated because upstream sources do not provide it. It is modeled in two normalized tables.
 
-Repairs therefore use an explicit two-table model (no JSON blobs, no "smart inference").
+### rp_repair_profiles
+One row per repairable item, with max_durability, step_durability, and optional notes.
 
----
+### rp_repair_recipes
+One row per component per repair cycle, with quantity_per_cycle.
 
-## Repair Tables (Exactly Two)
-
-### `rp_repair_profiles`
-**One row per repairable item.** Declares *how* repairs work.
-
-Key columns:
-- `item_id` (PK, FK -> `rp_items_canonical.id`)
-- `max_durability`
-- `step_durability` (default 50; durability restored per repair cycle)
-- `notes`
-
-Meaning:
-> "This item is repairable, and this is how durability behaves."
+### Derived repair math
+Repair cycles and total component costs are computed at runtime from profile and recipe data.
 
 ---
 
-### `rp_repair_recipes`
-**Many rows per item.** One row per component per repair cycle.
-
-Key columns:
-- `id` (row PK, uuid default `gen_random_uuid()`; app must not use)
-- `item_id` (FK -> `rp_repair_profiles.item_id`)
-- `component_id` (FK -> `rp_items_canonical.id`)
-- `quantity_per_cycle`
-
-Meaning:
-> "For one repair cycle, this item consumes these components."
+## App-facing repair view
+rp_view_repair_recipes exposes the normalized recipe rows without internal IDs.
 
 ---
 
-### Explicit Non-Features (By Design)
-The following are intentionally not modeled:
-- Cheap/expensive thresholds
-- Durability bands
-- Smart inference logic
-- JSON blobs for repair costs
-
-If repair behavior ever differs by durability band, model it explicitly (new columns/rows) rather than inferring it.
+## Referential integrity
+- rp_repair_profiles.item_id references rp_items_canonical.id
+- rp_repair_recipes.item_id references rp_repair_profiles.item_id
+- rp_repair_recipes.component_id references rp_items_canonical.id
 
 ---
 
-## Repair Math (Derived, Never Stored)
-
-**Repair cycles are computed (never stored):**
-- missing = max_durability - current_durability
-- cycles = ceil(missing / step_durability)
-
-**Component cost:**
-- quantity_per_cycle * cycles
-
-**No table should store:**
-- number of repairs needed
-- total repair cost
+## Operational flow (data pipeline)
+- External ingest writes to rp_items_ingest (outside this repo).
+- Manual corrections live in rp_items_patches.
+- rp_items_canonical is refreshed from ingest and patches.
+- Read-only views project canonical data into stable app-facing shapes.
 
 ---
 
-## App-Facing Repair Contract (View)
-
-Even though `rp_repair_recipes` is normalized and safe, the app should not depend on internal row IDs.
-
-**Contract view:**
-- `rp_view_repair_recipes` (item_id, component_id, quantity_per_cycle)
-
-This keeps the app consistent with the "views are contracts" approach used for metadata/crafting/recycling.
+## Diagnostics and queries
+- Query lexicon: docs/rp-db-query-lexicon.sql
+- Schema introspection: docs/rp-schema-introspection-queries.sql
+- Schema snapshot: docs/rp-schema-introspection-snapshot.md
 
 ---
 
-## Referential Integrity Rules (Must Hold)
+## Invariants reflected in app usage
+- Canonical table is authoritative for item IDs.
+- App queries only through view contracts.
+- Repair data is explicit and normalized.
+- Derived values (cycles, totals) are computed at runtime.
 
-- `rp_repair_profiles.item_id` -> `rp_items_canonical.id`
-- `rp_repair_recipes.item_id` -> `rp_repair_profiles.item_id`
-- `rp_repair_recipes.component_id` -> `rp_items_canonical.id`
-
-Deletion rules:
-- Canonical item deletion: RESTRICT
-- Profile deletion: CASCADE to recipes
-
----
-
-## Operational Workflows (Canonical)
-
-### Adding a new repairable item
-1. Insert into `rp_repair_profiles`
-2. Insert rows into `rp_repair_recipes`
-
-This can be done via SQL or the Table Editor; order matters (profile first).
-
-### Editing an existing repair
-Safe via Supabase Table Editor. Constraints prevent corruption.
-
-### Replacing a recipe entirely
-Delete recipe rows for the item, then insert the new set.
-
----
-
-## Debug & Safety Views/Queries
-
-Diagnostics should live as views and named queries (lexicon), not ad-hoc SQL.
-
-Examples:
-- repair profiles missing recipes
-- invalid quantities
-- patch worklists
-- ingest/canonical counts
-
----
-
-## Final Invariants (Memorize These)
-
-- Canonical table is authoritative
-- Repair data is manual and explicit
-- JSON blobs are forbidden for canonical feature systems
-- Derived values are never stored
-- If something feels "smart," it is probably wrong
-
-## Error Handling Philosophy (App Consumption)
-- Fail loud in dev when a view contract is broken or a query fails.
-- In prod, API routes return `{ success: false, error: { code, message } }` instead of silent fallbacks.
-
-This document overrides intuition. Follow it even when tempted not to.
+## Error handling in app consumption
+- In development, query or contract mismatches throw errors.
+- In production, API routes return error envelopes instead of silent fallbacks.

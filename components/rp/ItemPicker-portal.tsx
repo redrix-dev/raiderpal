@@ -43,12 +43,22 @@ export function ItemPicker({
       offset(4),
       flip(),
       size({
-        apply({ elements }) {
+        apply({ elements, availableHeight }) {
           const referenceWidth = elements.reference.getBoundingClientRect().width;
-          Object.assign(elements.floating.style, {
-            width: `${referenceWidth}px`,
-            height: '360px',
-          });
+          const safeAvailable = Math.max(0, Math.floor(availableHeight ?? 0));
+          const desiredMax = Math.min(360, Math.floor(safeAvailable * 0.6));
+          const maxHeight = Math.min(
+            safeAvailable,
+            Math.max(220, desiredMax)
+          );
+          const listMaxHeight = Math.max(0, maxHeight - 56);
+
+          elements.floating.style.width = `${referenceWidth}px`;
+          elements.floating.style.maxHeight = `${maxHeight}px`;
+          elements.floating.style.setProperty(
+            "--picker-list-max-height",
+            `${listMaxHeight}px`
+          );
         },
       }),
     ],
@@ -78,7 +88,7 @@ export function ItemPicker({
   const dropdown = open && (
     <div
       className={cn(
-        "z-50 rounded-md border border-border-strong bg-surface-panel shadow-2xl",
+        "z-50 rounded-md border border-border-strong bg-surface-panel shadow-2xl overflow-hidden",
         dropdownClassName
       )}
       ref={refs.setFloating}
@@ -96,8 +106,8 @@ export function ItemPicker({
         />
       </div>
 
-      {/* Scrollable list - fixed height */}
-      <div className="h-[370px] overflow-y-auto bg-surface-panel">
+      {/* Scrollable list */}
+      <div className="max-h-[var(--picker-list-max-height,312px)] overflow-y-auto bg-surface-panel">
         {filtered.length === 0 ? (
           <div className="p-3 text-xs text-muted">
             No items match your filters.

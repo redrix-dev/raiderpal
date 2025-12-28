@@ -1,261 +1,92 @@
-# App-Side Architecture: Data Pathways
+﻿# App-Side Architecture: Data Pathways
 
-This document describes the app-side data pathways at a high level with concrete examples. It covers endpoint contracts, data handling, business logic, and server/client separation, with reasoning and best practices.
+This document describes the app-side data pathways at a high level. It covers endpoint contracts, data handling, business logic boundaries, and server/client separation.
 
 ## Overview
-The app uses a clear split between server-side data access and client-side consumption:
-- Server-side: Supabase queries live in `lib/data/**` and are used by API routes and server components.
-- Client-side: Client components fetch data from API routes using a cache wrapper, and validate response envelopes (and data payloads when schemas are provided).
+- Server-side data access lives in lib/data/** and is used by API routes and server pages.
+- Client components call API routes via useCachedJson and validate response envelopes and data payloads.
+- Database access stays on the server to keep Supabase credentials out of the browser and centralize validation.
 
-This separation keeps database access on the server (security, RLS, and stability) while exposing a stable, validated API for client code.
-
-## Data Flow (High-Level)
+## Data flow (high level)
 Client-initiated flow:
-1. Client component calls `/api/*` via `useCachedJson`.
-2. API route calls repository function in `lib/data/**`.
-3. Repository uses `queryView` to query Supabase with centralized relation names and select lists.
-4. Results are schema-validated and enriched with metadata (via `metaById` maps).
-5. API route validates output shape and returns a consistent response envelope.
-6. Client receives `{ success, data }` or `{ success, error: { code, message } }` and updates UI.
+1. A client component calls /api/* via useCachedJson.
+2. The API route calls a repository function in lib/data/**.
+3. The repository queries a view contract via queryView/queryViewMaybeSingle.
+4. Rows are schema-validated and enriched with metadata from rp_view_metadata.
+5. The API route validates the payload shape and returns a standard response envelope.
+6. The client reads { success, data } or { success, error } and updates UI state.
 
-Server-component flow:
-1. Server component calls repository functions directly (no API hop).
-2. Repository uses the same `queryView` contract and metadata enrichment.
-3. Server component renders using the returned data.
+Server-page flow:
+1. A server page calls repository functions directly (no API hop).
+2. The same query, validation, and enrichment logic applies.
 
-Reasoning:
-- Centralized relation names reduce string drift after view refactors.
-- Schema validation catches DB/view contract drift early.
-- Consistent API envelopes simplify error handling and caching.
+## Server vs client responsibilities
+Server-side:
+- Owns database access via lib/data/db/query.ts and lib/supabase.ts.
+- Validates rows against view contracts.
+- Enriches rows with metadata for UI-ready payloads.
+- Converts errors into consistent API envelopes in production.
 
-## Server vs Client Responsibilities
-### Server-side
-- Owns database access (`lib/data/db/query.ts`).
-- Validates incoming data from Supabase views/tables.
-- Enriches rows with metadata from `rp_view_metadata`.
-- Throws loud errors in dev; in prod, API routes return error envelopes for contract/query failures (no empty array fallbacks).
+Client-side:
+- Fetches data only via API routes.
+- Uses cachedFetchJson/useCachedJson for caching and validation.
+- Does not access Supabase directly.
 
-Why:
-- Protects the client from DB schema details.
-- Keeps business logic server-side to prevent duplication.
-- Improves observability when contracts break.
-
-### Client-side
-- Calls API routes only.
-- Uses cached fetching (`useCachedJson`) and response envelope validation; data payload validation is optional and driven by the caller.
-- Never reaches directly into Supabase.
-
-Why:
-- Avoids exposing Supabase keys or bypassing RLS.
-- Makes client code resilient and easier to change.
-- Keeps UI logic focused on rendering and interaction.
-
-## Core Data Contracts (View Shapes)
+## Core data contracts (view shapes)
 Canonical view contracts used by repositories:
-- `rp_view_metadata`: `{ id, name, icon, rarity, item_type, description, value, workbench, loot_area }`
-- `rp_view_crafting_normalized`: `{ item_id, component_id, total_quantity }`
-- `rp_view_recycle_outputs`: `{ item_id, component_id, quantity }`
-- `rp_view_repair_recipes`: `{ item_id, component_id, quantity_per_cycle }`
-- `rp_repair_profiles`: `{ item_id, max_durability, step_durability, notes }`
-- `rp_dataset_version`: `{ id, version, last_synced_at }`
+- rp_view_metadata: id, name, icon, rarity, item_type, description, value, workbench, loot_area
+- rp_view_crafting_normalized: item_id, component_id, total_quantity
+- rp_view_recycle_outputs: item_id, component_id, quantity
+- rp_view_repair_recipes: item_id, component_id, quantity_per_cycle
+- rp_view_repair_profiles: item_id, max_durability, step_durability, notes
+- rp_repair_profiles: item_id, max_durability, step_durability, notes (legacy fallback)
+- rp_dataset_version: id, version, last_synced_at
 
-Best practice:
-- Treat these contracts as immutable API boundaries.
-- Validate at fetch time and fail loudly in dev to catch drift immediately.
+## Repository layer (business logic)
+- lib/data/items.repo.ts lists canonical items and resolves crafting, recycling, sources, and used-in data with metadata enrichment.
+- lib/data/repairs.repo.ts loads repair profiles and recipes, aggregates repairable items, and joins crafting/recycling metadata.
+- lib/data/version.repo.ts reads the dataset version, falling back to the first available row if the global row is missing.
 
-## Repository Layer (Business Logic)
-Repositories convert raw rows into domain-ready objects and apply business logic.
+## API response envelope
+All API routes return a consistent envelope from lib/http.ts:
+- Success: { success: true, data: ... }
+- Failure: { success: false, error: { code, message } }
 
-### Metadata enrichment
-Used across crafting/recycling/repairs to keep UI payloads consistent.
+## Endpoint breakdown
+- /api/items/[id]/crafting: returns crafting components for the item.
+- /api/items/[id]/recycling: returns recycling outputs for the item.
+- /api/items/[id]/sources: returns best recycling sources for a component.
+- /api/items/[id]/used-in: returns items that use a component in crafting.
+- /api/repair-economy: returns repairable items with profiles, recipes, crafting, and recycling metadata.
+- /api/version: returns dataset version metadata.
+- /api/revalidate: revalidates tags or paths (gated by x-revalidate-token).
 
-Example: crafting rows
-```
-input (view):  { item_id, component_id, total_quantity }
-metaById:      { [component_id]: { id, name, rarity, icon, item_type, ... } }
-output:        { item_id, component_id, quantity, component }
-```
+## Client data handling
+- cachedFetchJson validates API envelopes and optionally validates data payloads against schemas.
+- useCachedJson wraps cachedFetchJson with React state, loading flags, and refetch support.
+- useAppVersion and getAppDataVersion fetch /api/version and provide a version key for cache entries.
 
-Why:
-- Eliminates legacy `component_name` fallback fields.
-- Ensures metadata is always sourced from `rp_view_metadata`.
-- Minimizes UI logic and avoids data inconsistencies.
+## Cache strategy
+Page routes:
+- app/item-browser/page.tsx and app/repair-calculator/page.tsx are force-dynamic with revalidate = 0.
 
-### Shared query helper
-`queryView` wraps Supabase queries with:
-- Centralized relation names and select lists.
-- Strict schema parsing for each row.
-- Environment-aware error handling (throw in dev, surface error envelopes in prod).
+API routes:
+- Item detail endpoints set revalidate = 86400 and send Cache-Control: max-age=900, stale-while-revalidate=85500.
+- /api/version and /api/repair-economy set revalidate = 3600 and send Cache-Control: max-age=300, stale-while-revalidate=3300.
+- /api/revalidate returns Cache-Control: no-store.
 
-Why:
-- Consistent error semantics.
-- Fewer ad-hoc casts and missing-view fallbacks.
-- Lower maintenance and safer refactors.
+Client cache:
+- localStorage keys are versioned with rp_cache_v1:<url>:<version>.
+- Default TTL is 1 hour, modal TTL is 15 minutes, and version checks use a 1 minute TTL.
+- Long-term caching switches the TTL to Infinity while still versioning keys by dataset version.
 
-## API Response Envelope
-Every API route returns:
-- Success: `{ success: true, data: ... }`
-- Failure: `{ success: false, error: { code, message } }`
+## Security layer
+- middleware.ts applies security headers (CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, X-XSS-Protection).
+- itemParamsSchema validates item IDs with length and character checks.
+- listCanonicalItems sanitizes search strings with a character whitelist to prevent PostgREST DSL injection.
 
-Why:
-- Predictable client handling.
-- Easier to cache and validate.
-- Standardized error reporting.
-- Schema validation errors are converted to strings before throwing so API responses always carry a string message.
-
-## Endpoint Breakdown
-Below are the core endpoints, their purpose, and expected responses.
-
-### `/api/items/[id]/crafting`
-Returns the crafting components for a given item.
-- Source: `rp_view_crafting_normalized`
-- Quantity field: `total_quantity`
-- Output shape:
-```
-{ success: true, data: [
-  { item_id, component_id, quantity, component }
-]}
-```
-
-### `/api/items/[id]/recycling`
-Returns what an item recycles into.
-- Source: `rp_view_recycle_outputs`
-- Quantity field: `quantity`
-- Output shape:
-```
-{ success: true, data: [
-  { item_id, component_id, quantity, component }
-]}
-```
-
-### `/api/items/[id]/sources`
-Returns the best sources for a component (reverse lookup of recycling).
-- Source: `rp_view_recycle_outputs`
-- Output shape:
-```
-{ success: true, data: [
-  { source_item_id, component_id, quantity, source }
-]}
-```
-
-### `/api/items/[id]/used-in`
-Returns items that use a given component in crafting.
-- Source: `rp_view_crafting_normalized`
-- Output shape:
-```
-{ success: true, data: [
-  { product_item_id, quantity, product }
-]}
-```
-
-### `/api/repair-economy`
-Returns all repairable items and their recipes.
-- Sources: `rp_repair_profiles`, `rp_view_repair_recipes`
-- Output shape:
-```
-{ success: true, data: [
-  { item, profile, recipe }
-]}
-```
-
-### `/api/version`
-Returns dataset version metadata.
-- Source: `rp_dataset_version`
-- Output shape:
-```
-{ success: true, data: { version, last_synced_at } }
-```
-
-### `/api/revalidate`
-Revalidates cache tags or paths for ISR.
-- Requires `x-revalidate-token` header.
-- Input: `{ tags?: string[], paths?: string[] }`
-- Output shape:
-```
-{ success: true, data: { revalidated: { tags, paths } } }
-```
-
-## Client Data Handling
-The client uses `useCachedJson` + `cachedFetchJson`:
-- Reads and validates the response envelope.
-- On success, optionally validates the `data` payload against a schema when one is provided by the caller.
-- On failure, raises a normalized error message for UI display.
-
-Why:
-- Avoids silent failures.
-- Guarantees UI receives valid shapes.
-- Simplifies caching logic.
-
-## Cache Strategy
-
-### ISR (Incremental Static Regeneration)
-- Item detail pages: `revalidate = 86400` (24 hours)
-- Browse pages: `force-dynamic` (always fresh for search/filter)
-- Tool pages: `force-dynamic` (interactive calculators)
-
-### API Route Caching
-```typescript
-// Fast-changing data (version checks, repair economy)
-"Cache-Control": "public, max-age=300, stale-while-revalidate=3300"
-
-// Stable data (item details, crafting, recycling)
-"Cache-Control": "public, max-age=900, stale-while-revalidate=85500"
-```
-
-### Client-Side Cache
-- Uses `localStorage` with version-aware keys
-- Default TTL: 1 hour (configurable to 30 days)
-- Auto-invalidates when `dataVersion` changes
-
-## Best-Practice Notes
-- Centralize relation names and select lists to avoid string drift.
-- Enforce view contracts with schema validation.
-- Keep DB access on the server; expose only API routes to the client.
-- Use a predictable response envelope for all API routes.
-- Keep repository functions small and composable.
-
-## Example End-to-End Pathway
-Example: user views an item detail page.
-1. Client selects item.
-2. UI calls `/api/items/[id]/crafting`.
-3. API route calls `getCraftingForItem`.
-4. Repository queries `rp_view_crafting_normalized` via `queryView`.
-5. Metadata is attached using `metaById`.
-6. API validates output and returns `{ success: true, data }`.
-7. Client validates response and renders.
-
-## Security Layer
-
-### Middleware
-- **Security headers**: `middleware.ts` applies defense-in-depth headers to all responses
-  - X-Content-Type-Options: nosniff
-  - X-Frame-Options: DENY
-  - X-XSS-Protection: 1; mode=block
-  - Referrer-Policy: strict-origin-when-cross-origin
-  - Content-Security-Policy with restrictive defaults
-
-### Input Validation
-- **Search sanitization**: `lib/data/items.repo.ts` validates search inputs with character whitelist (`/^[\w\s\-'.]*$/`) to prevent PostgREST DSL injection
-- **ID validation**: `lib/apiSchemas.ts` restricts ID parameters to 255 characters max and alphanumeric/underscore/hyphen characters via enhanced validation library
-- **Schema validation**: All API inputs and outputs validated against schemas
-
-## Evidence (File References)
-- Centralized relation names: `lib/data/db/contracts.ts`
-- Query + validation behavior: `lib/data/db/query.ts`
-- Error envelope helper: `lib/http.ts`
-- View contracts + response schemas: `lib/apiSchemas.ts`
-- Response envelope shape: `lib/http.ts`
-- Example API route: `app/api/items/[id]/crafting/route.ts`
-- Server component direct repository usage: (removed - no longer used)
-- Client cached fetch usage: `hooks/useCachedJson.ts`
-- Client schema-validated usage: `components/rp/ItemBrowserClient.tsx`
-- Security middleware: `middleware.ts`
-- Input validation: `lib/data/items.repo.ts`, `lib/apiSchemas.ts`, `lib/validation.ts`
-- Cache eviction: `lib/clientCache.ts`
-
-This flow isolates responsibilities, reduces data drift risk, and improves clarity for future refactors.
-
-## Related Docs
-- Database architecture (authoritative): docs/raiderpal-db-architecture.md
-- UI ownership guide: docs/ui-ownership-index.md
+## Related docs
+- Database architecture: docs/raiderpal-db-architecture.md
 - Data contracts: docs/contracts.md
+- UI ownership: docs/ui-ownership-index.md
+- Data layer details: docs/DATA_LAYER.md
