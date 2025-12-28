@@ -17,7 +17,11 @@
 /.next/
 /out/
 
+<<<<<<< Updated upstream
 # PWA / Workbox generated artifacts
+=======
+# next-pwa / Workbox generated artifacts
+>>>>>>> Stashed changes
 fallback-*.js
 workbox-*.js
 

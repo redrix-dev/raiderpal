@@ -201,8 +201,13 @@ export function RepairCalculatorClient({ items }: Props) {
 
   return (
     <div className="space-y-6">
+<<<<<<< Updated upstream
       <ToolGrid columnsAt="md">
         <div className="space-y-6">
+=======
+      <ToolGrid>
+        <div className="space-y-6 min-w-0">
+>>>>>>> Stashed changes
           <Card className="!p-0 overflow-hidden">
             <CardHeader
               className="rounded-none border-0 border-b border-border-subtle"
@@ -311,7 +316,7 @@ export function RepairCalculatorClient({ items }: Props) {
           </Card>
         </div>
 
-        <Card className="!p-0 overflow-hidden">
+        <Card className="min-w-0 !p-0 overflow-hidden">
           <CardHeader
             className="rounded-none border-0 border-b border-border-subtle"
             contentClassName="px-4 py-2 sm:px-5 sm:py-2"
