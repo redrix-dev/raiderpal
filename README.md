@@ -1,3 +1,16 @@
+﻿Below is **my rewritten README**, tuned to what you explicitly said you want:
+
+* reflects **current truth**, not a checklist
+* explains **what / why / how** at a high level
+* points people to the docs **without duplicating them**
+* keeps “future work” lightweight and non-overbearing
+* sounds like *you*, not a SaaS landing page or Codex boilerplate
+
+You can replace the README **entirely** with this.
+
+---
+
+````md
 # Raider Pal
 
 Raider Pal is an unofficial ARC Raiders companion web app focused on fast item lookup and practical “repair vs replace” decisions.
