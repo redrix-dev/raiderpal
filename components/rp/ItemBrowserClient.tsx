@@ -292,7 +292,9 @@ export function ItemBrowserClient({
           </div>
         </Card>
       ) : (
-        <div className="grid gap-3 md:grid-cols-2 min-w-0">
+        <div
+          data-testid="item-results" 
+          className="grid gap-3 md:grid-cols-2 min-w-0">
           {paged.map((item) => (
             <ItemResultCard
               key={item.id}
@@ -356,6 +358,7 @@ function ItemResultCard({
 }) {
   return (
     <Card
+      data-testid="item-result"
       variant="neutral"
       role="button"
       tabIndex={0}
