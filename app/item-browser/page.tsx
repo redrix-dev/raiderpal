@@ -24,7 +24,9 @@ export default async function ItemBrowserPage() {
     versionRow?.version != null ? String(versionRow.version) : "Unknown";
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 sm:px-6 py-8 space-y-6">
+    <main
+      data-testid="item-browser-page" 
+      className="mx-auto w-full max-w-6xl px-4 sm:px-6 py-8 space-y-6">
       <div>
         <SectionHeader accent={true}>
           <h1 className="text-3xl font-bold font-condensed uppercase tracking-wide text-primary-invert">

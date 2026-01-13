@@ -130,6 +130,7 @@ export function ItemDetailsModal({
       onClick={onClose}
     >
       <div
+        data-testid="item-detail"
         className="w-full max-w-7xl max-h-[90vh] flex flex-col rounded-2xl overflow-hidden"
         role="dialog"
         aria-modal="true"
