@@ -12,11 +12,8 @@ test("item browser route loads", async ({ page }) => {
 
 test("service worker file is served", async ({ request }) => {
   const res = await request.get("/sw.js");
-<<<<<<< HEAD
-=======
   if (!process.env.CI && res.status() === 404) {
     test.skip(true, "sw.js is only generated for production builds");
   }
->>>>>>> staging
   expect(res.ok()).toBeTruthy();
 });
