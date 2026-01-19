@@ -57,6 +57,7 @@ const rarityBackgrounds: Record<string, string> = {
 };
 
 const defaultBackground = "bg-surface-card/80 hover:bg-surface-panel";
+const isProd = process.env.NODE_ENV === "production";
 
 function getRarityBackground(rarity?: string | null) {
   if (!rarity) return defaultBackground;
@@ -203,6 +204,19 @@ export function ItemBrowserClient({
     setSelectedItem(null);
   }
 
+  function handleSelectFromDetails(itemId: string) {
+    const next = initialItems.find((candidate) => candidate.id === itemId);
+    if (!next) {
+      if (!isProd) {
+        throw new Error(
+          `ItemBrowserClient: item '${itemId}' missing from initialItems.`
+        );
+      }
+      return;
+    }
+    setSelectedItem(next);
+  }
+
   function handleClearFilters() {
     setSearch("");
     setRarity("all");
@@ -337,6 +351,7 @@ export function ItemBrowserClient({
           details={details}
           loading={loadingDetails}
           onClose={handleClosePreview}
+          onSelectItemId={handleSelectFromDetails}
           dialogId={dialogId}
           lastFocusedRef={lastFocusedRef}
         />
@@ -474,4 +489,3 @@ function ReminderAction({
     </Button>
   );
 }
-
