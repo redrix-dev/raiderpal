@@ -18,6 +18,7 @@
 /out/
 
 # PWA / Workbox generated artifacts
+public/sw.js
 fallback-*.js
 workbox-*.js
 

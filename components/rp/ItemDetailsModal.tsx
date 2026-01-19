@@ -31,6 +31,7 @@ type ItemDetailsModalProps = {
     usedIn: boolean;
   };
   onClose: () => void;
+  onSelectItemId: (itemId: string) => void;
   dialogId: string;
   lastFocusedRef: React.MutableRefObject<HTMLElement | null>;
 };
@@ -49,6 +50,7 @@ export function ItemDetailsModal({
   details,
   loading,
   onClose,
+  onSelectItemId,
   dialogId,
   lastFocusedRef,
 }: ItemDetailsModalProps) {
@@ -68,6 +70,10 @@ export function ItemDetailsModal({
       closeButtonRef.current.focus();
     }
   }, []);
+
+  useEffect(() => {
+    setActiveTab("crafting");
+  }, [item.id]);
 
   useEffect(() => {
     const elementToFocus = lastFocusedRef.current;
@@ -349,9 +355,10 @@ export function ItemDetailsModal({
                         <TabContent
                           rows={craftingData}
                           emptyText="No crafting recipe."
+                          onSelectItemId={onSelectItemId}
                           mapRow={(c) => ({
-                            key: c.component_id ?? "unknown",
-                            href: `/items/${c.component_id}`,
+                            id: c.component_id,
+                            key: c.component_id,
                             name: c.component?.name ?? "Unknown component",
                             icon: c.component?.icon,
                             quantity: c.quantity ?? undefined,
@@ -363,9 +370,10 @@ export function ItemDetailsModal({
                         <TabContent
                           rows={details?.recycling ?? []}
                           emptyText="No recycling outputs."
+                          onSelectItemId={onSelectItemId}
                           mapRow={(r) => ({
-                            key: r.component_id ?? "unknown",
-                            href: `/items/${r.component_id}`,
+                            id: r.component_id,
+                            key: r.component_id,
                             name: r.component?.name ?? "Unknown component",
                             icon: r.component?.icon,
                             quantity: r.quantity ?? undefined,
@@ -377,9 +385,10 @@ export function ItemDetailsModal({
                         <TabContent
                           rows={sourcesData}
                           emptyText={hideWeapons ? "No direct recycle sources (weapons hidden)." : "No direct recycle sources."}
+                          onSelectItemId={onSelectItemId}
                           mapRow={(s) => ({
-                            key: s.source_item_id ?? "source",
-                            href: `/items/${s.source_item_id}`,
+                            id: s.source_item_id,
+                            key: s.source_item_id,
                             name: s.source?.name ?? "Unknown source",
                             icon: s.source?.icon,
                             quantity: s.quantity,
@@ -392,9 +401,10 @@ export function ItemDetailsModal({
                         <TabContent
                           rows={details?.usedIn ?? []}
                           emptyText="Not used in any recipes."
+                          onSelectItemId={onSelectItemId}
                           mapRow={(u) => ({
-                            key: u.product_item_id ?? "unknown",
-                            href: `/items/${u.product_item_id}`,
+                            id: u.product_item_id,
+                            key: u.product_item_id,
                             name: u.product?.name ?? "Unknown item",
                             icon: u.product?.icon,
                             quantity: u.quantity ?? undefined,
@@ -414,8 +424,8 @@ export function ItemDetailsModal({
 }
 
 type TabListRow = {
+  id: string;
   key: string;
-  href: string;
   name: string;
   icon?: string | null;
   quantity?: number;
@@ -425,10 +435,16 @@ type TabListRow = {
 type TabContentProps<TRow> = {
   rows: TRow[];
   emptyText: string;
+  onSelectItemId: (itemId: string) => void;
   mapRow: (row: TRow) => TabListRow;
 };
 
-function TabContent<TRow>({ rows, emptyText, mapRow }: TabContentProps<TRow>) {
+function TabContent<TRow>({
+  rows,
+  emptyText,
+  onSelectItemId,
+  mapRow,
+}: TabContentProps<TRow>) {
   if (!rows || rows.length === 0) {
     return (
       <Card className="!p-4">
@@ -444,9 +460,10 @@ function TabContent<TRow>({ rows, emptyText, mapRow }: TabContentProps<TRow>) {
         return (
           <Card key={`${row.key}-${idx}`} className="!p-3">
             <div className="flex items-center justify-between gap-3">
-              <a
-                href={row.href}
-                className="flex items-center gap-3 min-w-0 text-primary hover:underline"
+              <button
+                type="button"
+                onClick={() => onSelectItemId(row.id)}
+                className="flex items-center gap-3 min-w-0 bg-transparent border-0 p-0 text-left text-primary hover:underline focus:outline-none"
               >
                 {row.icon && (
                   <Image
@@ -460,7 +477,7 @@ function TabContent<TRow>({ rows, emptyText, mapRow }: TabContentProps<TRow>) {
                   />
                 )}
                 <span className="truncate font-medium text-sm">{row.name}</span>
-              </a>
+              </button>
 
               <div className="flex-shrink-0 text-right text-primary">
                 {row.quantity != null && (

@@ -14,6 +14,7 @@ type ItemDetailsTabsProps = {
   recycling: RecyclingOutputRow[];
   sources: RecyclingSourceRow[];
   usedIn: UsedInRow[];
+  onSelectItemId?: (itemId: string) => void;
   loading?: {
     crafting: boolean;
     recycling: boolean;
@@ -36,6 +37,7 @@ export function ItemDetailsTabs({
   recycling,
   sources,
   usedIn,
+  onSelectItemId,
   loading,
 }: ItemDetailsTabsProps) {
   const [active, setActive] = useState<TabId>("crafting");
@@ -80,10 +82,12 @@ export function ItemDetailsTabs({
             {active === "crafting" && (
               <TabList
                 emptyText="No crafting recipe."
+                onSelectItemId={onSelectItemId}
                 rows={crafting.filter(
                   (c) => (c.component?.item_type ?? "").toLowerCase() !== "blueprint"
                 )}
                 mapRow={(c) => ({
+                  id: c.component_id,
                   key: c.component_id ?? "unknown",
                   href: `/items/${c.component_id}`,
                   name: c.component?.name ?? "Unknown component",
@@ -96,8 +100,10 @@ export function ItemDetailsTabs({
             {active === "recycling" && (
               <TabList
                 emptyText="No recycling outputs."
+                onSelectItemId={onSelectItemId}
                 rows={recycling}
                 mapRow={(r) => ({
+                  id: r.component_id,
                   key: r.component_id ?? "unknown",
                   href: `/items/${r.component_id}`,
                   name: r.component?.name ?? "Unknown component",
@@ -110,8 +116,10 @@ export function ItemDetailsTabs({
             {active === "sources" && (
               <TabList
                 emptyText="No direct recycle sources."
+                onSelectItemId={onSelectItemId}
                 rows={sources}
                 mapRow={(s) => ({
+                  id: s.source_item_id,
                   key: s.source_item_id ?? "source",
                   href: `/items/${s.source_item_id}`,
                   name: s.source?.name ?? "Unknown source",
@@ -125,8 +133,10 @@ export function ItemDetailsTabs({
             {active === "usedIn" && (
               <TabList
                 emptyText="Not used in any recipes."
+                onSelectItemId={onSelectItemId}
                 rows={usedIn}
                 mapRow={(u) => ({
+                  id: u.product_item_id,
                   key: u.product_item_id ?? "unknown",
                   href: `/items/${u.product_item_id}`,
                   name: u.product?.name ?? "Unknown item",
@@ -143,6 +153,7 @@ export function ItemDetailsTabs({
 }
 
 type TabListRow = {
+  id: string;
   key: string;
   href: string;
   name: string;
@@ -154,10 +165,16 @@ type TabListRow = {
 type TabListProps<TRow> = {
   rows: TRow[];
   emptyText: string;
+  onSelectItemId?: (itemId: string) => void;
   mapRow: (row: TRow) => TabListRow;
 };
 
-function TabList<TRow>({ rows, emptyText, mapRow }: TabListProps<TRow>) {
+function TabList<TRow>({
+  rows,
+  emptyText,
+  onSelectItemId,
+  mapRow,
+}: TabListProps<TRow>) {
   if (!rows || rows.length === 0) {
     return <p className="text-sm text-muted leading-relaxed">{emptyText}</p>;
   }
@@ -166,28 +183,50 @@ function TabList<TRow>({ rows, emptyText, mapRow }: TabListProps<TRow>) {
     <ul className="space-y-2">
       {rows.map((raw, idx) => {
         const row = mapRow(raw);
+        const isClickable = Boolean(onSelectItemId);
         return (
           <li
             key={`${row.key}-${idx}`}
             className="flex items-center justify-between gap-3 rounded-md border border-border-subtle bg-surface-card px-4 py-3 text-sm"
           >
-            <a
-              href={row.href}
-              className="flex items-center gap-3 min-w-0 text-primary hover:underline"
-            >
-              {row.icon && (
-                <Image
-                  src={row.icon}
-                  alt={row.name}
-                  width={36}
-                  height={36}
-                  sizes="36px"
-                  loading="lazy"
-                  className="h-9 w-9 rounded border border-border-subtle bg-surface-panel object-contain flex-shrink-0"
-                />
-              )}
-              <span className="truncate font-medium">{row.name}</span>
-            </a>
+            {isClickable ? (
+              <button
+                type="button"
+                onClick={() => onSelectItemId?.(row.id)}
+                className="flex items-center gap-3 min-w-0 bg-transparent border-0 p-0 text-left text-primary hover:underline focus:outline-none"
+              >
+                {row.icon && (
+                  <Image
+                    src={row.icon}
+                    alt={row.name}
+                    width={36}
+                    height={36}
+                    sizes="36px"
+                    loading="lazy"
+                    className="h-9 w-9 rounded border border-border-subtle bg-surface-panel object-contain flex-shrink-0"
+                  />
+                )}
+                <span className="truncate font-medium">{row.name}</span>
+              </button>
+            ) : (
+              <a
+                href={row.href}
+                className="flex items-center gap-3 min-w-0 text-primary hover:underline"
+              >
+                {row.icon && (
+                  <Image
+                    src={row.icon}
+                    alt={row.name}
+                    width={36}
+                    height={36}
+                    sizes="36px"
+                    loading="lazy"
+                    className="h-9 w-9 rounded border border-border-subtle bg-surface-panel object-contain flex-shrink-0"
+                  />
+                )}
+                <span className="truncate font-medium">{row.name}</span>
+              </a>
+            )}
 
             <div className="flex-shrink-0 text-right text-primary">
               {row.quantity != null && (
