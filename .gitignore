@@ -54,6 +54,9 @@ storybook-static
 # local temp files
 cachingAdjustmentDiff
 
+# Scratch files
+/scratch
+
 # additional common ignores
 .cache/
 *.tmp
