@@ -53,12 +53,16 @@ graph LR
     invariant enforcement
     ]
     Views[
-    Supabase views contracts
-    metadata
-    crafting
-    recycling
-    repairs
-    dataset version
+    Supabase view contracts
+    rp_view_metadata
+    rp_view_crafting_normalized
+    rp_view_recycle_outputs
+    rp_view_repair_recipes
+    rp_view_repair_profiles
+    ]
+    Tables[
+    Supabase table contracts
+    rp_dataset_version
     ]
   end
 
@@ -67,7 +71,9 @@ graph LR
   Handler --> Repo
   Repo --> Query
   Query --> Views
+  Query --> Tables
   Views --> Query
+  Tables --> Query
   Query --> Repo
   Repo --> Handler
   Handler --> Envelope
