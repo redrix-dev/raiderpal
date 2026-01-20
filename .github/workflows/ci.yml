@@ -37,7 +37,7 @@ jobs:
         run: npm run test:e2e
         env:
           SUPABASE_URL: ${{ secrets.REPO_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.REPO_SECRET }}
+          SUPABASE_ANON_KEY: ${{ secrets.REPO_ANON_KEY }}
 
       - name: Build
         run: npm run build
