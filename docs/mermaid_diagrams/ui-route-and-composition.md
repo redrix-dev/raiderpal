@@ -49,7 +49,7 @@ graph TD
 
   RepairCalcParts[
   ItemPicker
-  CostCard panels
+  ComponentCard + CostSection panels
   computeRepairSummary
   ]
 
