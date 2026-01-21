@@ -18,7 +18,10 @@
 /out/
 
 # PWA / Workbox generated artifacts
+<<<<<<< HEAD
+=======
 public/sw.js
+>>>>>>> staging
 fallback-*.js
 workbox-*.js
 
