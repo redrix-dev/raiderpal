@@ -1,4 +1,3 @@
-````md
 # Raider Pal
 
 Raider Pal is an unofficial ARC Raiders companion web app focused on fast item lookup and practical “repair vs replace” decisions.
