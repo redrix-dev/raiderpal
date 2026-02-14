@@ -112,7 +112,7 @@ export function LongCacheSettingsModal({
       <div className="absolute inset-0 bg-black/70" />
       <div className="relative flex h-full items-center justify-center">
         <div
-          className="w-full max-w-lg rounded-2xl border border-slate-800 bg-panel-texture p-5 shadow-2xl backdrop-blur"
+          className="w-full max-w-lg rounded-2xl border border-border-strong bg-surface-card p-5 shadow-2xl backdrop-blur text-primary"
           onMouseDown={(e) => e.stopPropagation()}
           role="dialog"
           aria-modal="true"
@@ -123,7 +123,7 @@ export function LongCacheSettingsModal({
               <div className="text-sm uppercase tracking-[0.08em] font-condensed text-primary">
                 Long Term Caching
               </div>
-              <p className="text-sm leading-relaxed text-muted">{INFO_TEXT}</p>
+              <p className="text-sm leading-relaxed text-primary">{INFO_TEXT}</p>
             </div>
             <button
               type="button"
@@ -136,12 +136,12 @@ export function LongCacheSettingsModal({
             </button>
           </div>
 
-          <div className="mt-4 flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/60 px-4 py-3">
+          <div className="mt-4 flex items-center justify-between rounded-lg border border-strong bg-surface-panel px-4 py-3">
             <div className="space-y-1">
-              <div className="text-sm font-condensed font-medium text-muted">
+              <div className="text-sm font-condensed font-medium text-primary">
                 Toggle long term caching
               </div>
-              <div className="text-xs text-muted">
+              <div className="text-xs text-primary">
                 {enabled ? "Currently enabled" : "Currently disabled"}
               </div>
             </div>
@@ -150,18 +150,16 @@ export function LongCacheSettingsModal({
               type="button"
               onClick={() => setPreference(!enabled)}
               disabled={!ready}
-              className={`relative inline-flex h-8 w-14 items-center rounded-full border transition ${
+              className={`relative inline-flex h-8 w-14 items-center rounded-full border p-0.5 transition-all duration-200 ease-in-out ${
                 enabled
-                  ? "border-emerald-500/60 bg-emerald-900/60"
-                  : "border-slate-700 bg-slate-900"
-              } ${!ready ? "opacity-60 cursor-not-allowed" : "hover:border-slate-500"}`}
+                  ? "border-border-strong bg-brand-amber/60 justify-end"
+                  : "border-border-strong bg-surface-base/60 justify-start"
+              } ${!ready ? "opacity-60 cursor-not-allowed" : "hover:border-brand-cyan"}`}
               aria-pressed={enabled}
               aria-label={enabled ? "Disable long term caching" : "Enable long term caching"}
             >
               <span
-                className={`absolute h-5 w-5 rounded-full bg-white/90 shadow transform transition ${
-                  enabled ? "translate-x-6" : "translate-x-1"
-                }`}
+                className="h-5 w-5 rounded-full bg-white/90 shadow transition-all duration-500 ease-in-out"
               />
               <span className="sr-only">
                 {enabled ? "Disable long term caching" : "Enable long term caching"}
