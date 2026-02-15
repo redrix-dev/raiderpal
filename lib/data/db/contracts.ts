@@ -60,16 +60,7 @@ export const VIEW_CONTRACTS = {
       notes: z.string().nullable(),
     }),
   },
-  //legacyRepairProfiles: {
-    //relation: "rp_repair_profiles",
-   // select: "item_id, max_durability, step_durability, notes",
-    //schema: z.object({
-      //item_id: z.string(),
-      //max_durability: z.number(),
-      //step_durability: z.number(),
-      //notes: z.string().nullable(),
-    //}),
-  //},
+
   datasetVersion: {
     relation: "rp_dataset_version",
     select: "id, version, last_synced_at",

@@ -1,28 +1,11 @@
 @import "tailwindcss";
-@source "./**/*.{ts,tsx,mdx}";
-@source "../components/**/*.{ts,tsx}";
-@source "../stories/**/*.{ts,tsx,mdx}";
+
+/* ============================================================================
+   CSS VARIABLES
+   ============================================================================ */
 
 :root {
-  /* Semantic palette used across the app */
-  --color-brand-cyan: #4fc1e9;
-  --color-brand-amber: #f1aa1c;
-  --color-text-primary: #130918;
-  --color-text-muted: #2a212f;
-  --color-text-primary-invert: #ece2d0;
-  --color-text-muted-invert: #ccc3b3;
-  --color-surface-base: #0f1005;
-  --color-surface-panel: #ece2d0;
-  --color-surface-card: #f5ede0;
-  --color-border-strong: #130918;
-  --color-border-subtle: rgba(255, 255, 255, 0.06);
-  --color-rarity-common: #6c6c6c;
-  --color-rarity-uncommon: #25bf56;
-  --color-rarity-rare: #00a9f2;
-  --color-rarity-epic: #cc3099;
-  --color-rarity-legendary: #ffc600;
-
-  /* Font fallbacks mirror the Tailwind theme */
+  /* Font stacks */
   --font-sans: var(--font-barlow, "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif);
   --font-condensed: var(
     --font-barlow-condensed,
@@ -34,43 +17,59 @@
     sans-serif
   );
 
-  --wallpaper-url: none; /* optional hero wallpaper; set to url(...) if needed */
+  /* Background textures */
+  --wallpaper-url: none;
   --texture-url: url("/textures/ARC_Raiders_Background_Texture.png");
   --wallpaper-overlay: rgba(5, 9, 16, 0);
 }
 
+/* ============================================================================
+   TAILWIND THEME
+   ============================================================================ */
+
 @theme {
-  --color-brand-cyan: #4fc1e9;
-  --color-brand-amber: #f1aa1c;
-  --color-text-primary: #130918;
-  --color-text-muted: #2a212f;
-  --color-text-primary-invert: #ece2d0;
-  --color-text-muted-invert: #ccc3b3;
-  --color-surface-base: #0f1005;
-  --color-surface-panel: #ece2d0;
-  --color-surface-card: #f5ede0;
-  --color-border-strong: #130918;
-  --color-border-subtle: rgba(255, 255, 255, 0.06);
-  --color-rarity-common: #6c6c6c;
-  --color-rarity-uncommon: #25bf56;
-  --color-rarity-rare: #00a9f2;
-  --color-rarity-epic: #cc3099;
-  --color-rarity-legendary: #ffc600;
+  /* Brand colors */
+  --brand-cyan: #4fc1e9;
+  --brand-amber: #f1aa1c;
+
+  /* Text colors
+     Use "primary" and "muted" on LIGHT backgrounds (cards, content areas)
+     Use "primary-invert" and "muted-invert" on DARK backgrounds (chrome, overlays) */
+  --primary: #130918;
+  --muted: #2a212f;
+  --primary-invert: #ece2d0;
+  --muted-invert: #ccc3b3;
+
+  /* Surface backgrounds */
+  --surface-base: #0f1005;
+  --surface-panel: #ece2d0;
+  --surface-card: #f5ede0;
+
+  /* Borders */
+  --strong: #130918;
+  --subtle: rgba(255, 255, 255, 0.06);
+
+  /* Rarity colors */
+  --rarity-common: #6c6c6c;
+  --rarity-uncommon: #25bf56;
+  --rarity-rare: #00a9f2;
+  --rarity-epic: #cc3099;
+  --rarity-legendary: #ffc600;
 }
 
-
-/* Tailwind v4 theme helpers can confuse CSS validators. If your editor flags
-   unknown at-rules, add at-rule-no-unknown ignores in your linter config. */
+/* ============================================================================
+   GLOBAL STYLES
+   ============================================================================ */
 
 body {
   position: relative;
-  background: var(--color-surface-base);
-  color: var(--color-text-primary);
+  background: var(--surface-base);
+  color: var(--primary);
   font-family: var(--font-sans);
   min-height: 100vh;
 }
 
-/* Optional wallpaper treatment */
+/* Global background texture layer */
 body::before {
   content: "";
   position: fixed;
@@ -82,19 +81,18 @@ body::before {
   background-blend-mode: screen;
   opacity: 0.95;
   pointer-events: none;
-  z-index: -2; /* CHANGED: force behind app stacking root */
+  z-index: -2; /* Must stay behind all app content */
 }
 
-/* Overlay to maintain contrast */
+/* Overlay for contrast control */
 body::after {
   content: "";
   position: fixed;
   inset: 0;
   background: linear-gradient(180deg, var(--wallpaper-overlay), var(--wallpaper-overlay));
   pointer-events: none;
-  z-index: -1; /* CHANGED: force behind app stacking root */
+  z-index: -1; /* Must stay behind all app content but above texture */
 }
-
 
 /* Prevent mobile Safari zoom on form controls */
 input,
@@ -103,137 +101,18 @@ textarea {
   font-size: 16px;
 }
 
-/* Slider styling: cyan thumb/active, warm inactive track */
-input[type="range"] {
-  accent-color: var(--color-brand-cyan);
-}
-input[type="range"]::-webkit-slider-runnable-track {
-  background: linear-gradient(
-      to right,
-      color-mix(in srgb, var(--color-brand-cyan) 60%, transparent) 0%,
-      color-mix(in srgb, var(--color-brand-cyan) 60%, transparent) var(--tw-range-progress, 50%),
-      color-mix(in srgb, var(--color-text-primary) 20%, transparent) var(--tw-range-progress, 50%),
-      color-mix(in srgb, var(--color-text-primary) 20%, transparent) 100%
-    );
-  height: 4px;
-  border-radius: 9999px;
-}
-input[type="range"]::-webkit-slider-thumb {
-  background: var(--color-brand-cyan);
-  border: 1px solid var(--color-brand-cyan);
-}
-input[type="range"]::-moz-range-track {
-  background: color-mix(in srgb, var(--color-text-primary) 20%, transparent);
-  height: 4px;
-  border-radius: 9999px;
-}
-input[type="range"]::-moz-range-progress {
-  background: color-mix(in srgb, var(--color-brand-cyan) 60%, transparent);
-  height: 4px;
-  border-radius: 9999px;
-}
-input[type="range"]::-moz-range-thumb {
-  background: var(--color-brand-cyan);
-  border: 1px solid var(--color-brand-cyan);
-}
+/* ============================================================================
+   UTILITY CLASSES
+   ============================================================================ */
 
-.rp-range {
-  -webkit-appearance: none;
-  appearance: none;
-  height: 10px;
-  border-radius: 9999px;
-  background: transparent;
-}
-.rp-range::-webkit-slider-runnable-track {
-  height: 10px;
-  border-radius: 9999px;
-  background: linear-gradient(
-      to right,
-      var(--color-brand-cyan) 0%,
-      var(--color-brand-cyan) var(--rp-range-progress, 50%),
-      white var(--rp-range-progress, 50%),
-      white 100%
-    );
-}
-.rp-range::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  height: 18px;
-  width: 18px;
-  border-radius: 9999px;
-  background: var(--color-brand-cyan);
-  border: 2px solid #0f1927;
-  margin-top: -6px;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
-}
-.rp-range::-moz-range-track {
-  height: 10px;
-  border-radius: 9999px;
-  background: white;
-}
-.rp-range::-moz-range-progress {
-  height: 10px;
-  border-radius: 9999px;
-  background: var(--color-brand-cyan);
-}
-.rp-range::-moz-range-thumb {
-  height: 18px;
-  width: 18px;
-  border-radius: 9999px;
-  background: var(--color-brand-cyan);
-  border: 2px solid #0f1927;
-  margin-top: -6px;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
-}
-
-@layer components {
-  /* Main inner panels (tool bodies, info sections) */
-
-  /* Generic pill/tag (non-rarity) */
-  .rp-pill {
-    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium;
-    background-color: color-mix(in srgb, var(--color-surface-panel) 90%, transparent);
-    color: var(--color-text-primary);
-    border: 1px solid color-mix(in srgb, var(--color-text-primary) 16%, transparent);
-  }
-
-}
-
-/* 
- * Dark purple branded texture from Embark media kit
- * USE ONLY FOR: UI chrome (modals, drawers, navigation, sidebars)
- * DO NOT USE FOR: Content surfaces (cards, item details, data display)
- */
+/* Dark purple branded texture from Embark media kit
+   USE ONLY FOR: UI chrome (modals, drawers, navigation, sidebars)
+   DO NOT USE FOR: Content surfaces (cards, item details, data display) */
 .bg-panel-texture {
   background-image: linear-gradient(rgba(5, 9, 16, 0.35), rgba(5, 9, 16, 0.35)),
     url("/backgrounds/ARC_Raiders_Module_Background.png");
   background-repeat: repeat-x;
   background-size: auto 140%;
   background-position: center;
-  background-color: color-mix(in srgb, var(--color-surface-panel) 60%, transparent);
-}
-
-
-/**
- * Text color tokens
- * 
- * Use -primary/-muted on LIGHT backgrounds (cards, content areas)
- * Use -primary-invert/-muted-invert on DARK backgrounds (headers, chrome, overlays)
- * 
- * Example:
- *   <Card className="bg-surface-card text-primary"> ← light bg, dark text
- *   <Header className="bg-surface-base text-primary-invert"> ← dark bg, light text
- */
-
-.text-primary {
-  color: var(--color-text-primary);
-}
-.text-primary-invert {
-  color: var(--color-text-primary-invert);
-}
-.text-muted {
-  color: var(--color-text-muted);
-}
-.text-muted-invert {
-  color: var(--color-text-muted-invert);
+  background-color: color-mix(in srgb, var(--surface-panel) 60%, transparent);
 }

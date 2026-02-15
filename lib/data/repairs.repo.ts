@@ -14,12 +14,10 @@ import { getItemsByIds } from "./items.repo";
 export async function getRepairProfile(
   itemId: string
 ): Promise<RepairProfile | null> {
-  const [row] = await Promise.all([
+  const row = await
     queryViewMaybeSingle(VIEW_CONTRACTS.repairProfiles, (q) =>
       q.eq("item_id", itemId)
-    ),
-    
-  ]);
+  );
 
   const normalized = normalizeProfileRow(row);
   if (!normalized) return null;
