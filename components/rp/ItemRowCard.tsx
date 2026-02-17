@@ -113,7 +113,12 @@ export const ItemRowCard = forwardRef<
   const card = (
     <Card
       variant="neutral"
-      className={cn("!p-1 transition-colors", toneClass, interactive && "group-hover:border-brand-cyan/60")}
+      padding="xs"
+      className={cn(
+        "transition-colors",
+        toneClass,
+        interactive && "group-hover:border-brand-cyan/60"
+      )}
     >
       <Panel
         variant={panelVariant}

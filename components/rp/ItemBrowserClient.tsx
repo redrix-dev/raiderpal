@@ -261,9 +261,9 @@ export function ItemBrowserClient({
             <div className="flex items-center gap-2">
               <Button
                 type="button"
-                variant="cta"
+                variant="secondary"
                 onClick={handleClearFilters}
-                className="h-10 px-4 py-2 text-sm bg-surface-panel text-primary border-border-strong hover:border-brand-cyan/60 hover:text-brand-cyan focus-visible:ring-offset-surface-panel"
+                className="h-10 px-4 py-2 text-sm focus-visible:ring-offset-surface-panel"
               >
                 Clear filters
               </Button>
@@ -297,9 +297,9 @@ export function ItemBrowserClient({
           <div className="mt-3">
             <Button
               type="button"
-              variant="cta"
+              variant="secondary"
               onClick={handleClearFilters}
-              className="px-3 py-1.5 text-xs bg-brand-cyan/10 border-brand-cyan/60 text-brand-cyan hover:bg-brand-cyan/15 focus-visible:ring-offset-surface-card"
+              className="px-3 py-1.5 text-xs focus-visible:ring-offset-surface-card"
             >
               Clear filters
             </Button>
@@ -375,6 +375,7 @@ function ItemResultCard({
     <Card
       data-testid="item-result"
       variant="neutral"
+      padding="xs"
       role="button"
       tabIndex={0}
       aria-controls={dialogId}
@@ -386,7 +387,7 @@ function ItemResultCard({
         }
       }}
       className={cn(
-        "group transition-colors cursor-pointer min-w-0 !p-1",
+        "group transition-colors cursor-pointer min-w-0",
         "hover:border-brand-cyan/60 focus-visible:outline-none focus-visible:ring-2",
         "focus-visible:ring-brand-cyan focus-visible:ring-offset-2",
         "focus-visible:ring-offset-surface-panel",
@@ -458,9 +459,9 @@ function ReminderAction({
     return (
       <Button
         type="button"
-        variant="cta"
+        variant="secondary"
         disabled
-        className="px-2 py-1 text-[11px] bg-surface-panel text-muted border-border-strong opacity-60 cursor-not-allowed focus-visible:ring-offset-surface-panel"
+        className="px-2 py-1 text-[11px] focus-visible:ring-offset-surface-panel"
       >
         ...
       </Button>
@@ -469,7 +470,7 @@ function ReminderAction({
 
   if (isAdded) {
     return (
-      <span className="text-[11px] font-semibold text-brand-cyan">
+      <span className="inline-flex items-center rounded-md border border-brand-cyan/55 bg-brand-cyan/12 px-2 py-1 text-[11px] font-semibold text-primary">
         Added
       </span>
     );
@@ -478,12 +479,12 @@ function ReminderAction({
   return (
     <Button
       type="button"
-      variant="cta"
+      variant="primary"
       onClick={(e) => {
         e.stopPropagation();
         onAdd();
       }}
-      className="px-2 py-1 text-[11px] border-brand-cyan/60 text-primaryfocus-visible:ring-offset-surface-panel"
+      className="px-2 py-1 text-[11px] focus-visible:ring-offset-surface-panel"
     >
       Add reminder
     </Button>

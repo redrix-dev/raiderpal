@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { RarityBadge } from "@/components/ui/RarityBadge";
 import { Card } from "@/components/ui/Card";
 import { CardHeader } from "@/components/ui/CardHeader";
+import { OverlayShell } from "@/components/ui/OverlayShell";
 import { Panel } from "@/components/ui/Panel";
 import type {
   CanonicalItemSummary,
@@ -131,18 +132,21 @@ export function ItemDetailsModal({
     : (details?.sources ?? []);
 
   return (
-    <div
-      className="fixed inset-0 z-40 flex items-center justify-center bg-surface-base/80 px-4"
-      onClick={onClose}
+    <OverlayShell
+      onDismiss={onClose}
+      alignment="center"
+      zIndexClassName="z-40"
+      viewportPaddingClassName="px-4"
+      containerClassName="max-w-7xl"
+      scrimClassName="bg-surface-base/80"
     >
       <div
         data-testid="item-detail"
-        className="w-full max-w-7xl max-h-[90vh] flex flex-col rounded-2xl overflow-hidden"
+        className="w-full max-h-[90vh] flex flex-col rounded-2xl overflow-hidden"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
         id={dialogId}
-        onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
       >
         {/* Dark chrome header - FIXED */}
@@ -177,16 +181,16 @@ export function ItemDetailsModal({
           <Panel
             variant="light"
             padding="roomy"
-            className="!rounded-none border-t-0 border-border-strong h-full flex flex-col min-h-0"
+            className="rounded-none border-t-0 border-border-strong h-full flex flex-col min-h-0"
           >
             <div className={innerContentClasses}>
               {/* Overview and Stats cards */}
               <div className={overviewStatsGridClasses}>
                 {/* Overview Card */}
-                <div className="overflow-hidden rounded-lg border border-border-subtle shadow-sm shadow-black/30 flex flex-col flex-1 min-h-0">
+                <div className="overflow-hidden rounded-lg border border-border-subtle shadow-card-soft flex flex-col flex-1 min-h-0">
                   <CardHeader
-                    className="rounded-none border-0 border-b border-border-subtle"
-                    contentClassName="px-4 py-2 sm:px-5 sm:py-2"
+                    padding="compact"
+                    divider="subtle"
                   >
                     <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-primary-invert">
                       Overview
@@ -223,7 +227,7 @@ export function ItemDetailsModal({
                     </div>
                     
                     {item.description && (
-                      <Card className="!p-3">
+                      <Card padding="sm">
                         <p className="text-sm text-primary leading-relaxed">
                           {item.description}
                         </p>
@@ -233,10 +237,10 @@ export function ItemDetailsModal({
                 </div>
 
                 {/* Stats Card */}
-                <div className="overflow-hidden rounded-lg border border-border-subtle shadow-sm shadow-black/30">
+                <div className="overflow-hidden rounded-lg border border-border-subtle shadow-card-soft">
                   <CardHeader
-                    className="rounded-none border-0 border-b border-border-subtle"
-                    contentClassName="px-4 py-2 sm:px-5 sm:py-2"
+                    padding="compact"
+                    divider="subtle"
                   >
                     <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-primary-invert">
                       Stats
@@ -247,7 +251,7 @@ export function ItemDetailsModal({
                   <div className="bg-surface-panel p-4 sm:p-5">
                     <div className="space-y-2">
                       {item.value != null && (
-                        <Card className="!p-3">
+                        <Card padding="sm">
                           <div className="flex items-center justify-between gap-3 text-sm">
                             <dt className="text-muted">Value</dt>
                             <dd className="font-semibold text-primary">
@@ -257,7 +261,7 @@ export function ItemDetailsModal({
                         </Card>
                       )}
                       {item.item_type && (
-                        <Card className="!p-3">
+                        <Card padding="sm">
                           <div className="flex items-center justify-between gap-3 text-sm">
                             <dt className="text-muted">Type</dt>
                             <dd className="font-semibold text-primary">
@@ -267,7 +271,7 @@ export function ItemDetailsModal({
                         </Card>
                       )}
                       {item.workbench && (
-                        <Card className="!p-3">
+                        <Card padding="sm">
                           <div className="flex items-center justify-between gap-3 text-sm">
                             <dt className="text-muted">Workbench</dt>
                             <dd className="font-semibold text-primary">
@@ -277,7 +281,7 @@ export function ItemDetailsModal({
                         </Card>
                       )}
                       {item.loot_area && (
-                        <Card className="!p-3">
+                        <Card padding="sm">
                           <div className="flex items-center justify-between gap-3 text-sm">
                             <dt className="text-muted">Loot Area</dt>
                             <dd className="font-semibold text-primary">
@@ -292,7 +296,7 @@ export function ItemDetailsModal({
               </div>
 
               {/* Details/Tabs Section */}
-              <div className="overflow-hidden rounded-lg border border-border-subtle shadow-sm shadow-black/30 flex flex-col min-h-0">
+              <div className="overflow-hidden rounded-lg border border-border-subtle shadow-card-soft flex flex-col min-h-0">
                 {/* Tabs in the dark header */}
                 <div className="border-b border-border-subtle bg-surface-base text-primary-invert"
                   style={{
@@ -419,7 +423,7 @@ export function ItemDetailsModal({
           </Panel>
         </div>
       </div>
-    </div>
+    </OverlayShell>
   );
 }
 
@@ -447,7 +451,7 @@ function TabContent<TRow>({
 }: TabContentProps<TRow>) {
   if (!rows || rows.length === 0) {
     return (
-      <Card className="!p-4">
+      <Card>
         <p className="text-sm text-muted">{emptyText}</p>
       </Card>
     );
@@ -458,7 +462,7 @@ function TabContent<TRow>({
       {rows.map((raw, idx) => {
         const row = mapRow(raw);
         return (
-          <Card key={`${row.key}-${idx}`} className="!p-3">
+          <Card key={`${row.key}-${idx}`} padding="sm">
             <div className="flex items-center justify-between gap-3">
               <button
                 type="button"

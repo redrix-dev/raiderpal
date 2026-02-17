@@ -43,7 +43,7 @@ export function ModulePanel({
       {/* Header */}
       <div
         className={
-          "bg-black/50 border-b border-white/10 px-6 md:px-7 py-4  " +
+          "bg-surface-base/50 border-b border-primary-invert/10 px-6 md:px-7 py-4  " +
           "2xl:[.ui-compact_&]:px-5 2xl:[.ui-compact_&]:py-3 " +
           headerClassName
         }
@@ -91,7 +91,7 @@ export function ModulePanel({
                       height={40}
                       sizes="40px"
                       loading="lazy"
-                      className="h-10 w-10 rounded border border-white/10 bg-black/60 object-contain flex-shrink-0"
+                      className="h-10 w-10 rounded border border-primary-invert/10 bg-surface-base/60 object-contain flex-shrink-0"
                     />
                   ) : null}
                   <dt className="text-muted-invert font-semibold truncate">
@@ -104,7 +104,7 @@ export function ModulePanel({
                 <div
                   key={row.key}
                   className={
-                    "flex items-center justify-between gap-3 rounded-lg border border-white/5 bg-black/20 px-6 py-4 text-base " +
+                    "flex items-center justify-between gap-3 rounded-lg border border-primary-invert/5 bg-surface-base/20 px-6 py-4 text-base " +
                     "2xl:[.ui-compact_&]:px-5 2xl:[.ui-compact_&]:py-3 2xl:[.ui-compact_&]:text-sm " +
                     rowClassName
                   }
@@ -132,4 +132,3 @@ export function ModulePanel({
     </Panel>
   );
 }
-

@@ -2,11 +2,27 @@
 import type { HTMLAttributes, ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
+export type CardHeaderPadding = "base" | "compact";
+export type CardHeaderDivider = "strong" | "subtle" | "none";
+
 type CardHeaderProps = {
   children: ReactNode;
   className?: string;
   contentClassName?: string;
+  padding?: CardHeaderPadding;
+  divider?: CardHeaderDivider;
 } & HTMLAttributes<HTMLDivElement>;
+
+const paddingClasses: Record<CardHeaderPadding, string> = {
+  base: "px-6 sm:px-7 py-4",
+  compact: "px-4 py-2 sm:px-5 sm:py-2",
+};
+
+const dividerClasses: Record<CardHeaderDivider, string> = {
+  strong: "border-b border-border-strong",
+  subtle: "border-b border-border-subtle",
+  none: "border-b-0",
+};
 
 /**
  * CardHeader
@@ -24,6 +40,8 @@ export function CardHeader({
   children,
   className,
   contentClassName,
+  padding = "base",
+  divider = "strong",
   style,
   ...rest
 }: CardHeaderProps) {
@@ -31,7 +49,8 @@ export function CardHeader({
     <div
       {...rest}
       className={cn(
-        "border-b border-border-strong bg-surface-base text-primary-invert",
+        "bg-surface-base text-primary-invert",
+        dividerClasses[divider],
         className
       )}
       style={{
@@ -42,7 +61,7 @@ export function CardHeader({
         ...style,
       }}
     >
-      <div className={cn("px-6 sm:px-7 py-4", contentClassName)}>
+      <div className={cn(paddingClasses[padding], contentClassName)}>
         {children}
       </div>
     </div>

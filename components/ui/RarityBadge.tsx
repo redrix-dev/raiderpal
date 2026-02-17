@@ -1,3 +1,4 @@
+// components/ui/RarityBadge.tsx
 import type { HTMLAttributes } from "react";
 import { rarityClasses } from "@/components/ui/rarity";
 import { cn } from "@/lib/cn";
@@ -13,7 +14,8 @@ export function RarityBadge({ rarity, className, ...rest }: RarityBadgeProps) {
     <span
       {...rest}
       className={cn(
-        "rp-pill font-condensed uppercase tracking-wide text-[10px] text-primary",
+        "inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-medium font-condensed uppercase tracking-wide",
+        "bg-surface-panel/90 text-primary border border-primary/15",
         rarityClasses(rarity),
         className
       )}

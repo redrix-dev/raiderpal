@@ -3,6 +3,7 @@ import type { HTMLAttributes, ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 export type CardVariant = "surface" | "neutral";
+export type CardPadding = "none" | "xs" | "sm" | "base";
 
 type CardProps = {
   children: ReactNode;
@@ -13,11 +14,28 @@ type CardProps = {
    * - neutral: no background so callers can supply their own surface/rarity.
    */
   variant?: CardVariant;
+  /**
+   * Internal padding for card content.
+   * Prefer this over utility overrides such as `!p-*`.
+   */
+  padding?: CardPadding;
+  /**
+   * Removes top corners and top border for seamless attachment beneath
+   * section headers.
+   */
+  flushTop?: boolean;
 } & HTMLAttributes<HTMLDivElement>;
 
 const variantClasses: Record<CardVariant, string> = {
   surface: "bg-surface-card text-primary",
   neutral: "text-primary", // No bg, caller provides it
+};
+
+const paddingClasses: Record<CardPadding, string> = {
+  none: "p-0",
+  xs: "p-1",
+  sm: "p-3",
+  base: "p-4",
 };
 
 /**
@@ -36,6 +54,8 @@ export function Card({
   children,
   className,
   variant = "surface",
+  padding = "base",
+  flushTop = false,
   ...rest
 }: CardProps) {
   return (
@@ -44,8 +64,9 @@ export function Card({
       className={cn(
         "rounded-lg",
         "border border-border-subtle",
-        "shadow-sm shadow-black/30",
-        "p-4",
+        "shadow-card-soft",
+        paddingClasses[padding],
+        flushTop && "rounded-t-none border-t-0",
         variantClasses[variant],
         className
       )}

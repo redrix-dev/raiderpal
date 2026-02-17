@@ -111,7 +111,7 @@ function PageButton({
       aria-current={active ? "page" : undefined}
       className={`rounded-md border px-3 py-1 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan focus-visible:ring-offset-2 focus-visible:ring-offset-surface-panel ${
         active
-          ? "border-brand-cyan/70 bg-brand-cyan/10 text-brand-cyan"
+          ? "border-brand-cyan/70 bg-brand-cyan/16 text-primary"
           : "border-border-subtle bg-surface-panel text-primary hover:border-brand-cyan/60 hover:text-brand-cyan"
       } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
     >
@@ -119,4 +119,3 @@ function PageButton({
     </button>
   );
 }
-
