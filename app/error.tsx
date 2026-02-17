@@ -12,6 +12,9 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
     console.error(error);
   }, [error]);
 
+  const actionClasses =
+    "inline-flex items-center justify-center gap-2 rounded-md border border-brand-cyan/70 bg-brand-cyan/16 px-4 py-2.5 text-sm font-medium text-primary transition hover:border-brand-cyan hover:bg-brand-cyan/24 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base";
+
   return (
     <div className="flex min-h-[70vh] items-center justify-center px-4">
       <div className="w-full max-w-xl rounded-lg border border-border-strong bg-surface-card p-6 text-primary shadow-lg">
@@ -33,13 +36,13 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
           <button
             type="button"
             onClick={() => reset()}
-            className="inline-flex items-center justify-center gap-2 rounded-md border border-brand-amber/60 bg-brand-amber px-4 py-2.5 text-sm font-medium text-primary transition hover:border-brand-cyan hover:bg-brand-amber/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base"
+            className={actionClasses}
           >
             Try again
           </button>
           <a
             href="/"
-            className="inline-flex items-center justify-center gap-2 rounded-md border border-brand-amber/60 bg-brand-amber px-4 py-2.5 text-sm font-medium text-primary transition hover:border-brand-cyan hover:bg-brand-amber/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base"
+            className={actionClasses}
           >
             Go home
           </a>

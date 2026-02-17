@@ -5,7 +5,73 @@
    ============================================================================ */
 
 :root {
-  /* Font stacks */
+  /* Background textures */
+  --wallpaper-url: none;
+  --texture-url: url("/textures/ARC_Raiders_Background_Texture.png");
+  --wallpaper-overlay: rgba(5, 9, 16, 0);
+}
+
+/* ============================================================================
+   TAILWIND THEME
+   ============================================================================ */
+@theme {
+  /* Brand colors */
+  --color-brand-cyan: #4fc1e9;
+  --color-brand-amber: #f1aa1c;
+
+  /* Text colors */
+  --color-primary: #130918;
+  --color-muted: #2a212f;
+  --color-primary-invert: #ece2d0;
+  --color-muted-invert: #ccc3b3;
+
+  /* Surface backgrounds */
+  --color-surface-base: #0f1005;
+  --color-surface-panel: #ece2d0;
+  --color-surface-card: #f5ede0;
+
+  /* Borders */
+  --color-border-strong: #130918;
+  --color-border-subtle: rgba(255, 255, 255, 0.06);
+
+  /* Semantic states */
+  --color-state-success: #22c55e;
+  --color-overlay-scrim: rgba(5, 9, 16, 0.7);
+
+  /* Skeleton */
+  --color-skeleton-fill: color-mix(in srgb, var(--color-primary-invert) 10%, transparent);
+  --color-skeleton-surface: color-mix(in srgb, var(--color-surface-base) 20%, transparent);
+  --color-skeleton-border: color-mix(in srgb, var(--color-primary-invert) 5%, transparent);
+
+  /* Rarity colors */
+  --color-rarity-common: #6c6c6c;
+  --color-rarity-uncommon: #25bf56;
+  --color-rarity-rare: #00a9f2;
+  --color-rarity-epic: #cc3099;
+  --color-rarity-legendary: #ffc600;
+
+  /* Spacing */
+  --spacing-control-x: 0.75rem;
+  --spacing-control-y: 0.5rem;
+  --spacing-control-y-compact: 0.375rem;
+  --spacing-chip-x: 0.5rem;
+  --spacing-chip-y: 0.25rem;
+  --spacing-panel: 1rem;
+  --spacing-panel-md: 1.25rem;
+
+  /* Radius */
+  --radius-control: 0.375rem;
+  --radius-card: 0.5rem;
+  --radius-dialog: 1rem;
+
+  /* Shadows */
+  --shadow-card-soft: 0 1px 3px rgb(0 0 0 / 0.3);
+  --shadow-panel-light: 0 12px 30px rgb(0 0 0 / 0.18);
+  --shadow-panel-subtle: 0 10px 25px rgb(0 0 0 / 0.22);
+  --shadow-panel-chrome: 0 0 40px rgb(0 0 0 / 0.6);
+}
+
+@theme inline {
   --font-sans: var(--font-barlow, "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif);
   --font-condensed: var(
     --font-barlow-condensed,
@@ -16,55 +82,22 @@
     "Segoe UI",
     sans-serif
   );
-
-  /* Background textures */
-  --wallpaper-url: none;
-  --texture-url: url("/textures/ARC_Raiders_Background_Texture.png");
-  --wallpaper-overlay: rgba(5, 9, 16, 0);
-}
-
-/* ============================================================================
-   TAILWIND THEME
-   ============================================================================ */
-
-@theme {
-  /* Brand colors */
-  --brand-cyan: #4fc1e9;
-  --brand-amber: #f1aa1c;
-
-  /* Text colors
-     Use "primary" and "muted" on LIGHT backgrounds (cards, content areas)
-     Use "primary-invert" and "muted-invert" on DARK backgrounds (chrome, overlays) */
-  --primary: #130918;
-  --muted: #2a212f;
-  --primary-invert: #ece2d0;
-  --muted-invert: #ccc3b3;
-
-  /* Surface backgrounds */
-  --surface-base: #0f1005;
-  --surface-panel: #ece2d0;
-  --surface-card: #f5ede0;
-
-  /* Borders */
-  --strong: #130918;
-  --subtle: rgba(255, 255, 255, 0.06);
-
-  /* Rarity colors */
-  --rarity-common: #6c6c6c;
-  --rarity-uncommon: #25bf56;
-  --rarity-rare: #00a9f2;
-  --rarity-epic: #cc3099;
-  --rarity-legendary: #ffc600;
 }
 
 /* ============================================================================
    GLOBAL STYLES
    ============================================================================ */
 
+html {
+  min-height: 100%;
+  /* Keep header alignment stable without reserving visible gutter space. */
+  overflow-y: scroll;
+}
+
 body {
   position: relative;
-  background: var(--surface-base);
-  color: var(--primary);
+  background: var(--color-surface-base);
+  color: var(--color-primary);
   font-family: var(--font-sans);
   min-height: 100vh;
 }
@@ -114,5 +147,5 @@ textarea {
   background-repeat: repeat-x;
   background-size: auto 140%;
   background-position: center;
-  background-color: color-mix(in srgb, var(--surface-panel) 60%, transparent);
+  background-color: color-mix(in srgb, var(--color-surface-panel) 60%, transparent);
 }

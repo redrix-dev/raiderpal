@@ -12,9 +12,9 @@ const RepairCalculatorClient = dynamicImport(
   {
     loading: () => (
       <div className="space-y-4 animate-pulse">
-        <div className="h-4 w-64 rounded bg-white/10" />
-        <div className="h-28 rounded-lg border border-white/5 bg-black/20" />
-        <div className="h-52 rounded-lg border border-white/5 bg-black/20" />
+        <div className="h-4 w-64 rounded bg-skeleton-fill" />
+        <div className="h-28 rounded-lg border border-skeleton-border bg-skeleton-surface" />
+        <div className="h-52 rounded-lg border border-skeleton-border bg-skeleton-surface" />
       </div>
     ),
   }
@@ -36,7 +36,7 @@ export default async function RepairCalculatorPage() {
           </h1>
         </SectionHeader>
 
-        <Card className="rounded-t-none border-t-0 border-border-strong !p-0">
+        <Card flushTop padding="none" className="border-border-strong">
           <div className="px-6 sm:px-7 py-5 space-y-3">
             <p className="text-sm text-primary">
               Compare manual repair costs against crafting new gear. Adjust the

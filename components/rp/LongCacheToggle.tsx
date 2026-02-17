@@ -3,6 +3,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { OverlayShell } from "@/components/ui/OverlayShell";
 import {
   getLongCachePreference,
   setLongCachePreference,
@@ -53,11 +54,11 @@ export function LongCacheIndicator({ className = "" }: { className?: string }) {
   if (!ready || !enabled) return null;
   return (
     <span
-      className={`inline-flex items-center gap-2 rounded-md border border-emerald-500/50 bg-emerald-900/30 px-3 h-9 text-xs sm:text-sm font-medium text-emerald-100 ${className}`}
+      className={`inline-flex items-center gap-2 rounded-md border border-state-success/50 bg-state-success/25 px-3 h-9 text-xs sm:text-sm font-medium text-primary-invert ${className}`}
       aria-label="Long term caching is enabled"
       title="Long term caching is enabled"
     >
-      <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" aria-hidden />
+      <span className="h-2 w-2 rounded-full bg-state-success animate-pulse" aria-hidden />
       LTC Enabled
     </span>
   );
@@ -104,71 +105,70 @@ export function LongCacheSettingsModal({
   if (!mounted || !open) return null;
 
   return createPortal(
-    <div
-      className="fixed inset-0 z-50 px-3 sm:px-6"
-      onMouseDown={onClose}
-      role="presentation"
+    <OverlayShell
+      onDismiss={onClose}
+      alignment="center"
+      zIndexClassName="z-50"
+      viewportPaddingClassName="px-3 sm:px-6"
+      containerClassName="max-w-lg"
+      scrimClassName="bg-overlay-scrim"
     >
-      <div className="absolute inset-0 bg-black/70" />
-      <div className="relative flex h-full items-center justify-center">
-        <div
-          className="w-full max-w-lg rounded-2xl border border-border-strong bg-surface-card p-5 shadow-2xl backdrop-blur text-primary"
-          onMouseDown={(e) => e.stopPropagation()}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Long Term Caching settings"
-        >
-          <div className="flex items-start justify-between gap-3">
-            <div className="space-y-2">
-              <div className="text-sm uppercase tracking-[0.08em] font-condensed text-primary">
-                Long Term Caching
-              </div>
-              <p className="text-sm leading-relaxed text-primary">{INFO_TEXT}</p>
+      <div
+        className="rounded-2xl border border-border-strong bg-surface-card p-5 shadow-2xl backdrop-blur text-primary"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Long Term Caching settings"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-2">
+            <div className="text-sm uppercase tracking-[0.08em] font-condensed text-primary">
+              Long Term Caching
             </div>
-            <button
-              type="button"
-              onClick={onClose}
-              ref={closeButtonRef}
-              className="rounded-full p-2 text-primary hover:text-white hover:bg-slate-800/80 focus:outline-none focus:ring-2 focus:ring-[#4fc1e9]"
-              aria-label="Close settings"
-            >
-              X
-            </button>
+            <p className="text-sm leading-relaxed text-primary">{INFO_TEXT}</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            ref={closeButtonRef}
+            className="rounded-full p-2 text-primary hover:text-primary-invert hover:bg-surface-base/80 focus:outline-none focus:ring-2 focus:ring-brand-cyan"
+            aria-label="Close settings"
+          >
+            X
+          </button>
+        </div>
+
+        <div className="mt-4 flex items-center justify-between rounded-lg border border-border-strong bg-surface-panel px-4 py-3">
+          <div className="space-y-1">
+            <div className="text-sm font-condensed font-medium text-primary">
+              Toggle long term caching
+            </div>
+            <div className="text-xs text-primary">
+              {enabled ? "Currently enabled" : "Currently disabled"}
+            </div>
           </div>
 
-          <div className="mt-4 flex items-center justify-between rounded-lg border border-strong bg-surface-panel px-4 py-3">
-            <div className="space-y-1">
-              <div className="text-sm font-condensed font-medium text-primary">
-                Toggle long term caching
-              </div>
-              <div className="text-xs text-primary">
-                {enabled ? "Currently enabled" : "Currently disabled"}
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setPreference(!enabled)}
-              disabled={!ready}
-              className={`relative inline-flex h-8 w-14 items-center rounded-full border p-0.5 transition-all duration-200 ease-in-out ${
-                enabled
-                  ? "border-border-strong bg-brand-amber/60 justify-end"
-                  : "border-border-strong bg-surface-base/60 justify-start"
-              } ${!ready ? "opacity-60 cursor-not-allowed" : "hover:border-brand-cyan"}`}
-              aria-pressed={enabled}
-              aria-label={enabled ? "Disable long term caching" : "Enable long term caching"}
-            >
-              <span
-                className="h-5 w-5 rounded-full bg-white/90 shadow transition-all duration-500 ease-in-out"
-              />
-              <span className="sr-only">
-                {enabled ? "Disable long term caching" : "Enable long term caching"}
-              </span>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setPreference(!enabled)}
+            disabled={!ready}
+            className={`relative inline-flex h-8 w-14 items-center rounded-full border p-0.5 transition-all duration-200 ease-in-out ${
+              enabled
+                ? "border-border-strong bg-brand-amber/60 justify-end"
+                : "border-border-strong bg-surface-base/60 justify-start"
+            } ${!ready ? "opacity-60 cursor-not-allowed" : "hover:border-brand-cyan"}`}
+            aria-pressed={enabled}
+            aria-label={enabled ? "Disable long term caching" : "Enable long term caching"}
+          >
+            <span
+              className="h-5 w-5 rounded-full bg-primary-invert/90 shadow transition-all duration-500 ease-in-out"
+            />
+            <span className="sr-only">
+              {enabled ? "Disable long term caching" : "Enable long term caching"}
+            </span>
+          </button>
         </div>
       </div>
-    </div>,
+    </OverlayShell>,
     document.body
   );
 }
