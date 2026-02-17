@@ -4,9 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Card } from "@/components/ui/Card";
 import { CardHeader } from "@/components/ui/CardHeader";
-import { SectionHeader } from "@/components/ui/SectionHeader";
 import { LongCacheSettingsModal } from "@/components/rp/LongCacheToggle";
 
 const links = [
@@ -84,6 +82,13 @@ export function TopNavMenu() {
     setOpen(false);
   }
 
+  function isLinkActive(href: string) {
+    if (href === "/") {
+      return pathname === "/";
+    }
+    return pathname.startsWith(href);
+  }
+
   return (
     <>
       <div ref={containerRef} className="relative">
@@ -106,53 +111,52 @@ export function TopNavMenu() {
             className="fixed z-[100] w-60"
             style={{ top: menuPosition.top, right: menuPosition.right }}
           >
-            <div>
-              <SectionHeader
+            <div className="overflow-hidden rounded-lg border border-border-strong bg-surface-card text-primary shadow-2xl">
+              <CardHeader
+                className="border-b border-border-subtle"
                 contentClassName="px-4 py-2 sm:px-4 sm:py-2"
-                className="rounded-t-lg"
               >
                 <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-primary-invert">
                   Navigation
                 </div>
-              </SectionHeader>
-              <Card className="border-border-strong rounded-t-none border-t-0 !p-0 text-primary shadow-2xl">
-                <div className="pb-2">
-                  {links.map((link) => {
-                    const active = pathname.startsWith(link.href);
-                    return (
-                      <Link
-                        key={link.href}
-                        href={link.href}
-                        className={`block px-4 py-2 text-sm font-semibold transition ${
-                          active
-                            ? "bg-surface-panel text-primary"
-                            : "text-primary hover:bg-surface-panel"
-                        }`}
-                      >
-                        {link.label}
-                      </Link>
-                    );
-                  })}
-                </div>
+              </CardHeader>
 
-                <div className="border-t border-border-subtle pb-4">
-                  <CardHeader
-                    className="border-0 border-b border-border-subtle rounded-none"
-                    contentClassName="px-4 py-2 sm:px-4 sm:py-2"
-                  >
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-primary-invert">
-                      Settings
-                    </div>
-                  </CardHeader>
-                  <button
-                    type="button"
-                    onClick={handleOpenSettings}
-                    className="mt-2 block w-full text-left px-4 py-2 text-sm font-semibold text-primary transition hover:bg-surface-panel focus:outline-none focus:ring-2 focus:ring-brand-cyan focus:ring-offset-2 focus:ring-offset-surface-card"
-                  >
-                    Long Term Caching
-                  </button>
-                </div>
-              </Card>
+              <div className="py-2">
+                {links.map((link) => {
+                  const active = isLinkActive(link.href);
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={`block px-4 py-2 text-sm font-semibold transition ${
+                        active
+                          ? "bg-surface-panel text-primary"
+                          : "text-primary hover:bg-surface-panel"
+                      }`}
+                    >
+                      {link.label}
+                    </Link>
+                  );
+                })}
+              </div>
+
+              <div className="border-t border-border-subtle pb-3">
+                <CardHeader
+                  className="border-b border-border-subtle"
+                  contentClassName="px-4 py-2 sm:px-4 sm:py-2"
+                >
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-primary-invert">
+                    Settings
+                  </div>
+                </CardHeader>
+                <button
+                  type="button"
+                  onClick={handleOpenSettings}
+                  className="mt-2 block w-full px-4 py-2 text-left text-sm font-semibold text-primary transition hover:bg-surface-panel focus:outline-none focus:ring-2 focus:ring-brand-cyan focus:ring-offset-2 focus:ring-offset-surface-card"
+                >
+                  Long Term Caching
+                </button>
+              </div>
             </div>
           </div>,
           document.body

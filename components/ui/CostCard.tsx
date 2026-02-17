@@ -22,7 +22,7 @@ export function CostCard({
       : Math.max(0, minRows - items.length);
 
   return (
-    <div className="rounded-lg border border-white/5 bg-black/25 p-4 2xl:[.ui-compact_&]:p-3 space-y-3 2xl:[.ui-compact_&]:space-y-2.5">
+    <div className="rounded-lg border border-primary-invert/5 bg-surface-base/25 p-4 2xl:[.ui-compact_&]:p-3 space-y-3 2xl:[.ui-compact_&]:space-y-2.5">
       <div className="text-base 2xl:[.ui-compact_&]:text-sm font-semibold text-primary">{title}</div>
       <div className="space-y-3">
         {showLegacyEmpty ? (
@@ -30,14 +30,14 @@ export function CostCard({
         ) : (
           <>
             {items.length === 0 ? (
-              <div className="flex items-center justify-between gap-3 rounded-md border border-white/5 bg-black/30 px-3 py-2 2xl:[.ui-compact_&]:px-2.5 2xl:[.ui-compact_&]:py-1.5">
+              <div className="flex items-center justify-between gap-3 rounded-md border border-primary-invert/5 bg-surface-base/30 px-3 py-2 2xl:[.ui-compact_&]:px-2.5 2xl:[.ui-compact_&]:py-1.5">
                 <div className="text-sm 2xl:[.ui-compact_&]:text-xs text-muted">{emptyLabel}</div>
               </div>
             ) : (
               items.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between gap-3 rounded-md border border-white/5 bg-black/30 px-3 py-2 2xl:[.ui-compact_&]:px-2.5 2xl:[.ui-compact_&]:py-1.5"
+                  className="flex items-center justify-between gap-3 rounded-md border border-primary-invert/5 bg-surface-base/30 px-3 py-2 2xl:[.ui-compact_&]:px-2.5 2xl:[.ui-compact_&]:py-1.5"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     {item.icon && (
@@ -48,7 +48,7 @@ export function CostCard({
                         height={32}
                         sizes="32px"
                         loading="lazy"
-                        className="h-8 w-8 2xl:[.ui-compact_&]:h-7 2xl:[.ui-compact_&]:w-7 rounded border border-white/10 bg-black/50 object-contain flex-shrink-0"
+                        className="h-8 w-8 2xl:[.ui-compact_&]:h-7 2xl:[.ui-compact_&]:w-7 rounded border border-primary-invert/10 bg-surface-base/50 object-contain flex-shrink-0"
                       />
                     )}
                     <div className="min-w-0">
@@ -67,7 +67,7 @@ export function CostCard({
                   {item.quantity !== 0 ? (
                     <div
                       className={`text-sm 2xl:[.ui-compact_&]:text-xs font-semibold ${
-                        item.quantity < 0 ? "text-emerald-300" : "text-primary"
+                        item.quantity < 0 ? "text-state-success" : "text-primary"
                       }`}
                     >
                       {item.quantity < 0
@@ -83,7 +83,7 @@ export function CostCard({
             {Array.from({ length: emptyRowCount }).map((_, index) => (
               <div
                 key={`placeholder-${index}`}
-                className="flex items-center justify-between gap-3 rounded-md border border-white/5 bg-black/30 px-3 py-2 2xl:[.ui-compact_&]:px-2.5 2xl:[.ui-compact_&]:py-1.5 opacity-0"
+                className="flex items-center justify-between gap-3 rounded-md border border-primary-invert/5 bg-surface-base/30 px-3 py-2 2xl:[.ui-compact_&]:px-2.5 2xl:[.ui-compact_&]:py-1.5 opacity-0"
                 aria-hidden="true"
               >
                 <div className="text-sm 2xl:[.ui-compact_&]:text-xs">placeholder</div>
@@ -95,4 +95,3 @@ export function CostCard({
     </div>
   );
 }
-

@@ -29,17 +29,17 @@ const variantClasses: Record<PanelVariant, string> = {
   // Light content surface (RECOMMENDED for most content)
   light:
     "rounded-xl border border-border-subtle bg-surface-card text-primary " +
-    "shadow-[0_12px_30px_rgba(0,0,0,0.18)]",
+    "shadow-panel-light",
 
   // Nested / quieter light surface
   subtle:
     "rounded-xl border border-border-subtle bg-surface-panel text-primary " +
-    "shadow-[0_10px_25px_rgba(0,0,0,0.22)]",
+    "shadow-panel-subtle",
 
   // Dark UI chrome (modals, drawers, navigation)
   chrome:
     "rounded-xl border border-border-strong bg-panel-texture text-primary-invert " +
-    "shadow-[0_0_40px_rgba(0,0,0,0.6)]",
+    "shadow-panel-chrome",
 };
 
 /**

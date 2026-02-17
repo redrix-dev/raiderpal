@@ -133,7 +133,7 @@ export function RangeSlider({
     >
       <div
         ref={trackRef}
-        className="absolute top-1/2 -translate-y-1/2 w-full h-2 bg-white rounded-full cursor-pointer"
+        className="absolute top-1/2 -translate-y-1/2 w-full h-2 bg-primary-invert rounded-full cursor-pointer"
       >
         <div
           className="h-full bg-brand-cyan rounded-full"

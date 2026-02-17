@@ -81,7 +81,7 @@ export function InstallPrompt() {
             <Button
               type="button"
               onClick={handleInstall}
-              variant="cta"
+              variant="primary"
               className="px-3 py-1.5 text-xs"
             >
               Install
@@ -105,4 +105,3 @@ interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
-

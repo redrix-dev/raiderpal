@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/Card";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Panel } from "@/components/ui/Panel";
+import { ToolPanel } from "@/components/ui/ToolPanel";
 import { getDataVersion, listCanonicalItems } from "@/lib/data";
 import { default as dynamicImport } from "next/dynamic";
 
@@ -24,16 +25,14 @@ export default async function ItemBrowserPage() {
     versionRow?.version != null ? String(versionRow.version) : "Unknown";
 
   return (
-    <main
-      data-testid="item-browser-page" 
-      className="mx-auto w-full max-w-6xl px-4 sm:px-6 py-8 space-y-6">
-      <div>
-        <SectionHeader accent={true}>
+    <ToolPanel width="wide">
+      <div data-testid="item-browser-page">
+        <SectionHeader accent>
           <h1 className="text-3xl font-bold font-condensed uppercase tracking-wide text-primary-invert">
             Item Browser
           </h1>
         </SectionHeader>
-        <Card className="rounded-t-none border-t-0 border-border-strong !p-0">
+        <Card flushTop padding="none" className="border-border-strong">
           <div className="px-6 sm:px-7 py-5 space-y-3">
             <p className="text-sm text-primary">
               Clean, token-first browsing with quick filters, rarity-aware cards,
@@ -58,7 +57,7 @@ export default async function ItemBrowserPage() {
       </div>
 
       <ItemBrowserClient initialItems={items ?? []} dataVersion={dataVersion} />
-    </main>
+    </ToolPanel>
   );
 }
 

@@ -18,20 +18,20 @@ export function ToolShell({
 }: ToolShellProps) {
   const max =
     width === "wide"
-      ? "max-w-6xl"
-      : "max-w-5xl";
+      ? "max-w-[1520px]"
+      : "max-w-[1360px]";
 
   return (
     <main
       className={[
         // page spacing
-        "mx-auto w-full px-4 sm:px-6 py-8",
+        "mx-auto w-full py-6 sm:py-7",
 
         // width control
         max,
 
         // vertical rhythm
-        "space-y-6",
+        "space-y-5",
 
         className,
       ].join(" ")}
@@ -40,4 +40,3 @@ export function ToolShell({
     </main>
   );
 }
-

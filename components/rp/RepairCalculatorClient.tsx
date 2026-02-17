@@ -203,10 +203,10 @@ export function RepairCalculatorClient({ items }: Props) {
     <div className="space-y-6">
       <ToolGrid>
         <div className="space-y-6 min-w-0">
-          <Card className="!p-0 overflow-hidden">
+          <Card padding="none" className="overflow-hidden">
             <CardHeader
-              className="rounded-none border-0 border-b border-border-subtle"
-              contentClassName="px-4 py-2 sm:px-5 sm:py-2"
+              padding="compact"
+              divider="subtle"
             >
               <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-primary-invert">
                 Item Selection
@@ -251,7 +251,7 @@ export function RepairCalculatorClient({ items }: Props) {
               </div>
 
               {selected && summary ? (
-                <Card className="!p-3 border-brand-cyan/40 bg-brand-cyan/10">
+                <Card padding="sm" className="border-brand-cyan/40 bg-brand-cyan/10">
                   <div className="space-y-1">
                     <div className="text-sm text-primary font-semibold">
                       Repair cycles needed: {cycles}
@@ -265,19 +265,19 @@ export function RepairCalculatorClient({ items }: Props) {
             </div>
           </Card>
 
-          <Card className="!p-0 overflow-hidden">
+          <Card padding="none" className="overflow-hidden">
             <CardHeader
-              className="rounded-none border-0 border-b border-border-subtle"
-              contentClassName="px-4 py-2 sm:px-5 sm:py-2"
+              padding="compact"
+              divider="subtle"
             >
               <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-primary-invert">
                 Repair Costs Breakdown
               </div>
             </CardHeader>
 
-          <div className="bg-surface-panel p-4 sm:p-5 space-y-3">
+            <div className="bg-surface-panel p-4 sm:p-5 space-y-3">
               {costTableRows.length === 0 ? (
-                <Card className="!p-3">
+                <Card padding="sm">
                   <p className="text-xs text-muted">
                     {selected
                       ? "No repairs needed"
@@ -311,10 +311,10 @@ export function RepairCalculatorClient({ items }: Props) {
           </Card>
         </div>
 
-        <Card className="min-w-0 !p-0 overflow-hidden">
+        <Card padding="none" className="min-w-0 overflow-hidden">
           <CardHeader
-            className="rounded-none border-0 border-b border-border-subtle"
-            contentClassName="px-4 py-2 sm:px-5 sm:py-2"
+            padding="compact"
+            divider="subtle"
           >
             <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-primary-invert">
               Crafting Analysis
@@ -346,7 +346,8 @@ function ComponentCard({
   return (
     <Card
       variant="neutral"
-      className={cn("!p-1", rarityClasses(item.rarity))}
+      padding="xs"
+      className={rarityClasses(item.rarity)}
     >
       <Panel
         variant="light"
@@ -418,7 +419,7 @@ function CostSection({
     <div className="space-y-2">
       <h3 className="text-sm font-semibold text-primary">{title}</h3>
       {rows.length === 0 ? (
-        <Card className="!p-3">
+        <Card padding="sm">
           <p className="text-xs text-muted">{emptyText}</p>
         </Card>
       ) : (
@@ -431,7 +432,7 @@ function CostSection({
             const quantityClass =
               row.quantity > 0
                 ? isReturn
-                  ? "text-emerald-600"
+                  ? "text-state-success"
                   : "text-primary"
                 : "text-muted";
 

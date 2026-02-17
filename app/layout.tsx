@@ -1,5 +1,6 @@
 // app/layout.tsx
 import type { Metadata, Viewport } from "next";
+import Image from "next/image";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { HeaderControls } from "@/components/rp/HeaderControls";
@@ -62,12 +63,12 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Raider Pal",
     description: "Arc Raiders item browser, crafting, and recycling tool.",
-    images: ["/backgrounds/ARC_Raiders_Module_Background.png"],
+    images: ["/icons/icon-512x512.png"],
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#4fc1e9",
+  themeColor: "brand-amber",
 };
 
 export default function RootLayout({
@@ -127,7 +128,7 @@ export default function RootLayout({
         <link rel="apple-touch-startup-image" media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/splash_screens/splash_screens/9.7__iPad_Pro__7.9__iPad_mini__9.7__iPad_Air__9.7__iPad_portrait.png" />
         <link rel="apple-touch-startup-image" media="screen and (device-width: 744px) and (device-height: 1133px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/splash_screens/splash_screens/8.3__iPad_Mini_portrait.png" />
       </head>
-      <body className="relative min-h-full bg-surface-base text-primary font-sans">
+      <body className="relative min-h-full bg-surface-base font-sans">
         {/* App stacking root: ensures ALL UI sits above body pseudo-element wallpaper layers */}
         <div id="app-root" className="relative z-10 min-h-screen flex flex-col">
           {/* Header */}
@@ -141,10 +142,17 @@ export default function RootLayout({
               backgroundPosition: "center",
             }}
           >
-            <div className="mx-auto w-full max-w-[1680px] 2xl:max-w-[1800px] px-6 lg:px-8 py-4 flex items-center justify-between gap-4">
+            <div className="mx-auto w-full max-w-[1520px] px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded bg-[#4fc1e9]/20 border border-[#4fc1e9]/40 flex items-center justify-center text-primary-invert font-semibold">
-                  RP
+                <div className="h-12 w-12 overflow-hidden rounded border bg-brand-cyan/20">
+                  <Image
+                    src="/icons/icon-192x192.png"
+                    alt="Raider Pal logo"
+                    width={48}
+                    height={48}
+                    className="h-full w-full object-cover"
+                    priority
+                  />
                 </div>
                 <div className="hidden sm:flex flex-col">
                   <h1 className="text-xl font-bold tracking-wide uppercase font-condensed text-center text-primary-invert sm:text-left">
@@ -163,7 +171,7 @@ export default function RootLayout({
 
           {/* Main */}
           <main className="flex-1">
-            <div className="mx-auto w-full max-w-[1680px] 2xl:max-w-[1800px] px-3 sm:px-5 lg:px-8 py-5">
+            <div className="mx-auto w-full max-w-[1520px] px-4 sm:px-6 lg:px-8">
               <div className="min-w-0">{children}</div>
             </div>
           </main>
@@ -186,7 +194,7 @@ export default function RootLayout({
 
           {/* Footer */}
           <footer
-            className="border-t border-slate-800 bg-[#050910]"
+            className="border-t border-border-strong bg-surface-base"
             style={{
               backgroundImage:
                 'url("/backgrounds/ARC_Raiders_Module_Background.png")',
@@ -195,14 +203,14 @@ export default function RootLayout({
               backgroundPosition: "center",
             }}
           >
-            <div className="mx-auto w-full max-w-[1680px] 2xl:max-w-[1800px] px-6 lg:px-8 py-4 text-sm text-muted-invert flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mx-auto w-full max-w-[1520px] px-4 sm:px-6 lg:px-8 py-4 text-sm text-muted-invert flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <span className="text-muted-invert">
                 Raider Pal — an unofficial Arc Raiders companion. Game data and
                 assets are © Embark Studios AB, with item information sourced
                 from MetaForge (
                 <a
                   href="https://metaforge.app/arc-raiders"
-                  className="text-[#4fc1e9] hover:text-[#4fc1e9]"
+                  className="text-brand-cyan hover:text-brand-cyan"
                 >
                   metaforge.app/arc-raiders
                 </a>
@@ -210,7 +218,13 @@ export default function RootLayout({
                 Embark Studios AB.
               </span>
               <span className="text-muted-invert">
-                Built with Next.js & Supabase
+                Built with Next.js & Supabase. Feedback:{" "}
+                <a
+                  href="mailto:feedback@raiderpal.app"
+                  className="text-brand-cyan hover:text-brand-cyan"
+                >
+                  feedback@raiderpal.app
+                </a>
               </span>
             </div>
           </footer>

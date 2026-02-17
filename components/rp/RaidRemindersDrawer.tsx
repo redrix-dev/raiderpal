@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import { RarityBadge } from "@/components/ui/RarityBadge";
 import { Card } from "@/components/ui/Card";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import { OverlayShell } from "@/components/ui/OverlayShell";
 import {
   ReminderItem,
   ReminderSort,
@@ -36,11 +37,18 @@ export function RaidRemindersDrawer({ open, onClose }: RaidRemindersDrawerProps)
     if (typeof document !== "undefined") {
       lastFocusedRef.current = document.activeElement as HTMLElement | null;
     }
+    function handleKey(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    }
+    document.addEventListener("keydown", handleKey);
     closeButtonRef.current?.focus();
     return () => {
+      document.removeEventListener("keydown", handleKey);
       lastFocusedRef.current?.focus();
     };
-  }, [open]);
+  }, [open, onClose]);
 
   if (!mounted || !open || !portalEl) return null;
 
@@ -55,90 +63,86 @@ export function RaidRemindersDrawer({ open, onClose }: RaidRemindersDrawerProps)
   }
 
   return createPortal(
-    <div
-      className="fixed inset-0 z-50 px-3 sm:px-6"
-      onClick={onClose}
-      role="presentation"
+    <OverlayShell
+      onDismiss={onClose}
+      alignment="top"
+      zIndexClassName="z-50"
+      viewportPaddingClassName="px-3 sm:px-6"
+      containerClassName="max-w-4xl"
+      scrimClassName="bg-surface-base/70"
     >
-      <div className="absolute inset-0 bg-surface-base/70" />
+      <div>
+        <SectionHeader className="rounded-t-2xl" accent>
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <h2 className="text-xl font-condensed font-semibold uppercase tracking-wide text-primary-invert">
+                Raid Reminders
+              </h2>
+              <p className="mt-1 text-xs text-muted-invert">
+                {empty ? "Nothing added yet" : `${sorted.length} item(s) saved`}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              ref={closeButtonRef}
+              className="shrink-0 rounded-md border border-border-strong bg-surface-base/80 px-3 py-1.5 text-xs text-primary-invert hover:border-brand-cyan/60 hover:text-brand-cyan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base"
+              aria-label="Close reminders"
+            >
+              Close
+            </button>
+          </div>
+        </SectionHeader>
 
-      <div className="relative flex h-full items-start justify-center pt-10 pointer-events-none">
-        <div
-          className="relative w-full max-w-4xl pointer-events-auto"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <SectionHeader className="rounded-t-2xl" accent>
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0">
-                <h2 className="text-xl font-condensed font-semibold uppercase tracking-wide text-primary-invert">
-                  Raid Reminders
-                </h2>
-                <p className="mt-1 text-xs text-muted-invert">
-                  {empty ? "Nothing added yet" : `${sorted.length} item(s) saved`}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={onClose}
-                ref={closeButtonRef}
-                className="shrink-0 rounded-md border border-border-strong bg-surface-base/80 px-3 py-1.5 text-xs text-primary-invert hover:border-brand-cyan/60 hover:text-brand-cyan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base"
-                aria-label="Close reminders"
+        <Card flushTop padding="none" className="border-border-strong">
+          <div className="px-6 py-4 border-b border-border-subtle bg-surface-panel flex items-center gap-3 text-xs text-primary">
+            <button
+              type="button"
+              onClick={handleClear}
+              disabled={empty}
+              className={`rounded-md px-3 py-1.5 text-xs font-medium border ${
+                empty
+                  ? "cursor-not-allowed border-border-strong bg-surface-panel text-muted opacity-60"
+                  : "border-border-strong bg-surface-card text-primary hover:border-brand-cyan/60 hover:text-brand-cyan"
+              }`}
+            >
+              Clear all
+            </button>
+
+            <div className="flex items-center gap-2 ml-auto">
+              <label className="text-xs text-muted font-medium">Sort</label>
+              <select
+                value={sort}
+                onChange={(e) => setSort(e.target.value as ReminderSort)}
+                className="rounded-md border border-border-strong bg-surface-panel px-2 py-1 text-xs text-primary focus:outline-none focus:ring-1 focus:ring-brand-cyan"
               >
-                Close
-              </button>
+                <option value="added">Order added</option>
+                <option value="location">Loot location</option>
+                <option value="az">Name A-Z</option>
+                <option value="za">Name Z-A</option>
+              </select>
             </div>
-          </SectionHeader>
+          </div>
 
-          <Card className="rounded-t-none border-t-0 border-border-strong !p-0">
-            <div className="px-6 py-4 border-b border-border-subtle bg-surface-panel flex items-center gap-3 text-xs text-primary">
-              <button
-                type="button"
-                onClick={handleClear}
-                disabled={empty}
-                className={`rounded-md px-3 py-1.5 text-xs font-medium border ${
-                  empty
-                    ? "cursor-not-allowed border-border-strong bg-surface-panel text-muted opacity-60"
-                    : "border-brand-amber/60 bg-brand-amber/10 text-primary hover:bg-brand-amber/20"
-                }`}
-              >
-                Clear all
-              </button>
-
-              <div className="flex items-center gap-2 ml-auto">
-                <label className="text-xs text-muted font-medium">Sort</label>
-                <select
-                  value={sort}
-                  onChange={(e) => setSort(e.target.value as ReminderSort)}
-                  className="rounded-md border border-border-strong bg-surface-panel px-2 py-1 text-xs text-primary focus:outline-none focus:ring-1 focus:ring-brand-cyan"
-                >
-                  <option value="added">Order added</option>
-                  <option value="location">Loot location</option>
-                  <option value="az">Name A-Z</option>
-                  <option value="za">Name Z-A</option>
-                </select>
+          <div className="max-h-[70vh] overflow-y-auto px-6 py-4 space-y-3">
+            {empty ? (
+              <div className="rounded-lg border border-dashed border-border-subtle bg-surface-panel p-4 text-sm text-muted">
+                Add items to Raid Reminders to populate this dashboard.
               </div>
-            </div>
-
-            <div className="max-h-[70vh] overflow-y-auto px-6 py-4 space-y-3">
-              {empty ? (
-                <div className="rounded-lg border border-dashed border-border-subtle bg-surface-panel p-4 text-sm text-muted">
-                  Add items to Raid Reminders to populate this dashboard.
-                </div>
-              ) : (
-                sorted.map((item) => (
-                  <ReminderRow
-                    key={item.id}
-                    item={item}
-                    onRemove={() => remove(item.id)}
-                    onNoteChange={(note) => updateNote(item.id, note)}
-                  />
-                ))
-              )}
-            </div>
-          </Card>
-        </div>
+            ) : (
+              sorted.map((item) => (
+                <ReminderRow
+                  key={item.id}
+                  item={item}
+                  onRemove={() => remove(item.id)}
+                  onNoteChange={(note) => updateNote(item.id, note)}
+                />
+              ))
+            )}
+          </div>
+        </Card>
       </div>
-    </div>,
+    </OverlayShell>,
     portalEl
   );
 }
@@ -200,7 +204,7 @@ function ReminderRow({
             <button
               type="button"
               onClick={onRemove}
-              className="shrink-0 rounded-md px-2 py-1 text-xs border border-brand-amber/60 bg-brand-amber/10 text-primary hover:bg-brand-amber/20 focus:outline-none focus:ring-1 focus:ring-brand-cyan"
+              className="shrink-0 rounded-md px-2 py-1 text-xs border border-border-strong bg-surface-card text-primary hover:border-brand-cyan/60 hover:text-brand-cyan focus:outline-none focus:ring-1 focus:ring-brand-cyan"
               aria-label={`Remove ${item.name}`}
             >
               Remove
@@ -208,7 +212,7 @@ function ReminderRow({
             <button
               type="button"
               onClick={() => setEditing(true)}
-              className="shrink-0 rounded-md px-2 py-1 text-xs border border-brand-cyan/40 bg-brand-cyan/10 text-brand-cyan hover:bg-brand-cyan/15 focus:outline-none focus:ring-1 focus:ring-brand-cyan"
+              className="shrink-0 rounded-md px-2 py-1 text-xs border border-brand-cyan/55 bg-brand-cyan/12 text-primary hover:border-brand-cyan/70 hover:bg-brand-cyan/18 focus:outline-none focus:ring-1 focus:ring-brand-cyan"
             >
               {item.note ? "Edit note" : "Add note"}
             </button>
@@ -235,7 +239,7 @@ function ReminderRow({
                       onNoteChange(noteValue.trim());
                       setEditing(false);
                     }}
-                    className="rounded-md px-3 py-1.5 text-xs font-medium border border-brand-cyan/70 bg-brand-cyan/15 text-brand-cyan hover:border-brand-cyan"
+                    className="rounded-md px-3 py-1.5 text-xs font-medium border border-brand-cyan/70 bg-brand-cyan/16 text-primary hover:border-brand-cyan hover:bg-brand-cyan/22"
                   >
                     Save
                   </button>

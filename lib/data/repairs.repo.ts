@@ -14,16 +14,12 @@ import { getItemsByIds } from "./items.repo";
 export async function getRepairProfile(
   itemId: string
 ): Promise<RepairProfile | null> {
-  const [row, legacyRow] = await Promise.all([
+  const row = await
     queryViewMaybeSingle(VIEW_CONTRACTS.repairProfiles, (q) =>
       q.eq("item_id", itemId)
-    ),
-    queryViewMaybeSingle(VIEW_CONTRACTS.legacyRepairProfiles, (q) =>
-      q.eq("item_id", itemId)
-    ),
-  ]);
+  );
 
-  const normalized = normalizeProfileRow(row ?? legacyRow);
+  const normalized = normalizeProfileRow(row);
   if (!normalized) return null;
 
   return normalized;
@@ -121,18 +117,7 @@ async function fetchRepairProfiles(): Promise<RepairProfile[]> {
     .map((row) => normalizeProfileRow(row))
     .filter((row): row is RepairProfile => Boolean(row));
 
-  if (normalized.length > 0) {
-    return normalized;
-  }
-
-  const legacyRows = await queryView(
-    VIEW_CONTRACTS.legacyRepairProfiles,
-    (q) => q.order("item_id", { ascending: true })
-  );
-
-  return legacyRows
-    .map((row) => normalizeProfileRow(row))
-    .filter((row): row is RepairProfile => Boolean(row));
+  return normalized;
 }
 
 function normalizeProfileRow(

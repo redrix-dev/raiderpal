@@ -17,8 +17,8 @@ type ButtonProps =
 const variantClasses: Record<ButtonVariant, string> = {
   // Primary action - cyan
   primary:
-    "border-brand-cyan/60 bg-brand-cyan/10 text-brand-cyan " +
-    "hover:bg-brand-cyan/20 hover:border-brand-cyan " +
+    "border-brand-cyan/70 bg-brand-cyan/16 text-primary " +
+    "hover:bg-brand-cyan/24 hover:border-brand-cyan " +
     "focus-visible:ring-brand-cyan",
 
   // Secondary action - subtle light
@@ -35,8 +35,8 @@ const variantClasses: Record<ButtonVariant, string> = {
 
   // CTA - amber (most prominent)
   cta:
-    "border-brand-amber/60 bg-brand-amber text-primary " +
-    "hover:bg-brand-amber/90 hover:border-brand-amber " +
+    "border-brand-amber/70 bg-brand-amber/18 text-primary " +
+    "hover:bg-brand-amber/28 hover:border-brand-amber " +
     "focus-visible:ring-brand-amber",
 };
 

@@ -19,7 +19,7 @@ export function ToolGrid({
 }: ToolGridProps) {
   return (
     <div
-      className={cn("grid gap-6 items-start", columnClasses[columnsAt], className)}
+      className={cn("grid gap-4 sm:gap-5 items-start", columnClasses[columnsAt], className)}
       {...rest}
     >
       {children}

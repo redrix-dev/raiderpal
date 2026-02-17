@@ -6,9 +6,9 @@ import { PrimaryButton } from "@/components/ui/PrimaryButton";
 
 export default function HomePage() {
   return (
-    <ToolPanel>
+    <ToolPanel width="wide">
       <section className="space-y-3 sm:hidden">
-        <h1 className="text-3xl font-bold tracking-wide uppercase font-condensed">
+        <h1 className="text-3xl font-bold text-primary tracking-wide uppercase font-condensed">
           Raider Pal
         </h1>
         <p className="text-sm text-muted max-w-2xl font-medium">
@@ -23,11 +23,11 @@ export default function HomePage() {
           headerClassName="[&_>div]:justify-center [&_h2]:text-center"
         >
           <div className="space-y-2">
-            <p className="text-sm text-muted">
+            <p className="text-sm text-primary">
               Search and filter every known item, peek at crafting inputs and
               recycling outputs, and jump to full details.
             </p>
-            <PrimaryButton href="/item-browser" variant="cta">
+            <PrimaryButton href="/item-browser">
               Go to Item Browser
             </PrimaryButton>
           </div>
@@ -43,7 +43,7 @@ export default function HomePage() {
               Compare repairing versus crafting new to choose the most efficient option.
               Balance resource costs, outputs, and time to optimize your runs.
             </p>
-            <PrimaryButton href="/repair-calculator" variant="cta">
+            <PrimaryButton href="/repair-calculator">
               Go to Repair/Replace Calculator
             </PrimaryButton>
           </div>
