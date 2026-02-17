@@ -218,7 +218,13 @@ export default function RootLayout({
                 Embark Studios AB.
               </span>
               <span className="text-muted-invert">
-                Built with Next.js & Supabase
+                Built with Next.js & Supabase. Feedback:{" "}
+                <a
+                  href="mailto:feedback@raiderpal.app"
+                  className="text-brand-cyan hover:text-brand-cyan"
+                >
+                  feedback@raiderpal.app
+                </a>
               </span>
             </div>
           </footer>
